@@ -17,7 +17,7 @@ Please also refer to the Supplementary Information for a detailed description of
 the method.
 
 AlphaFold 3 is also available at
-[alphafoldsever.com](https://alphafoldserver.com) for non-commercial use, though
+[alphafoldserver.com](https://alphafoldserver.com) for non-commercial use, though
 with a more limited set of ligands and covalent modifications.
 
 If you have any questions, please contact the AlphaFold team at
