@@ -15,7 +15,7 @@ FROM nvidia/cuda:12.6.0-base-ubuntu22.04
 # git is required for pyproject.toml toolchain's use of CMakeLists.txt.
 RUN apt update --quiet \
     && apt install --yes --quiet software-properties-common \
-    && apt install --yes --quiet git wget
+    && apt install --yes --quiet git wget zlib1g zlib1g-dev 
 
 # Get apt repository of specific Python versions. Then install Python. Tell APT
 # this isn't an interactive TTY to avoid timezone prompt when installing.
