@@ -385,7 +385,7 @@ singularity exec \
      --bind <MODEL_PARAMETERS_DIR>:/root/models \
      --bind <DB_DIR>:/root/public_databases \
      alphafold3.sif \
-     python alphafold3/run_alphafold.py \
+     python run_alphafold.py \
      --json_path=/root/af_input/fold_input.json \
      --model_dir=/root/models \
      --db_dir=/root/public_databases \
@@ -403,7 +403,7 @@ singularity exec \
      --bind <SSD_DB_DIR>:/root/public_databases \
      --bind <DB_DIR>:/root/public_databases_fallback \
      alphafold3.sif \
-     python alphafold3/run_alphafold.py \
+     python run_alphafold.py \
      --json_path=/root/af_input/fold_input.json \
      --model_dir=/root/models \
      --db_dir=/root/public_databases \
