@@ -71,10 +71,6 @@ RUN python3.11 -m venv /alphafold3_venv
 # features for secure installs.
 RUN /alphafold3_venv/bin/pip3 install --no-cache-dir --upgrade pip
 
-# Add the AlphaFold 3 source code from the local machine to the container and
-# set the working directory to there.
-# COPY . /app/alphafold
-
 # Add the AlphaFold 3 source code from GitHub to the image and
 # set the working directory to there
 ADD https://github.com/google-deepmind/alphafold3.git#v${ALPHAFOLD_VERSION} /app/alphafold
