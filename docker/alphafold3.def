@@ -1,0 +1,140 @@
+# Copyright 2024 DeepMind Technologies Limited
+#
+# AlphaFold 3 source code is licensed under CC BY-NC-SA 4.0. To view a copy of
+# this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
+#
+# To request access to the AlphaFold 3 model parameters, follow the process set
+# out at https://github.com/google-deepmind/alphafold3. You may only use these
+# if received directly from Google. Use is subject to terms of use available at
+# https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md
+
+# Script modified from Dockerfile (https://github.com/google-deepmind/alphafold3/blob/cdbcf41b71235ec33338edef1f80e03fb0c6bae4/docker/Dockerfile)
+# by BEAR Software team at the University of Birmingham, UK
+
+Bootstrap: docker
+From: nvidia/cuda:12.6.0-base-ubuntu22.04
+Stage: hmmer_build
+
+%arguments
+    hmmer_version=3.4
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update && apt-get install --no-install-recommends -y \
+            git \
+            wget \
+            gcc \
+            g++ \
+            make \
+        && apt-get clean \
+        && rm -rf /var/lib/apt/lists/*
+
+    # Build HMMER
+    mkdir /hmmer_build /hmmer
+    wget http://eddylab.org/software/hmmer/hmmer-{{ hmmer_version }}.tar.gz --directory-prefix /hmmer_build
+    cd /hmmer_build && tar zxf hmmer-*.tar.gz && rm hmmer-*.tar.gz
+    cd ./hmmer-*
+    ./configure --prefix /hmmer
+    make -j8
+    make install
+    cd ./easel && make install
+    rm -R /hmmer_build
+
+####################
+
+Bootstrap: docker
+From: nvidia/cuda:12.6.0-base-ubuntu22.04
+Stage: alphafold3_build
+
+%arguments
+    alphafold_version=3.0.0
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update && apt-get install --no-install-recommends -y \
+            software-properties-common \
+        && add-apt-repository ppa:deadsnakes/ppa \
+        && apt-get update && apt-get install --no-install-recommends -y \
+            git \
+            wget \
+            gcc \
+            g++ \
+            make \
+            zlib1g-dev \
+            zstd \
+            python3.11 \
+            python3-pip \
+            python3.11-venv \
+            python3.11-dev \
+        && apt-get clean \
+        && rm -rf /var/lib/apt/lists/*
+
+    # Create Python 3.11 virtual environment for the AlphaFold build
+    python3.11 -m venv /alphafold3_venv
+
+    # Update pip to the latest version
+    /alphafold3_venv/bin/pip3 install --upgrade pip
+    
+    # Get AlphaFold 3 source code
+    mkdir -p /app
+    cd /tmp
+    wget https://github.com/google-deepmind/alphafold3/archive/refs/tags/v{{ alphafold_version }}.tar.gz
+    tar zxf *.tar.gz
+    mv /tmp/alphafold3-* "/app/alphafold"
+    rm -f *.tar.gz
+
+    cd "/app/alphafold"
+    # Install the Python dependencies AlphaFold 3 needs.
+    /alphafold3_venv/bin/pip3 install --no-cache-dir -r dev-requirements.txt
+    # Build AlphaFold 3.
+    /alphafold3_venv/bin/pip3 install --no-cache-dir --no-deps --verbose .
+    # Build chemical components database (this binary was installed by pip).
+    /alphafold3_venv/bin/build_data
+
+    # Remove build-only content from AlphaFold repo directory
+    /bin/bash -c "rm -rf /app/alphafold/{dev-requirements.txt,docker,pyproject.toml,requirements.txt,src,CMakeLists.txt}"
+
+####################
+
+Bootstrap: docker
+From: nvidia/cuda:12.6.0-base-ubuntu22.04
+Stage: final
+
+%files from hmmer_build
+    /hmmer /hmmer
+
+%files from alphafold3_build
+    /alphafold3_venv /alphafold3_venv
+    /app/alphafold /app/alphafold
+
+%environment
+    export PATH="/hmmer/bin:/alphafold3_venv/bin:${PATH}"
+    # To work around a known XLA issue causing the compilation time to greatly
+    # increase, the following environment variable setting XLA flags must be enabled
+    # when running AlphaFold 3:
+    export XLA_FLAGS="--xla_gpu_enable_triton_gemm=false"
+    # Memory settings used for folding up to 5,120 tokens on A100 80 GB.
+    export XLA_PYTHON_CLIENT_PREALLOCATE=true
+    export XLA_CLIENT_MEM_FRACTION=0.95
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update && apt-get install --no-install-recommends -y \
+            software-properties-common \
+        && add-apt-repository ppa:deadsnakes/ppa \
+        && apt-get update && apt-get install --no-install-recommends -y \
+            git \
+            wget \
+            zlib1g \
+            zstd \
+            python3.11 \
+            python3-pip \
+            python3.11-venv \
+        && apt-get clean \
+        && rm -rf /var/lib/apt/lists/*
+
+%runscript
+    exec python3 /app/alphafold/run_alphafold.py "$@"
