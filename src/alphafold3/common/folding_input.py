@@ -609,7 +609,7 @@ class Input:
       )
 
     chain_ids = [c.id for c in self.chains]
-    if any(not c.id.isalpha() or c.id.islower() for c in self.chains):
+    if any(c.id.islower() for c in self.chains):
       raise ValueError(f'IDs must be upper case letters, got: {chain_ids}')
     if len(set(chain_ids)) != len(chain_ids):
       raise ValueError('Input JSON contains sequences with duplicate IDs.')
