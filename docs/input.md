@@ -383,7 +383,7 @@ The following combinations are valid for a given protein chain:
     string, AlphaFold 3 will use the provided MSA instead of building one as
     part of the data pipeline. This is considered an expert option.
 
-Note that both `unpairedMsa` and `unpairedMsa` have to either be *both* set
+Note that both `unpairedMsa` and `pairedMsa` have to either be *both* set
 (i.e. non-`null`), or both unset (i.e. both `null`, explicitly or implicitly).
 Typically, when setting `unpairedMsa`, you will set the `pairedMsa` to an empty
 string (`""`). For example this will run the protein chain A with the given MSA,
