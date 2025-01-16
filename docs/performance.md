@@ -94,7 +94,7 @@ AlphaFold 3 can run on inputs of size up to 4,352 tokens on a single NVIDIA A100
           (None, 512),   # for all other sequences, shard in chunks 512
       )
     ```
-    
+
 While numerically accurate, this configuration will have lower throughput
 compared to the set up on the NVIDIA A100 (80 GB), due to less available memory.
 
