@@ -89,12 +89,12 @@ AlphaFold 3 can run on inputs of size up to 4,352 tokens on a single NVIDIA A100
 
     ```py
       pair_transition_shard_spec: Sequence[_Shape2DType] = (
-          (2048, None),
-          (3072, 1024),
-          (None, 512),
+          (2048, None),  # for sequences up to 2048 tokens, do not shard
+          (3072, 1024),  # for sequences up to 3072 tokens, shard in chunks of 1024
+          (None, 512),   # for all other sequences, shard in chunks 512
       )
     ```
-
+    
 While numerically accurate, this configuration will have lower throughput
 compared to the set up on the NVIDIA A100 (80 GB), due to less available memory.
 
