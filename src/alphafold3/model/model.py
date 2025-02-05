@@ -327,7 +327,7 @@ class Model(hk.Module):
 
     distogram = distogram_head.DistogramHead(
         self.config.heads.distogram, self.global_config
-    )(batch, embeddings)
+    )(batch, embeddings, self.config.return_distogram)
 
     output = {
         'diffusion_samples': samples,

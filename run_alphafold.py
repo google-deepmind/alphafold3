@@ -271,6 +271,11 @@ _SAVE_EMBEDDINGS = flags.DEFINE_bool(
     'Whether to save the final trunk single and pair embeddings in the output.',
 )
 
+_SAVE_DISTOGRAM = flags.DEFINE_bool(
+    'save_distogram',
+    False,
+    'Whether to save the final distogram in the output.',
+)
 
 def make_model_config(
     *,
@@ -278,6 +283,7 @@ def make_model_config(
     num_diffusion_samples: int = 5,
     num_recycles: int = 10,
     return_embeddings: bool = False,
+    return_distogram: bool = False,
 ) -> model.Model.Config:
   """Returns a model config with some defaults overridden."""
   config = model.Model.Config()
@@ -287,6 +293,7 @@ def make_model_config(
   config.heads.diffusion.eval.num_samples = num_diffusion_samples
   config.num_recycles = num_recycles
   config.return_embeddings = return_embeddings
+  config.return_distogram = return_distogram
   return config
 
 
@@ -369,6 +376,16 @@ class ModelRunner:
       embeddings['pair_embeddings'] = result['pair_embeddings']
     return embeddings or None
 
+  def extract_distogram(
+      self,
+      result: model.ModelResult,
+      num_tokens: int,
+  ) -> np.ndarray | None:
+    """Extracts distogram from model outputs."""
+    if 'distogram' not in result['distogram']:
+      return None
+    distogram = result['distogram']['distogram'][:num_tokens, :num_tokens, :]
+    return distogram
 
 @dataclasses.dataclass(frozen=True, slots=True, kw_only=True)
 class ResultsForSeed:
@@ -386,6 +403,7 @@ class ResultsForSeed:
   inference_results: Sequence[model.InferenceResult]
   full_fold_input: folding_input.Input
   embeddings: dict[str, np.ndarray] | None = None
+  distogram: np.ndarray | None = None
 
 
 def predict_structure(
@@ -434,15 +452,17 @@ def predict_structure(
         f'Extracting {len(inference_results)} output structure samples with'
         f' seed {seed} took {time.time() - extract_structures:.2f} seconds.'
     )
-
+    
     embeddings = model_runner.extract_embeddings(result)
-
+    distogram = model_runner.extract_distogram(result, example['seq_length'])
+    
     all_inference_results.append(
         ResultsForSeed(
             seed=seed,
             inference_results=inference_results,
             full_fold_input=fold_input,
             embeddings=embeddings,
+            distogram=distogram,
         )
     )
   print(
@@ -499,6 +519,12 @@ def write_outputs(
       os.makedirs(embeddings_dir, exist_ok=True)
       post_processing.write_embeddings(
           embeddings=embeddings, output_dir=embeddings_dir
+      )
+
+    if (distogram := results_for_seed.distogram) is not None:
+      print(distogram.shape)
+      post_processing.write_distogram(
+          distogram=distogram, output_path=os.path.join(output_dir, f'distogram_seed-{seed}.npz')
       )
 
   if max_ranking_result is not None:  # True iff ranking_scores non-empty.
@@ -756,6 +782,7 @@ def main(_):
             num_diffusion_samples=_NUM_DIFFUSION_SAMPLES.value,
             num_recycles=_NUM_RECYCLES.value,
             return_embeddings=_SAVE_EMBEDDINGS.value,
+            return_distogram=_SAVE_DISTOGRAM.value,
         ),
         device=devices[_GPU_DEVICE.value],
         model_dir=pathlib.Path(MODEL_DIR.value),
