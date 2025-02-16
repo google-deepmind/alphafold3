@@ -1,4 +1,4 @@
-![header](docs/header.jpg)
+sudo su && ![header](docs/header.jpg)
 
 # AlphaFold 3
 
