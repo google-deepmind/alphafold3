@@ -339,6 +339,7 @@ def sample(
     t_hat = noise_level_prev * (1 + gamma)
 
     noise_scale = config.noise_scale * jnp.sqrt(t_hat**2 - noise_level_prev**2)
+    noise_scale = jnp.nan_to_num(noise_scale, nan=0.0, posinf=0.0, neginf=0.0)
     noise = noise_scale * jax.random.normal(key_noise, positions.shape)
     positions_noisy = positions + noise
 
