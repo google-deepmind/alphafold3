@@ -460,6 +460,9 @@ def predict_structure(
             batch=example, result=result, target_name=fold_input.name
         )
     )
+
+    distogram = model_runner.extract_distogram(result, example['seq_length'])
+
     print(
         f'Extracting {len(inference_results)} inference samples with'
         f' seed {seed} took {time.time() - extract_structures:.2f} seconds.'
@@ -534,10 +537,9 @@ def write_outputs(
       )
 
     if (distogram := results_for_seed.distogram) is not None:
-      print(distogram.shape)
-      post_processing.write_distogram(
-          distogram=distogram, output_path=os.path.join(output_dir, f'distogram_seed-{seed}.npz')
-      )
+      distogram_path = os.path.join(output_dir, f'seed-{seed}_distogram.npz')
+      with open(distogram_path, 'wb') as f:
+        np.savez_compressed(f, distogram=distogram)
 
   if max_ranking_result is not None:  # True iff ranking_scores non-empty.
     post_processing.write_output(
