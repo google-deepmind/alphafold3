@@ -39,7 +39,7 @@ def featurise_input(
     fold_input: folding_input.Input,
     ccd: chemical_components.Ccd,
     buckets: Sequence[int] | None,
-    max_template_date: datetime.date | None = None,
+    ref_max_modified_date: datetime.date | None = None,
     conformer_max_iterations: int | None = None,
     verbose: bool = False,
 ) -> Sequence[features.BatchDict]:
@@ -53,8 +53,11 @@ def featurise_input(
       number of tokens. If not None, must be a sequence of at least one integer,
       in strictly increasing order. Will raise an error if the number of tokens
       is more than the largest bucket size.
-    max_template_date: Optional max template date to prevent data leakage in
-      validation.
+    ref_max_modified_date: Optional maximum date that controls whether to allow
+      use of model coordinates for a chemical component from the CCD if RDKit
+      conformer generation fails and the component does not have ideal
+      coordinates set. Only for components that have been released before this
+      date the model coordinates can be used as a fallback.
     conformer_max_iterations: Optional override for maximum number of iterations
       to run for RDKit conformer search.
     verbose: Whether to print progress messages.
@@ -68,7 +71,7 @@ def featurise_input(
   data_pipeline = pipeline.WholePdbPipeline(
       config=pipeline.WholePdbPipeline.Config(
           buckets=buckets,
-          max_template_date=max_template_date,
+          ref_max_modified_date=ref_max_modified_date,
           conformer_max_iterations=conformer_max_iterations,
       ),
   )

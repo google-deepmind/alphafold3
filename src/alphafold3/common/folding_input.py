@@ -16,6 +16,7 @@ import gzip
 import json
 import logging
 import lzma
+import os
 import pathlib
 import random
 import re
@@ -35,7 +36,7 @@ import zstandard as zstd
 BondAtomId: TypeAlias = tuple[str, int, str]
 
 JSON_DIALECT: Final[str] = 'alphafold3'
-JSON_VERSIONS: Final[tuple[int, ...]] = (1, 2)
+JSON_VERSIONS: Final[tuple[int, ...]] = (1, 2, 3)
 JSON_VERSION: Final[int] = JSON_VERSIONS[-1]
 
 ALPHAFOLDSERVER_JSON_DIALECT: Final[str] = 'alphafoldserver'
@@ -209,6 +210,9 @@ class ProteinChain:
   def templates(self) -> Sequence[Template] | None:
     return self._templates
 
+  def __len__(self) -> int:
+    return len(self._sequence)
+
   def __eq__(self, other: Self) -> bool:
     return (
         self._id == other._id
@@ -246,21 +250,38 @@ class ProteinChain:
     """Constructs ProteinChain from the AlphaFoldServer JSON dict."""
     _validate_keys(
         json_dict.keys(),
-        {'sequence', 'glycans', 'modifications', 'count'},
+        {
+            'sequence',
+            'glycans',
+            'modifications',
+            'count',
+            'maxTemplateDate',
+            'useStructureTemplate',
+        },
     )
     sequence = json_dict['sequence']
 
     if 'glycans' in json_dict:
       raise ValueError(
           f'Specifying glycans in the `{ALPHAFOLDSERVER_JSON_DIALECT}` format'
-          ' is not currently supported.'
+          ' is not supported.'
       )
+
+    if 'maxTemplateDate' in json_dict:
+      raise ValueError(
+          f'Specifying maxTemplateDate in the `{ALPHAFOLDSERVER_JSON_DIALECT}`'
+          ' format is not supported, use the --max_template_date flag instead.'
+      )
+
+    templates = None  # Search for templates unless explicitly disabled.
+    if not json_dict.get('useStructureTemplate', True):
+      templates = []  # Do not use any templates.
 
     ptms = [
         (mod['ptmType'].removeprefix('CCD_'), mod['ptmPosition'])
         for mod in json_dict.get('modifications', [])
     ]
-    return cls(id=seq_id, sequence=sequence, ptms=ptms)
+    return cls(id=seq_id, sequence=sequence, ptms=ptms, templates=templates)
 
   @classmethod
   def from_dict(
@@ -295,6 +316,14 @@ class ProteinChain:
     unpaired_msa_path = json_dict.get('unpairedMsaPath', None)
     if unpaired_msa and unpaired_msa_path:
       raise ValueError('Only one of unpairedMsa/unpairedMsaPath can be set.')
+    if (
+        unpaired_msa
+        and len(unpaired_msa) < 256
+        and os.path.exists(unpaired_msa)
+    ):
+      raise ValueError(
+          'Set the unpaired MSA path using the "unpairedMsaPath" field.'
+      )
     elif unpaired_msa_path:
       unpaired_msa = _read_file(pathlib.Path(unpaired_msa_path), json_path)
 
@@ -302,6 +331,10 @@ class ProteinChain:
     paired_msa_path = json_dict.get('pairedMsaPath', None)
     if paired_msa and paired_msa_path:
       raise ValueError('Only one of pairedMsa/pairedMsaPath can be set.')
+    if paired_msa and len(paired_msa) < 256 and os.path.exists(paired_msa):
+      raise ValueError(
+          'Set the paired MSA path using the "pairedMsaPath" field.'
+      )
     elif paired_msa_path:
       paired_msa = _read_file(pathlib.Path(paired_msa_path), json_path)
 
@@ -316,6 +349,8 @@ class ProteinChain:
         mmcif_path = raw_template.get('mmcifPath', None)
         if mmcif and mmcif_path:
           raise ValueError('Only one of mmcif/mmcifPath can be set.')
+        if mmcif and len(mmcif) < 256 and os.path.exists(mmcif):
+          raise ValueError('Set the template path using the "mmcifPath" field.')
         if mmcif_path:
           mmcif = _read_file(pathlib.Path(mmcif_path), json_path)
         query_to_template_map = dict(
@@ -449,6 +484,9 @@ class RnaChain:
   def unpaired_msa(self) -> str | None:
     return self._unpaired_msa
 
+  def __len__(self) -> int:
+    return len(self._sequence)
+
   def __eq__(self, other: Self) -> bool:
     return (
         self._id == other._id
@@ -502,6 +540,14 @@ class RnaChain:
     unpaired_msa_path = json_dict.get('unpairedMsaPath', None)
     if unpaired_msa and unpaired_msa_path:
       raise ValueError('Only one of unpairedMsa/unpairedMsaPath can be set.')
+    if (
+        unpaired_msa
+        and len(unpaired_msa) < 256
+        and os.path.exists(unpaired_msa)
+    ):
+      raise ValueError(
+          'Set the unpaired MSA path using the "unpairedMsaPath" field.'
+      )
     elif unpaired_msa_path:
       unpaired_msa = _read_file(pathlib.Path(unpaired_msa_path), json_path)
 
@@ -595,6 +641,9 @@ class DnaChain:
         residue_names.letters_three_to_one(r, default='N')
         for r in self.to_ccd_sequence()
     ])
+
+  def __len__(self) -> int:
+    return len(self._sequence)
 
   def __eq__(self, other: Self) -> bool:
     return (
@@ -700,6 +749,12 @@ class Ligand:
     if self.ccd_ids is not None:
       object.__setattr__(self, 'ccd_ids', tuple(self.ccd_ids))
 
+  def __len__(self) -> int:
+    if self.ccd_ids is not None:
+      return len(self.ccd_ids)
+    else:
+      return 1
+
   def hash_without_id(self) -> int:
     """Returns a hash ignoring the ID - useful for deduplication."""
     return hash((self.ccd_ids, self.smiles))
@@ -756,7 +811,7 @@ def _sample_rng_seed() -> int:
   return random.randint(0, 2**32 - 1)
 
 
-def _validate_user_ccd_keys(keys: Sequence[str]) -> None:
+def _validate_user_ccd_keys(keys: Sequence[str], component_name: str) -> None:
   """Validates the keys of the user-defined CCD dictionary."""
   mandatory_keys = (
       '_chem_comp.id',
@@ -779,7 +834,10 @@ def _validate_user_ccd_keys(keys: Sequence[str]) -> None:
       '_chem_comp_bond.pdbx_aromatic_flag',
   )
   if missing_keys := set(mandatory_keys) - set(keys):
-    raise ValueError(f'User-defined CCD is missing these keys: {missing_keys}')
+    raise ValueError(
+        f'Component {component_name} in the user-defined CCD is missing these'
+        f' keys: {missing_keys}'
+    )
 
 
 @dataclasses.dataclass(frozen=True, slots=True, kw_only=True)
@@ -835,8 +893,12 @@ class Input:
       object.__setattr__(
           self, 'bonded_atom_pairs', tuple(self.bonded_atom_pairs)
       )
+
     if self.user_ccd is not None:
-      _validate_user_ccd_keys(cif_dict.from_string(self.user_ccd).keys())
+      for component_name, component_cif in cif_dict.parse_multi_data_cif(
+          self.user_ccd
+      ).items():
+        _validate_user_ccd_keys(component_cif.keys(), component_name)
 
   @property
   def protein_chains(self) -> Sequence[ProteinChain]:
@@ -966,6 +1028,7 @@ class Input:
             'sequences',
             'bondedAtomPairs',
             'userCCD',
+            'userCCDPath',
         },
     )
 
@@ -1031,7 +1094,10 @@ class Input:
         else:
           raise ValueError(f'Unknown sequence type: {sequence}')
 
-    ligands = [chain for chain in chains if isinstance(chain, Ligand)]
+    smiles_ligand_ids = set(
+        c.id for c in chains if isinstance(c, Ligand) and c.smiles is not None
+    )
+    chain_lengths = {chain.id: len(chain) for chain in chains}
     bonded_atom_pairs = None
     if bonds := raw_json.get('bondedAtomPairs'):
       bonded_atom_pairs = []
@@ -1061,9 +1127,11 @@ class Input:
           )
         if bond_beg[0] not in flat_seq_ids or bond_end[0] not in flat_seq_ids:
           raise ValueError(f'Invalid chain ID(s) in bond {bond}')
-        if bond_beg[1] <= 0 or bond_end[1] <= 0:
+        if (
+            not 0 < bond_beg[1] <= chain_lengths[bond_beg[0]]
+            or not 0 < bond_end[1] <= chain_lengths[bond_end[0]]
+        ):
           raise ValueError(f'Invalid residue ID(s) in bond {bond}')
-        smiles_ligand_ids = set(l.id for l in ligands if l.smiles is not None)
         if bond_beg[0] in smiles_ligand_ids:
           raise ValueError(
               f'Bond {bond} involves an unsupported SMILES ligand {bond_beg[0]}'
@@ -1074,12 +1142,24 @@ class Input:
           )
         bonded_atom_pairs.append((tuple(bond_beg), tuple(bond_end)))
 
+      if len(bonded_atom_pairs) != len(set(bonded_atom_pairs)):
+        raise ValueError(f'Bonds are not unique: {bonded_atom_pairs}')
+
+    user_ccd = raw_json.get('userCCD')
+    user_ccd_path = raw_json.get('userCCDPath')
+    if user_ccd and user_ccd_path:
+      raise ValueError('Only one of userCCD/userCCDPath can be set.')
+    if user_ccd and len(user_ccd) < 256 and os.path.exists(user_ccd):
+      raise ValueError('Set the user CCD path using the "userCCDPath" field.')
+    elif user_ccd_path:
+      user_ccd = _read_file(pathlib.Path(user_ccd_path), json_path)
+
     return cls(
         name=raw_json['name'],
         chains=chains,
         rng_seeds=[int(seed) for seed in raw_json['modelSeeds']],
         bonded_atom_pairs=bonded_atom_pairs,
-        user_ccd=raw_json.get('userCCD'),
+        user_ccd=user_ccd,
     )
 
   @classmethod

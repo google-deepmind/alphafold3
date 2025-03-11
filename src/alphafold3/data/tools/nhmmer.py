@@ -126,7 +126,7 @@ class Nhmmer(msa_tool.MsaTool):
 
       subprocess_utils.run(
           cmd=cmd,
-          cmd_name='Nhmmer',
+          cmd_name=f'Nhmmer ({os.path.basename(self._db_path)})',
           log_stdout=False,
           log_stderr=True,
           log_on_process_error=True,

@@ -129,6 +129,9 @@ def convert_stockholm_to_a3m(
       sequences[seqname] = ''
     sequences[seqname] += aligned_seq
 
+  if not sequences:
+    return ''
+
   stockholm.seek(0)
   for line in stockholm:
     line = line.strip()

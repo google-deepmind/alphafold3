@@ -95,6 +95,11 @@ class WholePdbPipeline:
       msa_crop_size: Maximum size of MSA to take across all chains.
       max_template_date: Optional max template date to prevent data leakage in
         validation.
+      ref_max_modified_date: Optional maximum date that controls whether to
+        allow use of model coordinates for a chemical component from the CCD if
+        RDKit conformer generation fails and the component does not have ideal
+        coordinates set. Only for components that have been released before this
+        date the model coordinates can be used as a fallback.
       max_templates: The maximum number of templates to send through the network
         set to 0 to switch off templates.
       filter_clashes: If true then will remove clashing chains.
@@ -122,6 +127,7 @@ class WholePdbPipeline:
     min_total_residues: int | None = None
     msa_crop_size: int = 16384
     max_template_date: datetime.date | None = None
+    ref_max_modified_date: datetime.date | None = None
     max_templates: int = 4
     filter_clashes: bool = False
     filter_crystal_aids: bool = False
@@ -135,12 +141,8 @@ class WholePdbPipeline:
     deterministic_frames: bool = True
     conformer_max_iterations: int | None = None
 
-  def __init__(
-      self,
-      *,
-      config: Config,
-  ):
-    """Init WholePdb.
+  def __init__(self, *, config: Config):
+    """Initializes WholePdb data pipeline.
 
     Args:
       config: Pipeline configuration.
@@ -348,7 +350,7 @@ class WholePdbPipeline:
         logging_name=logging_name,
     )
 
-    ref_max_modified_date = self._config.max_template_date
+    ref_max_modified_date = self._config.ref_max_modified_date
     conformer_max_iterations = self._config.conformer_max_iterations
     batch_ref_structure, ligand_ligand_bonds = (
         features.RefStructure.compute_features(

@@ -118,7 +118,7 @@ class Jackhmmer(msa_tool.MsaTool):
 
       subprocess_utils.run(
           cmd=cmd,
-          cmd_name='Jackhmmer',
+          cmd_name=f'Jackhmmer ({os.path.basename(self.database_path)})',
           log_stdout=False,
           log_stderr=True,
           log_on_process_error=True,

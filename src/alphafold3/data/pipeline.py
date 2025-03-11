@@ -533,7 +533,7 @@ class DataPipeline:
     """Runs MSA and template tools and returns a new Input with the results."""
     processed_chains = []
     for chain in fold_input.chains:
-      print(f'Processing chain {chain.id}')
+      print(f'Running data pipeline for chain {chain.id}...')
       process_chain_start_time = time.time()
       match chain:
         case folding_input.ProteinChain():
@@ -543,7 +543,7 @@ class DataPipeline:
         case _:
           processed_chains.append(chain)
       print(
-          f'Processing chain {chain.id} took'
+          f'Running data pipeline for chain {chain.id} took'
           f' {time.time() - process_chain_start_time:.2f} seconds',
       )
 

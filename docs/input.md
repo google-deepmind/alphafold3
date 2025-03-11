@@ -113,10 +113,11 @@ The top-level structure of the input JSON is:
     {"dna": {...}},
     {"ligand": {...}}
   ],
-  "bondedAtomPairs": [...],  # Optional
-  "userCCD": "...",  # Optional
-  "dialect": "alphafold3",  # Required
-  "version": 2  # Required
+  "bondedAtomPairs": [...],  # Optional.
+  "userCCD": "...",  # Optional, mutually exclusive with userCCDPath.
+  "userCCDPath": "...",  # Optional, mutually exclusive with userCCD.
+  "dialect": "alphafold3",  # Required.
+  "version": 3  # Required.
 }
 ```
 
@@ -140,6 +141,12 @@ The fields specify the following:
     in such cases since it doesn't give the possibility of uniquely naming all
     atoms. It can also be used to provide a reference conformer for cases where
     RDKit fails to generate a conformer. See more below.
+*   `userCCDPath: str`: An optional path to a file that contains the
+    user-provided chemical components dictionary instead of providing it inline
+    using the `userCCD` field. The path can be either absolute, or relative to
+    the input JSON path. The file must be in the
+    [CCD mmCIF format](https://www.wwpdb.org/data/ccd#mmcifFormat), and could be
+    either plain text, or compressed using gzip, xz, or zstd.
 *   `dialect: str`: The dialect of the input JSON. This must be set to
     `alphafold3`. See
     [AlphaFold Server JSON Compatibility](#alphafold-server-json-compatibility)
@@ -151,12 +158,14 @@ The fields specify the following:
 
 ## Versions
 
-The top-level `version` field (for the `alphafold3` dialect) can be either `1`
-or `2`. The following features have been added in respective versions:
+The top-level `version` field (for the `alphafold3` dialect) can be either `1`,
+`2`, or `3`. The following features have been added in respective versions:
 
 *   `1`: the initial AlphaFold 3 input format.
 *   `2`: added the option of specifying external MSA and templates using newly
     added fields `unpairedMsaPath`, `pairedMsaPath`, and `mmcifPath`.
+*   `3`: added the option of specifying external user-provided CCD using newly
+    added field `userCCDPath`.
 
 ## Sequences
 
@@ -480,7 +489,7 @@ an empty string (`""`).
 For instance, if there are two chains `DEEP` and `MIND` which we want to be
 paired on organism A and C, we can achieve it as follows:
 
-```text
+```txt
 > query
 DEEP
 > match 1 (organism A)
@@ -491,7 +500,7 @@ DD-P
 DD-P
 ```
 
-```text
+```txt
 > query
 MIND
 > match 1 (organism A)
@@ -504,7 +513,7 @@ MIN-
 
 The resulting MSA when chains are concatenated will then be:
 
-```text
+```txt
 > query
 DEEPMIND
 > match 1 + match 1
@@ -717,20 +726,27 @@ increasinging the number of RDKit conformer iterations using the
 
 ### User-provided CCD Format
 
-The user-provided CCD must be passed in the `userCCD` field (in the root of the
-input JSON) as a string. Note that JSON doesn't allow newlines within strings,
-so newline characters (`\n`) must be used to delimit lines. Single rather than
-double quotes should also be used around strings like the chemical formula.
+The user-provided CCD must be passed either:
+
+*   In the `userCCD` field (in the root of the input JSON) as a string. Note
+    that JSON doesn't allow newlines within strings, so newline characters
+    (`\n`) must be used to delimit lines. Single rather than double quotes
+    should also be used around strings like the chemical formula.
+*   In the `userCCDPath` field, as a path to a file that contains the
+    user-provided chemical components dictionary. The path can be either
+    absolute, or relative to the input JSON path. The file must be in the
+    [CCD mmCIF format](https://www.wwpdb.org/data/ccd#mmcifFormat), and could be
+    either plain text, or compressed using gzip, xz, or zstd.
 
 The main pieces of information used are the atom names and elements, bonds, and
 also the ideal coordinates (`pdbx_model_Cartn_{x,y,z}_ideal`) which essentially
 serve as a structural template for the ligand if RDKit fails to generate
 conformers for that ligand.
 
-The `userCCD` can also be used to redefine standard chemical components in the
-CCD. This can be useful if you need to redefine the ideal coordinates.
+The user-provided CCD can also be used to redefine standard chemical components
+in the CCD. This can be useful if you need to redefine the ideal coordinates.
 
-Below is an example `userCCD` redefining component X7F, which serves to
+Below is an example user-provided CCD redefining component X7F, which serves to
 illustrate the required sections. For readability purposes, newlines have not
 been replaced by `\n`.
 
@@ -948,7 +964,7 @@ certain fields and the sequences are not biologically meaningful.
   ],
   "userCCD": ...,
   "dialect": "alphafold3",
-  "version": 2
+  "version": 3
 }
 
 ```

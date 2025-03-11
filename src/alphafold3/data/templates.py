@@ -517,6 +517,9 @@ class Templates:
     """
 
     def hit_generator(a3m: str):
+      if not a3m:
+        return  # Hmmsearch could return an empty string if there are no hits.
+
       for hit_seq, hit_desc in parsers.lazy_parse_fasta_string(a3m):
         pdb_id, auth_chain_id, start, end, full_length = _parse_hit_description(
             hit_desc

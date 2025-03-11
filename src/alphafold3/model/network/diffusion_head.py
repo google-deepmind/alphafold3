@@ -20,6 +20,7 @@ from alphafold3.model.components import utils
 from alphafold3.model.network import atom_cross_attention
 from alphafold3.model.network import diffusion_transformer
 from alphafold3.model.network import featurization
+from alphafold3.model.network import noise_level_embeddings
 import chex
 import haiku as hk
 import jax
@@ -28,13 +29,6 @@ import jax.numpy as jnp
 
 # Carefully measured by averaging multimer training set.
 SIGMA_DATA = 16.0
-
-
-def fourier_embeddings(x: jnp.ndarray, dim: int) -> jnp.ndarray:
-  w_key, b_key = jax.random.split(jax.random.PRNGKey(42))
-  weight = jax.random.normal(w_key, shape=[dim])
-  bias = jax.random.uniform(b_key, shape=[dim])
-  return jnp.cos(2 * jnp.pi * (x[..., None] * weight + bias))
 
 
 def random_rotation(key):
@@ -182,8 +176,8 @@ class DiffusionHead(hk.Module):
         name='single_cond_initial_projection',
     )(single_cond)
 
-    noise_embedding = fourier_embeddings(
-        (1 / 4) * jnp.log(noise_level / SIGMA_DATA), dim=256
+    noise_embedding = noise_level_embeddings.noise_embeddings(
+        sigma_scaled_noise_level=noise_level / SIGMA_DATA
     )
     single_cond += hm.Linear(
         self.config.conditioning.seq_channel,

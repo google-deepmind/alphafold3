@@ -118,7 +118,7 @@ class Hmmsearch(object):
 
       subprocess_utils.run(
           cmd=cmd,
-          cmd_name='Hmmsearch',
+          cmd_name=f'Hmmsearch ({os.path.basename(self.database_path)})',
           log_stdout=False,
           log_stderr=True,
           log_on_process_error=True,
