@@ -123,12 +123,3 @@ def write_embeddings(
 
   with open(os.path.join(output_dir, f'{prefix}embeddings.npz'), 'wb') as f:
     np.savez_compressed(f, **embeddings)
-
-def write_distogram(
-    distogram: np.ndarray,
-    output_path: os.PathLike[str] | str,
-) -> None:
-  """Writes distogram to a directory."""
-
-  with open(output_path, 'wb') as f:
-    np.savez_compressed(f, distogram=distogram)
