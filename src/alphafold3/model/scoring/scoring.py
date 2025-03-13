@@ -11,9 +11,17 @@
 """Library of scoring methods of the model outputs."""
 
 from alphafold3.model import protein_data_processing
-import jax.numpy as jnp
 import numpy as np
 
+# Make JAX optional by defaulting to NumPy and trying to import JAX
+# This approach simplifies the code by ensuring jnp is always a valid module
+JAX_AVAILABLE = False
+try:
+    import jax.numpy as jnp
+    JAX_AVAILABLE = True
+except ImportError:
+    # If JAX isn't available, use NumPy instead
+    jnp = np
 
 Array = jnp.ndarray | np.ndarray
 
@@ -37,7 +45,13 @@ def pseudo_beta_fn(
   Returns:
     Pseudo beta dense atom positions and the corresponding mask.
   """
+  # Determine which numpy implementation to use
+  if use_jax is None:
+    use_jax = dense_atom_positions.dtype == jnp.float32
+  
   if use_jax:
+    if not JAX_AVAILABLE:
+      print("JAX is not available, using NumPy instead")
     xnp = jnp
   else:
     xnp = np
@@ -49,9 +63,9 @@ def pseudo_beta_fn(
       protein_data_processing.RESTYPE_PSEUDOBETA_INDEX, aatype, axis=0
   ).astype(xnp.int32)
 
-  pseudobeta_index = jnp.where(
+  pseudobeta_index = xnp.where(
       is_ligand,
-      jnp.zeros_like(pseudobeta_index_polymer),
+      xnp.zeros_like(pseudobeta_index_polymer),
       pseudobeta_index_polymer,
   )
 
