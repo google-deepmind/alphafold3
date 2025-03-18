@@ -480,11 +480,13 @@ class MSA:
               chain, folding_input.RnaChain | folding_input.ProteinChain
           ):
             unpaired_a3m = chain.unpaired_msa
+        # If we generated the MSA ourselves, it is already deduplicated. If it
+        # is user-provided, keep it as is to prevent destroying desired pairing.
         unpaired_msa = msa_module.Msa.from_a3m(
             query_sequence=sequence,
             chain_poly_type=chain_type,
             a3m=unpaired_a3m,
-            deduplicate=True,
+            deduplicate=False,
         )
 
         paired_msa = msa_module.Msa.from_a3m(

@@ -372,13 +372,16 @@ void RegisterModuleCifDict(pybind11::module m) {
   using Value = std::vector<std::string>;
   static absl::NoDestructor<std::vector<std::string>> empty_values;
 
-  m.def("from_string", [](absl::string_view s) {
-    absl::StatusOr<CifDict> dict = CifDict::FromString(s);
-    if (!dict.ok()) {
-      throw py::value_error(dict.status().ToString());
-    }
-    return CifDict(std::move(*dict));
-  });
+  m.def(
+      "from_string",
+      [](absl::string_view s) {
+        absl::StatusOr<CifDict> dict = CifDict::FromString(s);
+        if (!dict.ok()) {
+          throw py::value_error(dict.status().ToString());
+        }
+        return *dict;
+      },
+      py::call_guard<py::gil_scoped_release>());
 
   m.def(
       "tokenize",

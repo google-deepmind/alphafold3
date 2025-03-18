@@ -49,9 +49,9 @@ def pseudo_beta_fn(
       protein_data_processing.RESTYPE_PSEUDOBETA_INDEX, aatype, axis=0
   ).astype(xnp.int32)
 
-  pseudobeta_index = jnp.where(
+  pseudobeta_index = xnp.where(
       is_ligand,
-      jnp.zeros_like(pseudobeta_index_polymer),
+      xnp.zeros_like(pseudobeta_index_polymer),
       pseudobeta_index_polymer,
   )
 
