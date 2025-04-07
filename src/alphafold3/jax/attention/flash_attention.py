@@ -83,7 +83,7 @@ def _fwd_kernel_inner(
       # Prevent dot accumulating into the bias tensor. It appears that Triton
       # doesn't pipeline the bias load as it does the `k` load, so the bias load
       # blocks the matmul if the add is merged.
-      qk = qk.to(tl.int32, bitcast=True) & 0xFFFFFFFF
+      qk = qk.to(tl.uint32, bitcast=True) & 0xFFFFFFFF
       qk = qk.to(tl.float32, bitcast=True)
       qk += bias
 
