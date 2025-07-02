@@ -14,9 +14,9 @@ from collections.abc import ItemsView, Iterator, KeysView, Mapping, Sequence, Va
 import dataclasses
 import functools
 import os
-import pickle
-
+from alphafold3.common import safe_pickle
 from alphafold3.common import resources
+
 from alphafold3.cpp import cif_dict
 
 
@@ -53,7 +53,7 @@ class Ccd(Mapping[str, Mapping[str, Sequence[str]]]):
     """
     self._ccd_pickle_path = ccd_pickle_path or _CCD_PICKLE_FILE
     with open(self._ccd_pickle_path, 'rb') as f:
-      self._dict = pickle.loads(f.read())
+      self._dict = safe_pickle.safe_load(f)
 
     if user_ccd is not None:
       if not user_ccd:

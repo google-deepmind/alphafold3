@@ -10,17 +10,17 @@
 
 """Sets of chemical components."""
 
-import pickle
-from typing import Final
-
 from alphafold3.common import resources
+from alphafold3.common import safe_pickle
+from typing import Final
 
 
 _CCD_SETS_CCD_PICKLE_FILE = resources.filename(
     resources.ROOT / 'constants/converters/chemical_component_sets.pickle'
 )
 
-_CCD_SET = pickle.load(open(_CCD_SETS_CCD_PICKLE_FILE, 'rb'))
+with open(_CCD_SETS_CCD_PICKLE_FILE, 'rb') as _f:
+  _CCD_SET = safe_pickle.safe_load(_f)
 
 # Glycan (or 'Saccharide') ligands.
 # _chem_comp.type containing 'saccharide' and 'linking' (when lower-case).
