@@ -39,7 +39,7 @@ def check_binary_exists(path: str, name: str) -> None:
 def jackhmmer_seq_limit_supported(jackhmmer_path: str) -> bool:
   """Checks if Jackhmmer supports the --seq-limit flag."""
   try:
-    subprocess.run([jackhmmer_path, '-h', '--seq_limit', '1'], check=True)
+    subprocess.run([jackhmmer_path, '-h', '--seq_limit', '1'], capture_output=True, check=True)
   except subprocess.CalledProcessError:
     return False
   return True
