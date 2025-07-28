@@ -24,6 +24,8 @@ import csv
 import dataclasses
 import datetime
 import functools
+import itertools
+import multiprocessing
 import os
 import pathlib
 import shutil
@@ -850,6 +852,14 @@ def main(_):
     fold_inputs = folding_input.load_fold_inputs_from_dir(
         pathlib.Path(_INPUT_DIR.value)
     )
+    p = pathlib.Path(_INPUT_DIR.value)
+    for json_file in p.glob('**/*.json'):
+      try:
+        fold_inputs = itertools.chain(
+            fold_inputs, folding_input.load_fold_inputs_from_path(json_file)
+        )
+      except Exception as e:
+        print(f'Failed to load {json_file}, {e}')
   elif _JSON_PATH.value is not None:
     fold_inputs = folding_input.load_fold_inputs_from_path(
         pathlib.Path(_JSON_PATH.value)
