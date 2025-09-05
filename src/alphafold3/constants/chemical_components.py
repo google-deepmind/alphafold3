@@ -11,6 +11,7 @@
 """Chemical Components found in PDB (CCD) constants."""
 
 from collections.abc import ItemsView, Iterator, KeysView, Mapping, Sequence, ValuesView
+from collections import ChainMap
 import dataclasses
 import functools
 import os
@@ -25,6 +26,27 @@ _CCD_PICKLE_FILE = resources.filename(
 )
 
 
+@functools.cache
+def _load_base_ccd(ccd_pickle_path: os.PathLike[str]) -> dict[str, dict[str, tuple[str, ...]]]:
+  """Loads and caches the base CCD dictionary from pickle once per path.
+
+  Returns a plain dict. Callers must not mutate the returned mapping.
+  """
+  with open(ccd_pickle_path, 'rb') as f:
+    # The pickle already stores tuples for sequences; keep as-is.
+    return pickle.loads(f.read())
+
+
+def _parse_user_ccd(user_ccd: str) -> dict[str, dict[str, tuple[str, ...]]]:
+  """Parses a user-provided multi-data CIF string into CCD-style mapping."""
+  if not user_ccd:
+    raise ValueError('User CCD cannot be an empty string.')
+  return {
+      key: {k: tuple(v) for k, v in value.items()}
+      for key, value in cif_dict.parse_multi_data_cif(user_ccd).items()
+  }
+
+
 class Ccd(Mapping[str, Mapping[str, Sequence[str]]]):
   """Chemical Components found in PDB (CCD) constants.
 
@@ -34,7 +56,7 @@ class Ccd(Mapping[str, Mapping[str, Sequence[str]]]):
   Wraps the dict to prevent accidental mutation.
   """
 
-  __slots__ = ('_dict', '_ccd_pickle_path')
+  __slots__ = ('_base', '_overlay', '_ccd_pickle_path', '_chain')
 
   def __init__(
       self,
@@ -52,29 +74,25 @@ class Ccd(Mapping[str, Mapping[str, Sequence[str]]]):
         be used to override specific entries in the CCD if desired.
     """
     self._ccd_pickle_path = ccd_pickle_path or _CCD_PICKLE_FILE
-    with open(self._ccd_pickle_path, 'rb') as f:
-      self._dict = pickle.loads(f.read())
-
-    if user_ccd is not None:
-      if not user_ccd:
-        raise ValueError('User CCD cannot be an empty string.')
-      user_ccd_cifs = {
-          key: {k: tuple(v) for k, v in value.items()}
-          for key, value in cif_dict.parse_multi_data_cif(user_ccd).items()
-      }
-      self._dict.update(user_ccd_cifs)
+    # Shared, cached base dictionary (3+ GiB) loaded once per process.
+    self._base = _load_base_ccd(self._ccd_pickle_path)
+    # Small per-call overlay parsed from user CCD (if any). Not cached to avoid
+    # unbounded memory growth when many unique ligands are processed.
+    self._overlay = _parse_user_ccd(user_ccd) if user_ccd is not None else None
+    # ChainMap presents an overlay view without copying; overlay takes precedence.
+    self._chain = ChainMap(self._overlay or {}, self._base)
 
   def __getitem__(self, key: str) -> Mapping[str, Sequence[str]]:
-    return self._dict[key]
+    return self._chain[key]
 
   def __contains__(self, key: str) -> bool:
-    return key in self._dict
+    return key in self._chain
 
   def __iter__(self) -> Iterator[str]:
-    return self._dict.__iter__()
+    return self._chain.__iter__()
 
   def __len__(self) -> int:
-    return len(self._dict)
+    return len(self._chain)
 
   def __hash__(self) -> int:
     return id(self)  # Ok since this is immutable.
@@ -82,20 +100,24 @@ class Ccd(Mapping[str, Mapping[str, Sequence[str]]]):
   def get(
       self, key: str, default: None | Mapping[str, Sequence[str]] = None
   ) -> Mapping[str, Sequence[str]] | None:
-    return self._dict.get(key, default)
+    return self._chain.get(key, default)
 
   def items(self) -> ItemsView[str, Mapping[str, Sequence[str]]]:
-    return self._dict.items()
+    return self._chain.items()
 
   def values(self) -> ValuesView[Mapping[str, Sequence[str]]]:
-    return self._dict.values()
+    return self._chain.values()
 
   def keys(self) -> KeysView[str]:
-    return self._dict.keys()
+    return self._chain.keys()
 
 
-@functools.cache
 def cached_ccd(user_ccd: str | None = None) -> Ccd:
+  """Returns a CCD mapping with a shared base and an optional overlay.
+
+  The base dictionary is cached process-wide and reused across calls.
+  The returned object is lightweight when `user_ccd` is provided.
+  """
   return Ccd(user_ccd=user_ccd)
 
 
