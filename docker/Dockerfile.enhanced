@@ -1,0 +1,188 @@
+# Enhanced Dockerfile for AlphaFold3 with threading fixes
+# Addresses Issue #83: Docker runtime failures with OpenBLAS threading
+# Based on the original AlphaFold3 Dockerfile with improvements
+
+FROM nvidia/cuda:12.1-devel-ubuntu20.04
+
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Set threading environment variables early
+ENV OPENBLAS_NUM_THREADS=1
+ENV MKL_NUM_THREADS=1
+ENV OMP_NUM_THREADS=1
+ENV NUMBA_NUM_THREADS=1
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    wget \
+    curl \
+    git \
+    python3 \
+    python3-pip \
+    python3-dev \
+    libssl-dev \
+    libffi-dev \
+    libxml2-dev \
+    libxslt1-dev \
+    zlib1g-dev \
+    libblas-dev \
+    liblapack-dev \
+    libatlas-base-dev \
+    gfortran \
+    libhdf5-dev \
+    pkg-config \
+    software-properties-common \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create alphafold user and directories
+RUN useradd -m -s /bin/bash alphafold && \
+    mkdir -p /app/alphafold && \
+    chown -R alphafold:alphafold /app/alphafold
+
+# Switch to alphafold user
+USER alphafold
+WORKDIR /app/alphafold
+
+# Install Python dependencies with specific versions for stability
+COPY requirements.txt /app/alphafold/
+RUN pip3 install --user --no-cache-dir -r requirements.txt
+
+# Copy AlphaFold3 source code
+COPY --chown=alphafold:alphafold . /app/alphafold/
+
+# Copy enhanced entrypoint script
+COPY docker_entrypoint.sh /usr/local/bin/
+USER root
+RUN chmod +x /usr/local/bin/docker_entrypoint.sh
+USER alphafold
+
+# Create a script to test threading configuration
+RUN cat > /app/alphafold/test_threading.py << 'EOF'
+#!/usr/bin/env python3
+"""
+Test script to verify threading configuration and NumPy/JAX functionality.
+This script helps diagnose threading issues in the AlphaFold3 Docker container.
+"""
+
+import os
+import sys
+import traceback
+
+def test_threading_config():
+    """Test and display current threading configuration."""
+    print("=== Threading Configuration ===")
+    threading_vars = [
+        'OPENBLAS_NUM_THREADS',
+        'MKL_NUM_THREADS', 
+        'OMP_NUM_THREADS',
+        'NUMBA_NUM_THREADS',
+        'XLA_FLAGS'
+    ]
+    
+    for var in threading_vars:
+        value = os.environ.get(var, 'Not Set')
+        print(f"{var}: {value}")
+    print()
+
+def test_numpy_import():
+    """Test NumPy import and basic functionality."""
+    print("=== NumPy Test ===")
+    try:
+        import numpy as np
+        print(f"✓ NumPy version: {np.__version__}")
+        
+        # Test basic operations
+        arr = np.array([1, 2, 3, 4, 5])
+        result = np.sum(arr)
+        print(f"✓ NumPy array sum test: {result}")
+        
+        # Test threading info
+        print(f"✓ NumPy threading layer: {np.__config__.show()}")
+        return True
+        
+    except Exception as e:
+        print(f"✗ NumPy test failed: {e}")
+        traceback.print_exc()
+        return False
+
+def test_jax_import():
+    """Test JAX import and basic functionality."""
+    print("\n=== JAX Test ===")
+    try:
+        import jax
+        import jax.numpy as jnp
+        
+        print(f"✓ JAX version: {jax.__version__}")
+        print(f"✓ JAX devices: {jax.devices()}")
+        
+        # Test basic operations
+        x = jnp.array([1, 2, 3, 4, 5])
+        result = jnp.sum(x)
+        print(f"✓ JAX array sum test: {result}")
+        return True
+        
+    except Exception as e:
+        print(f"✗ JAX test failed: {e}")
+        traceback.print_exc()
+        return False
+
+def test_system_resources():
+    """Display system resource information."""
+    print("\n=== System Resources ===")
+    
+    try:
+        import multiprocessing
+        cpu_count = multiprocessing.cpu_count()
+        print(f"CPU cores: {cpu_count}")
+        
+        with open('/proc/meminfo', 'r') as f:
+            for line in f:
+                if 'MemTotal' in line:
+                    mem_kb = int(line.split()[1])
+                    mem_gb = mem_kb / 1024 / 1024
+                    print(f"Total memory: {mem_gb:.1f} GB")
+                    break
+                    
+    except Exception as e:
+        print(f"Could not determine system resources: {e}")
+
+def main():
+    """Run all tests."""
+    print("AlphaFold3 Docker Container - Threading and Environment Test")
+    print("=" * 60)
+    
+    test_system_resources()
+    test_threading_config()
+    
+    numpy_ok = test_numpy_import()
+    jax_ok = test_jax_import()
+    
+    print("\n=== Test Summary ===")
+    if numpy_ok and jax_ok:
+        print("✓ All tests passed! Container should work correctly.")
+        return 0
+    else:
+        print("✗ Some tests failed. Check configuration above.")
+        return 1
+
+if __name__ == "__main__":
+    sys.exit(main())
+EOF
+
+RUN chmod +x /app/alphafold/test_threading.py
+
+# Set working directory and default command
+WORKDIR /app/alphafold
+
+# Health check to verify container is working correctly
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python3 /app/alphafold/test_threading.py || exit 1
+
+# Use enhanced entrypoint
+ENTRYPOINT ["/usr/local/bin/docker_entrypoint.sh"]
+
+# Default command
+CMD ["/bin/bash"]
