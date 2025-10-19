@@ -1,4 +1,6 @@
-<p align="center"><img src="docs/header.jpg" alt="AlphaFold 3" /></p>
+<p align="center">
+  <img src="docs/header.jpg" alt="AlphaFold 3" width="700">
+</p>
 
 # AlphaFold 3
 
