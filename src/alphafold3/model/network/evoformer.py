@@ -115,6 +115,73 @@ class Evoformer(hk.Module):
     pair_mask = (mask[:, None] * mask[None, :]).astype(dtype)
     assert pair_mask.shape == (num_residues, num_residues)
     return pair_activations, pair_mask  # pytype: disable=bad-return-type  # jax-ndarray
+  @hk.transparent
+  def _embed_bonds(
+      self,
+      batch: feat_batch.Batch,
+      pair_activations: jnp.ndarray,
+  ) -> jnp.ndarray:
+    """Embeds bond features and merges into pair activations."""
+    # Construct contact matrix.
+    num_tokens = batch.token_features.token_index.shape[0]
+    contact_matrix = jnp.zeros((num_tokens, num_tokens))
+
+    tokens_to_polymer_ligand_bonds = (
+        batch.polymer_ligand_bond_info.tokens_to_polymer_ligand_bonds
+    )
+    gather_idxs_polymer_ligand = tokens_to_polymer_ligand_bonds.gather_idxs
+    # gather_mask entries are per-row masks that indicate valid rows.
+    gather_mask_polymer_ligand = (
+        tokens_to_polymer_ligand_bonds.gather_mask.prod(axis=1).astype(
+            gather_idxs_polymer_ligand.dtype
+        )
+    )  # shape (N,), dtype same as gather_idxs
+    # Keep boolean mask for selecting valid rows later.
+    valid_mask_polymer_ligand = gather_mask_polymer_ligand.astype(bool)
+
+    tokens_to_ligand_ligand_bonds = (
+        batch.ligand_ligand_bond_info.tokens_to_ligand_ligand_bonds
+    )
+    gather_idxs_ligand_ligand = tokens_to_ligand_ligand_bonds.gather_idxs
+    gather_mask_ligand_ligand = tokens_to_ligand_ligand_bonds.gather_mask.prod(
+        axis=1
+    ).astype(gather_idxs_ligand_ligand.dtype)
+    valid_mask_ligand_ligand = gather_mask_ligand_ligand.astype(bool)
+
+    # Concatenate index arrays and validity masks.
+    gather_idxs = jnp.concatenate(
+        [gather_idxs_polymer_ligand, gather_idxs_ligand_ligand], axis=0
+    )  # shape (M, 2)
+    valid_rows = jnp.concatenate(
+        [valid_mask_polymer_ligand, valid_mask_ligand_ligand], axis=0
+    )  # shape (M,)
+
+    # Select only valid rows. This avoids treating padded (zero) rows as real
+    # indices, and handles the empty case safely.
+    valid_gather_idxs = gather_idxs[valid_rows]
+
+    # Only perform the scatter if we have at least one valid index.
+    def _set_contacts(idx_array):
+      return contact_matrix.at[idx_array[:, 0], idx_array[:, 1]].set(1.0)
+
+    # jnp.shape(valid_gather_idxs)[0] is an int-like array; use lax.cond
+    # so the function remains jittable.
+    contact_matrix = jax.lax.cond(
+        valid_gather_idxs.shape[0] > 0,
+        _set_contacts,
+        lambda _idx: contact_matrix,
+        operand=valid_gather_idxs,
+    )
+
+    # Ensure padded-index zero entry doesn't accidentally indicate a contact when
+    # there were no valid gathers for that entry. (This mirrors previous
+    # behavior but now only runs after we populated valid ones.)
+    contact_matrix = contact_matrix.at[0, 0].set(0.0)
+
+    bonds_act = hm.Linear(self.config.pair_channel, name='bond_embedding')(
+        contact_matrix[:, :, None].astype(pair_activations.dtype)
+    )
+    return pair_activations + bonds_act
 
 
   @hk.transparent
