@@ -116,56 +116,6 @@ class Evoformer(hk.Module):
     assert pair_mask.shape == (num_residues, num_residues)
     return pair_activations, pair_mask  # pytype: disable=bad-return-type  # jax-ndarray
 
-  @hk.transparent
-  def _embed_bonds(
-      self,
-      batch: feat_batch.Batch,
-      pair_activations: jnp.ndarray,
-  ) -> jnp.ndarray:
-    """Embeds bond features and merges into pair activations."""
-    # Construct contact matrix.
-    num_tokens = batch.token_features.token_index.shape[0]
-    contact_matrix = jnp.zeros((num_tokens, num_tokens))
-
-    tokens_to_polymer_ligand_bonds = (
-        batch.polymer_ligand_bond_info.tokens_to_polymer_ligand_bonds
-    )
-    gather_idxs_polymer_ligand = tokens_to_polymer_ligand_bonds.gather_idxs
-    gather_mask_polymer_ligand = (
-        tokens_to_polymer_ligand_bonds.gather_mask.prod(axis=1).astype(
-            gather_idxs_polymer_ligand.dtype
-        )[:, None]
-    )
-    # If valid mask then it will be all 1's, so idxs should be unchanged.
-    gather_idxs_polymer_ligand = (
-        gather_idxs_polymer_ligand * gather_mask_polymer_ligand
-    )
-
-    tokens_to_ligand_ligand_bonds = (
-        batch.ligand_ligand_bond_info.tokens_to_ligand_ligand_bonds
-    )
-    gather_idxs_ligand_ligand = tokens_to_ligand_ligand_bonds.gather_idxs
-    gather_mask_ligand_ligand = tokens_to_ligand_ligand_bonds.gather_mask.prod(
-        axis=1
-    ).astype(gather_idxs_ligand_ligand.dtype)[:, None]
-    gather_idxs_ligand_ligand = (
-        gather_idxs_ligand_ligand * gather_mask_ligand_ligand
-    )
-
-    gather_idxs = jnp.concatenate(
-        [gather_idxs_polymer_ligand, gather_idxs_ligand_ligand]
-    )
-    contact_matrix = contact_matrix.at[
-        gather_idxs[:, 0], gather_idxs[:, 1]
-    ].set(1.0)
-
-    # Because all the padded index's are 0's.
-    contact_matrix = contact_matrix.at[0, 0].set(0.0)
-
-    bonds_act = hm.Linear(self.config.pair_channel, name='bond_embedding')(
-        contact_matrix[:, :, None].astype(pair_activations.dtype)
-    )
-    return pair_activations + bonds_act
 
   @hk.transparent
   def _embed_template_pair(
