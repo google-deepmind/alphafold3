@@ -36,6 +36,7 @@ from typing import overload
 from absl import app
 from absl import flags
 from alphafold3.common import folding_input
+from alphafold3.common import memory_utils
 from alphafold3.common import resources
 from alphafold3.constants import chemical_components
 import alphafold3.cpp
@@ -346,6 +347,27 @@ _NUM_SEEDS = flags.DEFINE_integer(
     ' random seeds. If not set, AlphaFold 3 will use the seeds as provided in'
     ' the input JSON.',
     lower_bound=1,
+)
+
+# Memory optimization controls.
+_AUTO_MEMORY_OPTIMIZATION = flags.DEFINE_bool(
+    'auto_memory_optimization',
+    True,
+    'Whether to automatically optimize num_recycles and num_diffusion_samples'
+    ' for large inputs to avoid OOM errors. Recommended to keep enabled.'
+    ' Can be disabled if you want full control over these parameters.',
+)
+_ESTIMATE_MEMORY_ONLY = flags.DEFINE_bool(
+    'estimate_memory_only',
+    False,
+    'If true, estimate memory requirements and print suggestions, then exit'
+    ' without running inference. Useful for planning runs on large inputs.',
+)
+_MAX_GPU_MEMORY_GB = flags.DEFINE_float(
+    'max_gpu_memory_gb',
+    None,
+    'Override the detected GPU memory limit in GB. If not set, will attempt'
+    ' to auto-detect based on GPU model. Useful if running with memory limits.'
 )
 
 # Output controls.
@@ -956,12 +978,109 @@ def main(_):
     if _NUM_SEEDS.value is not None:
       print(f'Expanding fold job {fold_input.name} to {_NUM_SEEDS.value} seeds')
       fold_input = fold_input.with_multiple_seeds(_NUM_SEEDS.value)
+    
+    # Memory estimation and optimization
+    if _RUN_INFERENCE.value:
+      # Calculate number of tokens (will be determined by bucket size)
+      num_chains = len(fold_input.chains)
+      # Estimate tokens from sequences
+      total_residues = sum(
+          len(chain.sequence) if hasattr(chain, 'sequence') else 0
+          for chain in fold_input.chains
+      )
+      # Find appropriate bucket
+      buckets_list = tuple(int(bucket) for bucket in _BUCKETS.value)
+      estimated_tokens = total_residues
+      for bucket in buckets_list:
+        if bucket >= total_residues:
+          estimated_tokens = bucket
+          break
+      
+      # Get available GPU memory
+      if _MAX_GPU_MEMORY_GB.value is not None:
+        available_memory_gb = _MAX_GPU_MEMORY_GB.value
+      else:
+        available_memory_gb = memory_utils.get_gpu_memory_gb()
+        if available_memory_gb == 0.0:
+          print('Warning: Could not detect GPU memory, assuming 80 GB')
+          available_memory_gb = 80.0
+      
+      print(f'\nMemory Analysis for {fold_input.name}:')
+      print(f'  Estimated tokens (with padding): {estimated_tokens}')
+      print(f'  Number of chains: {num_chains}')
+      print(f'  Available GPU memory: {available_memory_gb:.1f} GB')
+      
+      # Estimate memory with current settings
+      current_estimate = memory_utils.estimate_memory_requirements(
+          num_tokens=estimated_tokens,
+          num_chains=num_chains,
+          num_recycles=_NUM_RECYCLES.value,
+          num_diffusion_samples=_NUM_DIFFUSION_SAMPLES.value,
+          flash_attention=_FLASH_ATTENTION_IMPLEMENTATION.value != 'xla',
+      )
+      
+      print(f'\n{memory_utils.format_memory_estimate(current_estimate)}')
+      
+      # Check if optimization needed
+      if current_estimate.total_gb > available_memory_gb * 0.95:
+        print(f'\nWarning: Estimated memory ({current_estimate.total_gb:.1f} GB) '
+              f'exceeds available memory ({available_memory_gb:.1f} GB)')
+        
+        if _AUTO_MEMORY_OPTIMIZATION.value:
+          suggestion = memory_utils.suggest_optimizations(
+              num_tokens=estimated_tokens,
+              num_chains=num_chains,
+              available_memory_gb=available_memory_gb,
+              current_num_recycles=_NUM_RECYCLES.value,
+              current_num_samples=_NUM_DIFFUSION_SAMPLES.value,
+          )
+          
+          print(f'\n{memory_utils.format_optimization_suggestion(suggestion)}')
+          
+          if not suggestion.will_fit:
+            raise ValueError(
+                f'Cannot fit {fold_input.name} in {available_memory_gb:.1f} GB '
+                'even with aggressive optimization. Consider:\n'
+                '  1. Using a GPU with more memory\n'
+                '  2. Reducing the number of chains (split homomer)\n'
+                '  3. Using --max_gpu_memory_gb to enable CPU memory spillover\n'
+                f'  4. Manually setting --num_recycles=1 --num_diffusion_samples=1'
+            )
+          
+          # Apply optimizations by updating model config
+          print(f'\nApplying automatic memory optimizations:')
+          print(f'  num_recycles: {_NUM_RECYCLES.value} -> {suggestion.num_recycles}')
+          print(f'  num_diffusion_samples: {_NUM_DIFFUSION_SAMPLES.value} -> '
+                f'{suggestion.num_diffusion_samples}')
+          
+          # Rebuild model runner with optimized settings
+          model_runner = ModelRunner(
+              config=make_model_config(
+                  flash_attention_implementation=typing.cast(
+                      attention.Implementation, suggestion.flash_attention
+                  ),
+                  num_diffusion_samples=suggestion.num_diffusion_samples,
+                  num_recycles=suggestion.num_recycles,
+                  return_embeddings=_SAVE_EMBEDDINGS.value,
+                  return_distogram=_SAVE_DISTOGRAM.value,
+              ),
+              device=devices[_GPU_DEVICE.value],
+              model_dir=pathlib.Path(MODEL_DIR.value),
+          )
+        else:
+          print('\nAutomatic memory optimization is disabled. '
+                'Run with --auto_memory_optimization=true to enable.')
+      
+      if _ESTIMATE_MEMORY_ONLY.value:
+        print(f'\nMemory estimation complete for {fold_input.name}. Exiting.')
+        continue
+    
     process_fold_input(
         fold_input=fold_input,
         data_pipeline_config=data_pipeline_config,
         model_runner=model_runner,
         output_dir=os.path.join(_OUTPUT_DIR.value, fold_input.sanitised_name()),
-        buckets=tuple(int(bucket) for bucket in _BUCKETS.value),
+        buckets=buckets_list if _RUN_INFERENCE.value else None,
         ref_max_modified_date=max_template_date,
         conformer_max_iterations=_CONFORMER_MAX_ITERATIONS.value,
         resolve_msa_overlaps=_RESOLVE_MSA_OVERLAPS.value,
