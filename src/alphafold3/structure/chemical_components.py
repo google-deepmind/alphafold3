@@ -21,6 +21,46 @@ from alphafold3.structure import mmcif
 import rdkit.Chem as rd_chem
 
 
+# Post-translational modification definitions
+_PTM_DEFINITIONS = {
+    'PHOSPHO': {
+        'residues': ['S', 'T', 'Y'],  # Serine, Threonine, Tyrosine
+        'atom_additions': [('P', 'phosphorus'), ('O', 'oxygen'), ('O', 'oxygen'), ('O', 'oxygen')],
+        'bond_additions': [('O', 'P'), ('OG', 'P')],  # OG is hydroxyl oxygen
+        'formula_delta': 'P O3',
+        'weight_delta': '79.966',
+    },
+    'GLYCO': {
+        'residues': ['N', 'S', 'T'],  # Asparagine, Serine, Threonine
+        'atom_additions': [('C', 'carbon'), ('H', 'hydrogen'), ('O', 'oxygen')],
+        'bond_additions': [('N', 'C')],  # N-glycosidic or O-glycosidic bond
+        'formula_delta': 'C H O',
+        'weight_delta': '27.011',
+    },
+    'ACETYL': {
+        'residues': ['K', 'N'],  # Lysine, N-terminus
+        'atom_additions': [('C', 'carbon'), ('C', 'carbon'), ('O', 'oxygen')],
+        'bond_additions': [('N', 'C')],
+        'formula_delta': 'C2 O',
+        'weight_delta': '42.011',
+    },
+    'METHYL': {
+        'residues': ['K', 'R'],  # Lysine, Arginine
+        'atom_additions': [('C', 'carbon')],
+        'bond_additions': [('N', 'C')],
+        'formula_delta': 'C',
+        'weight_delta': '14.016',
+    },
+    'DISULFIDE': {
+        'residues': ['C'],  # Cysteine
+        'requires_pair': True,
+        'bond_type': 'disulfide',
+        'formula_delta': '',
+        'weight_delta': '0.000',
+    },
+}
+
+
 @dataclasses.dataclass(frozen=True)
 class ChemCompEntry:
   """Items of _chem_comp category.
@@ -36,9 +76,12 @@ class ChemCompEntry:
   formula_weight: str = '?'
   mon_nstd_flag: str = '?'
   pdbx_smiles: str | None = None
+  ptm_type: str | None = None  # New field for PTM tracking
 
   def __post_init__(self):
     for field, value in vars(self).items():
+      if field == 'ptm_type':  # Allow None for ptm_type
+        continue
       if not value and value is not None:
         raise ValueError(f"{field} value can't be an empty string.")
 
@@ -67,6 +110,10 @@ class MissingChemicalComponentsDataError(Exception):
   """Raised when chemical components data is missing from an mmCIF."""
 
 
+class UnknownPTMError(Exception):
+  """Raised when an unknown PTM type is requested."""
+
+
 @dataclasses.dataclass(frozen=True)
 class ChemicalComponentsData:
   """Extra information for chemical components occurring in mmCIF.
@@ -74,9 +121,13 @@ class ChemicalComponentsData:
   Fields:
     chem_comp: A mapping from _chem_comp.id to associated items in the
       chem_comp category.
+    ptm_definitions: A mapping of PTM types to their definitions (optional).
   """
 
   chem_comp: Mapping[str, ChemCompEntry]
+  ptm_definitions: Mapping[str, Mapping] = dataclasses.field(
+      default_factory=lambda: _PTM_DEFINITIONS
+  )
 
   @classmethod
   def from_mmcif(
@@ -96,11 +147,12 @@ class ChemicalComponentsData:
     mon_nstd_flag = cif.get('_chem_comp.mon_nstd_flag', ['?'] * len(id_))
     smiles = cif.get('_chem_comp.pdbx_smiles', ['?'] * len(id_))
     smiles = [None if s == '?' else s for s in smiles]
+    ptm_type = cif.get('_chem_comp.ptm_type', [None] * len(id_))
 
     chem_comp = {
         component_name: ChemCompEntry(*entry)
         for component_name, *entry in zip(
-            id_, type_, name, synonyms, formula, weight, mon_nstd_flag, smiles
+            id_, type_, name, synonyms, formula, weight, mon_nstd_flag, smiles, ptm_type
         )
     }
 
@@ -129,7 +181,7 @@ class ChemicalComponentsData:
             pdbx_smiles=None,
         )
 
-    return ChemicalComponentsData(chem_comp)
+    return ChemicalComponentsData(chem_comp=chem_comp)
 
   def to_mmcif_dict(self) -> Mapping[str, Sequence[str]]:
     """Returns chemical components data as a dict suitable for `mmcif.Mmcif`."""
@@ -152,9 +204,86 @@ class ChemicalComponentsData:
       mmcif_dict['_chem_comp.id'] = chem_comp_ids
     return mmcif_dict
 
+  def get_ptm_definition(self, ptm_type: str) -> Mapping:
+    """Returns the definition for a given PTM type."""
+    if ptm_type not in self.ptm_definitions:
+      raise UnknownPTMError(f"Unknown PTM type: {ptm_type}")
+    return self.ptm_definitions[ptm_type]
+
+  def apply_ptm(
+      self,
+      base_residue: str,
+      ptm_type: str,
+  ) -> ChemCompEntry:
+    """Creates a modified ChemCompEntry by applying a PTM to a base residue.
+
+    Args:
+      base_residue: The standard residue code (e.g., 'S', 'T', 'Y').
+      ptm_type: The PTM type (e.g., 'PHOSPHO', 'ACETYL').
+
+    Returns:
+      A new ChemCompEntry with PTM information.
+
+    Raises:
+      UnknownPTMError: If the PTM type is not recognized.
+      ValueError: If the PTM cannot be applied to the base residue.
+    """
+    ptm_def = self.get_ptm_definition(ptm_type)
+
+    if base_residue not in ptm_def.get('residues', []):
+      raise ValueError(
+          f"PTM '{ptm_type}' cannot be applied to residue '{base_residue}'"
+      )
+
+    if base_residue not in self.chem_comp:
+      raise ValueError(f"Base residue '{base_residue}' not found in chem_comp")
+
+    base_entry = self.chem_comp[base_residue]
+
+    # Calculate updated formula and weight
+    updated_formula = _update_formula(
+        base_entry.formula, ptm_def.get('formula_delta', '')
+    )
+    updated_weight = _update_weight(
+        base_entry.formula_weight, ptm_def.get('weight_delta', '0.000')
+    )
+
+    modified_entry = ChemCompEntry(
+        type=base_entry.type,
+        name=f"{base_entry.name} {ptm_type}",
+        pdbx_synonyms=base_entry.pdbx_synonyms,
+        formula=updated_formula,
+        formula_weight=updated_weight,
+        mon_nstd_flag=base_entry.mon_nstd_flag,
+        pdbx_smiles=None,  # SMILES not available for PTM variants
+        ptm_type=ptm_type,
+    )
+
+    return modified_entry
+
 
 def _value_is_missing(value: str) -> bool:
   return not value or value in ('.', '?')
+
+
+def _update_formula(base_formula: str, delta: str) -> str:
+  """Updates a chemical formula by adding elements from delta."""
+  if not delta or delta == '?':
+    return base_formula
+  # Simple formula concatenation (assumes formula is space-separated)
+  return f"{base_formula} {delta}".strip()
+
+
+def _update_weight(base_weight: str, delta_weight: str) -> str:
+  """Updates molecular weight by adding delta."""
+  if not delta_weight or delta_weight == '?':
+    return base_weight
+  try:
+    base = float(base_weight) if base_weight != '?' else 0.0
+    delta = float(delta_weight)
+    return f"{base + delta:.3f}"
+  except (ValueError, TypeError):
+    return base_weight
 
 
 def get_data_for_ccd_components(
