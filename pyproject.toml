@@ -21,7 +21,7 @@ dependencies = [
     "jax[cuda12]==0.8.1",
     "numpy",
     "rdkit==2024.3.5",
-    "setuptools==78.1.0",
+    "setuptools==78.1.1",
     "tokamax==0.0.8",
     "tqdm",
     "zstandard",
