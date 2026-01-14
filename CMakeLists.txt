@@ -9,6 +9,11 @@
 # https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md
 
 cmake_minimum_required(VERSION 3.28)
+
+# This forces Git to use the 'files' backend for all FetchContent operations.
+# This fixes libcifpp and dssp incompatibility with newer git versions.
+set(ENV{GIT_CONFIG_PARAMETERS} "'init.defaultRefFormat=files'")
+
 project(
   "${SKBUILD_PROJECT_NAME}"
   LANGUAGES CXX
