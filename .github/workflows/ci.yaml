@@ -1,7 +1,6 @@
 name: Continuous Integration
 
 on:
-  # Trigger the workflow on push or pull request, only on the main branch.
   push:
     branches:
       - main
@@ -18,21 +17,28 @@ jobs:
       matrix:
         include:
           - name-prefix: "all tests"
-            python-version: '3.11'
+            python-version: '3.12'
             os: ubuntu-latest
+
     steps:
     - uses: actions/checkout@v6
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v7
       with:
-        python-version: ${{ matrix.python-version }}
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
+
+    - name: Set up Python ${{ matrix.python-version }}
+      run: uv python install ${{ matrix.python-version }}
+
     - name: Install dependencies
-      run: |
-        sudo apt-get install -y hmmer
-        pip install --upgrade pip
-        pip install -r dev-requirements.txt
-        pip install --no-deps .
-        build_data
+      run: sudo apt-get install -y hmmer
+
+    - name: Install Python dependencies
+      run: uv sync --frozen --all-groups
+
+    - name: Build data
+      run: uv run build_data
+
     - name: Run CPU-only tests
-      run: |
-        python run_alphafold_data_test.py
+      run: uv run python run_alphafold_data_test.py
