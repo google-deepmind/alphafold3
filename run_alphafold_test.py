@@ -208,7 +208,7 @@ class InferenceTest(parameterized.TestCase):
     actual = run_alphafold.process_fold_input(
         fold_input,
         self._data_pipeline_config,
-        run_alphafold.ModelRunner(
+        model_runner=run_alphafold.ModelRunner(
             config=self._model_config,
             device=jax.local_devices(backend='gpu')[0],
             model_dir=pathlib.Path(run_alphafold.MODEL_DIR.value),
