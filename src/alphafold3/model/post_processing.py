@@ -19,6 +19,7 @@ from alphafold3.model import confidence_types
 from alphafold3.model import mmcif_metadata
 from alphafold3.model import model
 import numpy as np
+import zstandard
 
 
 @dataclasses.dataclass(frozen=True, slots=True, kw_only=True)
@@ -91,22 +92,33 @@ def write_output(
     output_dir: os.PathLike[str] | str,
     terms_of_use: str | None = None,
     name: str | None = None,
+    compress: bool = False,
 ) -> None:
   """Writes processed inference result to a directory."""
   processed_result = post_process_inference_result(inference_result)
 
   prefix = f'{name}_' if name is not None else ''
 
-  with open(os.path.join(output_dir, f'{prefix}model.cif'), 'wb') as f:
+  if compress:
+    opener = zstandard.open
+    path_transform = lambda path: f'{path}.zst'
+  else:
+    opener = open
+    path_transform = lambda path: path
+
+  mmcif_path = os.path.join(output_dir, f'{prefix}model.cif')
+  with opener(path_transform(mmcif_path), 'wb') as f:
     f.write(processed_result.cif)
 
-  with open(
-      os.path.join(output_dir, f'{prefix}summary_confidences.json'), 'wb'
-  ) as f:
-    f.write(processed_result.structure_confidence_summary_json)
-
-  with open(os.path.join(output_dir, f'{prefix}confidences.json'), 'wb') as f:
+  full_confidences_path = os.path.join(output_dir, f'{prefix}confidences.json')
+  with opener(path_transform(full_confidences_path), 'wb') as f:
     f.write(processed_result.structure_full_data_json)
+
+  summary_confidences_path = os.path.join(
+      output_dir, f'{prefix}summary_confidences.json'
+  )
+  with open(summary_confidences_path, 'wb') as f:
+    f.write(processed_result.structure_confidence_summary_json)
 
   if terms_of_use is not None:
     with open(os.path.join(output_dir, 'TERMS_OF_USE.md'), 'wt') as f:
