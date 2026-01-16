@@ -28,10 +28,30 @@ import os
 import pathlib
 import shutil
 import string
+import sys
 import textwrap
 import time
 import typing
 from typing import overload
+
+# Early parse for --gpu_device to set CUDA_VISIBLE_DEVICES before JAX loads.
+# Ordering matters: JAX/Haiku initialize the device context upon the first
+# import. If GPU 0 is an unsupported architecture, it causes an unrecoverable
+# crash even if the intention was to use a different GPU via --gpu_device (as
+# JAX still probes the default device).
+if 'CUDA_VISIBLE_DEVICES' not in os.environ:
+  for i, _arg in enumerate(sys.argv):
+    _gpu_val = None
+    if _arg.startswith('--gpu_device=') or _arg.startswith('-gpu_device='):
+      _gpu_val = _arg.split('=')[1]
+      os.environ['CUDA_VISIBLE_DEVICES'] = _gpu_val
+      sys.argv[i] = _arg.split('=')[0] + '=0'
+      break
+    elif (_arg == '--gpu_device' or _arg == '-gpu_device') and i + 1 < len(sys.argv):
+      _gpu_val = sys.argv[i + 1]
+      os.environ['CUDA_VISIBLE_DEVICES'] = _gpu_val
+      sys.argv[i + 1] = '0'
+      break
 
 from absl import app
 from absl import flags
