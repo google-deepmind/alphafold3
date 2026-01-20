@@ -66,9 +66,8 @@ WORKDIR /app/alphafold
 # --frozen: do not update the lockfile during build.
 # --all-groups: install development/test dependencies defined in pyproject.toml.
 # --no-editable: install as a static package.
-# If using this as a recipe for local installation and you want to modify
-# AlphaFold 3 code and change its dependencies, remove the --frozen and
-# --no-editable flags.
+# If using this as a recipe for local installation, we recommend removing the
+# --frozen and --no-editable flags.
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --all-groups --no-editable
 
