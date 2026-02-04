@@ -17,12 +17,11 @@ license = {file = "LICENSE"}
 dependencies = [
     "absl-py>=2.3.1",
     "dm-haiku==0.0.16",
-    "jax==0.8.1",
-    "jax[cuda12]==0.8.1",
+    "jax==0.8.2",
+    "jax[cuda12]==0.8.2",
     "numpy",
     "rdkit==2025.9.4",
-    "setuptools==78.1.0",
-    "tokamax==0.0.8",
+    "tokamax==0.0.10",
     "tqdm",
     "zstandard",
 ]
