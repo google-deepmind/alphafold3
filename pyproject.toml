@@ -20,7 +20,7 @@ dependencies = [
     "jax==0.8.1",
     "jax[cuda12]==0.8.1",
     "numpy",
-    "rdkit==2024.3.5",
+    "rdkit==2025.9.4",
     "setuptools==78.1.0",
     "tokamax==0.0.8",
     "tqdm",
