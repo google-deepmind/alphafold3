@@ -59,7 +59,7 @@ class TransitionBlock(hk.Module):
 
     act = hm.LayerNorm(name='input_layer_norm')(act)
 
-    if self.config.use_glu_kernel:
+    if self.global_config.use_glu_kernel:
       weights, _ = hm.haiku_linear_get_params(
           act,
           num_output=num_intermediate * 2,
@@ -266,6 +266,29 @@ class TriangleMultiplication(hk.Module):
     Returns:
       Outputs, should have same shape/type as output_act
     """
+    num_residues = act.shape[0]
+
+    chunk_size = get_shard_size(
+        num_residues, self.global_config.pair_attention_chunk_size
+    )
+
+    return mapping.inference_subbatch(
+        self._apply,
+        chunk_size,
+        batched_args=[act, mask],
+        nonbatched_args=[],
+    )
+
+  def _apply(self, act, mask):
+    """Applies Module.
+
+    Args:
+      act: The activation.
+      mask: The mask.
+
+    Returns:
+      Outputs, should have same shape/type as output_act
+    """
     mask = mask[None, ...]
     num_channels = act.shape[-1]
     equation = {
@@ -276,7 +299,7 @@ class TriangleMultiplication(hk.Module):
     act = hm.LayerNorm(name='left_norm_input')(act)
     input_act = act
 
-    if self.config.use_glu_kernel:
+    if self.global_config.use_glu_kernel:
       weights_projection, _ = hm.haiku_linear_get_params(
           act, num_output=num_channels * 2, name='projection'
       )
