@@ -1482,12 +1482,11 @@ class Input:
     """Returns a copy of the input with num_seeds rng seeds."""
     if num_seeds <= 1:
       raise ValueError('Number of seeds must be greater than 1.')
-    if len(self.rng_seeds) != 1:
-      raise ValueError('Input must have one rng seed to set multiple seeds.')
 
+    base_seed = self.rng_seeds[0]
     return dataclasses.replace(
         self,
-        rng_seeds=list(range(self.rng_seeds[0], self.rng_seeds[0] + num_seeds)),
+        rng_seeds=list(range(base_seed, base_seed + num_seeds)),
     )
 
 
