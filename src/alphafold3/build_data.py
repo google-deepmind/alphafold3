@@ -33,7 +33,12 @@ def build_data():
     if data_path.exists():
       cif_path = data_path
     else:
-      raise ValueError('Could not find components.cif')
+      import alphafold3
+      af3_data_path = pathlib.Path(alphafold3.__path__[0]) / '../share/libcifpp/components.cif'
+      if af3_data_path.exists():
+        cif_path = af3_data_path
+      else:
+        raise ValueError('Could not find components.cif')
 
   out_root = resources.files(alphafold3.constants.converters)
   ccd_pickle_path = out_root.joinpath('ccd.pickle')
