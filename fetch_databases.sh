@@ -13,11 +13,17 @@ set -euo pipefail
 
 readonly db_dir=${1:-$HOME/public_databases}
 
+missing_cmds=()
 for cmd in wget tar zstd ; do
   if ! command -v "${cmd}" > /dev/null 2>&1; then
-    echo "${cmd} is not installed. Please install it."
+    echo "Error: Required command '${cmd}' is not installed." >&2
+    missing_cmds+=("${cmd}")
   fi
 done
+if [[ ${#missing_cmds[@]} -gt 0 ]]; then
+  echo "Aborting: missing required commands: ${missing_cmds[*]}" >&2
+  exit 1
+fi
 
 echo "Fetching databases to ${db_dir}"
 mkdir -p "${db_dir}"
