@@ -40,6 +40,18 @@ void RegisterModuleMkdssp(pybind11::module m) {
     }
   }
   if (!found) {
+    // Fallback: check sysconfig data path for non-prefix installations.
+    py::module sysconfig = py::module::import("sysconfig");
+    auto data_path =
+        std::filesystem::path(
+            py::cast<absl::string_view>(sysconfig.attr("get_path")("data"))) /
+        "share/libcifpp/components.cif";
+    if (std::filesystem::exists(data_path)) {
+      setenv("LIBCIFPP_DATA_DIR", data_path.parent_path().c_str(), 0);
+      found = true;
+    }
+  }
+  if (!found) {
     throw py::type_error("Could not find the libcifpp components.cif file.");
   }
   m.def(

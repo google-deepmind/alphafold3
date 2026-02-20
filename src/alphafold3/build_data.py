@@ -13,6 +13,7 @@
 from importlib import resources
 import pathlib
 import site
+import sysconfig
 
 import alphafold3.constants.converters
 from alphafold3.constants.converters import ccd_pickle_gen
@@ -27,7 +28,12 @@ def build_data():
       cif_path = path
       break
   else:
-    raise ValueError('Could not find components.cif')
+    # Fallback: check sysconfig data path for installations outside Python prefix.
+    data_path = pathlib.Path(sysconfig.get_path('data')) / 'share/libcifpp/components.cif'
+    if data_path.exists():
+      cif_path = data_path
+    else:
+      raise ValueError('Could not find components.cif')
 
   out_root = resources.files(alphafold3.constants.converters)
   ccd_pickle_path = out_root.joinpath('ccd.pickle')
