@@ -10,7 +10,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "alphafold3"
-version = "3.0.1"
+dynamic = ["version"]
 requires-python = ">=3.12"
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -51,6 +51,7 @@ sdist.include = [
     "WEIGHTS_PROHIBITED_USE_POLICY.md",
     "WEIGHTS_TERMS_OF_USE.md",
 ]
+metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
 
 [tool.cibuildwheel]
 build = "cp3*-manylinux_x86_64"
