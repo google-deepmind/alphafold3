@@ -80,7 +80,7 @@ def transition_block(
     num_intermediate_factor: int,
     global_config: model_config.GlobalConfig,
     single_cond: jnp.ndarray | None = None,
-    use_glu_kernel: bool = True,
+    use_glu_kernel: bool | None = None,
     name: str = '',
 ) -> jnp.ndarray:
   """Transition Block."""
@@ -88,6 +88,9 @@ def transition_block(
   num_intermediates = num_intermediate_factor * num_channels
 
   x = adaptive_layernorm(x, single_cond, name=f'{name}ffw_')
+
+  if use_glu_kernel is None:
+    use_glu_kernel = global_config.use_glu_kernel
 
   if use_glu_kernel:
     weights, _ = hm.haiku_linear_get_params(
