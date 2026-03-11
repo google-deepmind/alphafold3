@@ -166,9 +166,13 @@ def clean_structure(
         *chemical_component_sets.GLYCAN_OTHER_LIGANDS,
         *chemical_component_sets.GLYCAN_LINKING_LIGANDS,
     }
-    # If only glycan ligands and no O1 atoms, we can do parallel drop.
+    # If only glycan ligands and no O1 atoms, we can do parallel drop. If there are no glycan bonds at all, keep O1.
+    has_any_glycan_bond = bool(
+        ligand_ligand_bonds.atom_name.size or polymer_ligand_bonds.atom_name.size
+    )
     if (
         only_glycan_ligands_for_leaving_atoms
+        and has_any_glycan_bond
         and (not (ligand_ligand_bonds.atom_name == 'O1').any())
         and (not (polymer_ligand_bonds.atom_name == 'O1').any())
     ):
