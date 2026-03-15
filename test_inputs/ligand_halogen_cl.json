@@ -1,0 +1,22 @@
+[
+  {
+    "name": "test_ligand_with_chlorine",
+    "modelSeeds": [1],
+    "sequences": [
+      {
+        "protein": {
+          "sequence": "MTEYKLVVVGAGGVGKSALTIQLIQNHFVDEYDPTIEDSYRKQVVIDGETCLLDILDTAGQEEYSAMRDQYMRTGEGFLCVFAINNTKSFEDIHHYREQIKRVKDSEDIPAVFHQILRA"
+        }
+      },
+      {
+        "ligand": {
+          "id": ["LIG"],
+          "smiles": "CC(=O)Nc1ccc(Cl)cc1",
+          "count": 1
+        }
+      }
+    ],
+    "dialect": "alphafold3",
+    "version": 1
+  }
+]

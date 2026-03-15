@@ -14,6 +14,16 @@ https://github.com/google-deepmind/alphafold3/commit/4e4023c, AlphaFold 3
 handled incorrectly any two-letter atoms (e.g. Cl, Br) in ligands defined using
 SMILES strings.
 
+**Current status:**  
+This issue was resolved starting from commit 4e4023c (which standardized atom name assignment using a shared RDKit utility). Two-letter elements like Cl and Br in SMILES are now parsed and handled correctly on the main branch.
+
+To demonstrate and validate proper input for common drug-like molecules (halogens appear frequently in pharmaceuticals), a new example has been added:
+
+- File: `test_inputs/ligand_halogen_cl.json`  
+- SMILES: `CC(=O)Nc1ccc(Cl)cc1` (paracetamol analog with chlorine)
+
+This serves as a reference test case for users working with halogen-containing ligands.
+
 ## MSA discrepancy between AlphaFold 3 and AlphaFold Server
 
 ### The root cause of the problem
