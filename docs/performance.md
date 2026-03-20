@@ -18,11 +18,11 @@ utilisation. This can be useful for:
 
 ### Data Pipeline Only
 
-Launch `run_alphafold.py` with `--norun_inference` to generate Multiple Sequence
-Alignments (MSAs) and templates, without running featurisation and model
-inference. This stage can be quite costly in terms of runtime, CPU, and RAM use.
-The output will be JSON files augmented with MSAs and templates that can then be
-directly used as input for running inference.
+Launch `run_alphafold.py` with `--run_inference=false` to generate Multiple
+Sequence Alignments (MSAs) and templates, without running featurisation and
+model inference. This stage can be quite costly in terms of runtime, CPU, and
+RAM use. The output will be JSON files augmented with MSAs and templates that
+can then be directly used as input for running inference.
 
 ### Pre-computing and reusing MSA and templates
 
@@ -62,10 +62,10 @@ similar issues).
 
 ### Featurisation and Model Inference Only
 
-Launch `run_alphafold.py` with `--norun_data_pipeline` to skip the data pipeline
-and run only featurisation and model inference. This stage requires the input
-JSON file to contain pre-computed MSAs and templates (or they must be explicitly
-set to empty if you want to run MSA and template free).
+Launch `run_alphafold.py` with `--run_data_pipeline=false` to skip the data
+pipeline and run only featurisation and model inference. This stage requires the
+input JSON file to contain pre-computed MSAs and templates (or they must be
+explicitly set to empty if you want to run MSA and template free).
 
 ## Data Pipeline
 
