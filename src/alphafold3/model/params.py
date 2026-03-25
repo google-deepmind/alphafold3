@@ -110,6 +110,7 @@ class _MultiFileIO(io.RawIOBase):
   def close(self):
     self._stack.close()
 
+  @property
   def closed(self) -> bool:
     return all(handle.closed for handle in self._handles)
 
@@ -154,7 +155,8 @@ class _MultiFileIO(io.RawIOBase):
 def open_for_reading(model_files: list[pathlib.Path], is_compressed: bool):
   with contextlib.closing(_MultiFileIO(model_files)) as f:
     if is_compressed:
-      yield zstandard.ZstdDecompressor().stream_reader(f)
+      buffered = io.BufferedReader(f)
+      yield zstandard.ZstdDecompressor().stream_reader(buffered)
     else:
       yield f
 
