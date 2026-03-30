@@ -417,7 +417,7 @@ def to_mmcif_atom_site_and_bonds_table(
     coords_decimal_places: int,
 ) -> Mapping[str, Sequence[str]]:
   """Returns raw _atom_site and _struct_conn mmCIF tables."""
-  raw_mmcif = collections.defaultdict(list)
+  raw_mmcif: dict[str, Sequence[str]] = {}
   # Use [value] * num wherever possible since it is about 10x faster than list
   # comprehension in such cases. Also use f-strings instead of str() - faster.
   total_atoms = atoms.size * atoms.num_models
