@@ -23,7 +23,7 @@ The unpaired MSA:
 - Is deduplicated such that it doesn't contain any sequences in the paired MSA.
 """
 
-from typing import Mapping, MutableMapping, Sequence
+from collections.abc import Mapping, MutableMapping, Sequence
 from alphafold3.model import data_constants
 import numpy as np
 
