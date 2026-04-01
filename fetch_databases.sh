@@ -33,7 +33,8 @@ wget --quiet --output-document=- \
 
 for NAME in mgy_clusters_2022_05.fa \
             bfd-first_non_consensus_sequences.fasta \
-            uniref90_2022_05.fa uniprot_all_2021_04.fa \
+            uniref90_2022_05.fa \
+            uniprot_all_2021_04.fa \
             pdb_seqres_2022_09_28.fasta \
             rnacentral_active_seq_id_90_cov_80_linclust.fasta \
             nt_rna_2023_02_23_clust_seq_id_90_cov_80_rep_seq.fasta \
