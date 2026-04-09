@@ -478,7 +478,7 @@ class Database(abc.ABC):
   @abc.abstractmethod
   def copy_and_update(
       self: _DatabaseT,
-      **new_field_by_field_name: ...,
+      **new_field_by_field_name,
   ) -> _DatabaseT:
     """Returns a copy of this database with the specified changes applied."""
 
