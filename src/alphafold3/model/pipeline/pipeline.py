@@ -11,11 +11,12 @@
 """The main featurizer."""
 
 import bisect
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 import datetime
 import itertools
 
 from absl import logging
+from alphafold3 import structure
 from alphafold3.common import base_config
 from alphafold3.common import folding_input
 from alphafold3.constants import chemical_components
@@ -156,22 +157,23 @@ class WholePdbPipeline:
     """
     self._config = config
 
-  def process_item(
+  def process_structure(
       self,
-      fold_input: folding_input.Input,
+      struct: structure.Structure,
       random_state: np.random.RandomState,
       ccd: chemical_components.Ccd,
+      unpaired_msa_by_chain_id: Mapping[str, str],
+      paired_msa_by_chain_id: Mapping[str, str],
+      templates_by_chain_id: Mapping[str, Sequence[folding_input.Template]],
       random_seed: int | None = None,
-  ) -> features.BatchDict:
-    """Takes requests from in_queue, adds (key, serialized ex) to out_queue."""
+  ) -> feat_batch.Batch:
+    """Computes features for a structure and associated MSAs/templates."""
     if random_seed is None:
       random_seed = random_state.randint(2**31)
 
     random_state = np.random.RandomState(seed=random_seed)
-
-    logging_name = f'{fold_input.name}, random_seed={random_seed}'
-    logging.info('processing %s', logging_name)
-    struct = fold_input.to_structure(ccd=ccd)
+    logging_name = f'{struct.name}, random_seed={random_seed}'
+    logging.info('Processing %s', logging_name)
 
     # Clean structure.
     cleaned_struc, cleaning_metadata = structure_cleaning.clean_structure(
@@ -342,7 +344,8 @@ class WholePdbPipeline:
         all_tokens=all_tokens,
         standard_token_idxs=standard_token_idxs,
         padding_shapes=padding_shapes,
-        fold_input=fold_input,
+        unpaired_msa_by_chain_id=unpaired_msa_by_chain_id,
+        paired_msa_by_chain_id=paired_msa_by_chain_id,
         logging_name=logging_name,
         max_paired_sequence_per_species=self._config.max_paired_sequence_per_species,
         resolve_msa_overlaps=self._config.resolve_msa_overlaps,
@@ -353,7 +356,7 @@ class WholePdbPipeline:
         all_tokens=all_tokens,
         standard_token_idxs=standard_token_idxs,
         padding_shapes=padding_shapes,
-        fold_input=fold_input,
+        templates_by_chain_id=templates_by_chain_id,
         max_templates=self._config.max_templates,
         logging_name=logging_name,
     )
@@ -436,9 +439,39 @@ class WholePdbPipeline:
         frames=batch_frames,
     )
 
+    return batch
+
+  def process_item(
+      self,
+      fold_input: folding_input.Input,
+      random_state: np.random.RandomState,
+      ccd: chemical_components.Ccd,
+      random_seed: int | None = None,
+  ) -> features.BatchDict:
+    """Takes requests from in_queue, adds (key, serialized ex) to out_queue."""
+    struct = fold_input.to_structure(ccd=ccd)
+    unpaired_msa_by_chain_id = {}
+    paired_msa_by_chain_id = {}
+    templates_by_chain_id = {}
+    for chain in fold_input.chains:
+      if isinstance(
+          chain, (folding_input.ProteinChain, folding_input.RnaChain)
+      ):
+        unpaired_msa_by_chain_id[chain.id] = chain.unpaired_msa
+      if isinstance(chain, folding_input.ProteinChain):
+        paired_msa_by_chain_id[chain.id] = chain.paired_msa
+        templates_by_chain_id[chain.id] = list(chain.templates)
+
+    batch = self.process_structure(
+        struct=struct,
+        random_state=random_state,
+        ccd=ccd,
+        unpaired_msa_by_chain_id=unpaired_msa_by_chain_id,
+        paired_msa_by_chain_id=paired_msa_by_chain_id,
+        templates_by_chain_id=templates_by_chain_id,
+        random_seed=random_seed,
+    )
     np_example = batch.as_data_dict()
-    if 'num_iter_recycling' in np_example:
-      del np_example['num_iter_recycling']  # that does not belong here
 
     for name, value in np_example.items():
       if (
@@ -447,8 +480,7 @@ class WholePdbPipeline:
           and np.isnan(np.sum(value))
       ):
         raise NanDataError(
-            f'Data pipeline output for {logging_name=} contains NaNs. NaN'
-            f' feature: {name}'
+            f'Data pipeline output for struct.name={struct.name},'
+            f' random_seed={random_seed} contains NaNs. NaN feature: {name}'
         )
-
     return np_example

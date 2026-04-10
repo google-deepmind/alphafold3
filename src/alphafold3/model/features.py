@@ -10,6 +10,7 @@
 
 """Data-side of the input features processing."""
 
+from collections.abc import Mapping, Sequence
 import dataclasses
 import datetime
 import itertools
@@ -419,7 +420,8 @@ class MSA:
       all_tokens: atom_layout.AtomLayout,
       standard_token_idxs: np.ndarray,
       padding_shapes: PaddingShapes,
-      fold_input: folding_input.Input,
+      unpaired_msa_by_chain_id: Mapping[str, str],
+      paired_msa_by_chain_id: Mapping[str, str],
       logging_name: str,
       max_paired_sequence_per_species: int,
       resolve_msa_overlaps: bool = True,
@@ -437,12 +439,10 @@ class MSA:
     need_msa_pairing = num_unique_chains > 1
 
     np_chains_list = []
-    input_chains_by_id = {chain.id: chain for chain in fold_input.chains}
     nonempty_chain_ids = set(all_tokens.chain_id)
     for asym_id, chain_info in enumerate(substruct.iter_chains(), start=1):
       b_chain_id = chain_info['chain_id']
       chain_type = chain_info['chain_type']
-      chain = input_chains_by_id[b_chain_id]
 
       # Generalised "sequence" for ligands (can't trust residue name)
       chain_tokens = all_tokens[all_tokens.chain_id == b_chain_id]
@@ -480,14 +480,19 @@ class MSA:
 
       if chain_type in mmcif_names.STANDARD_POLYMER_CHAIN_TYPES:
         unpaired_a3m = ''
+        if not skip_chain and chain_type in (
+            mmcif_names.RNA_CHAIN,
+            mmcif_names.PROTEIN_CHAIN,
+        ):
+          unpaired_a3m = unpaired_msa_by_chain_id[b_chain_id]
+
         paired_a3m = ''
-        if not skip_chain:
-          if need_msa_pairing and isinstance(chain, folding_input.ProteinChain):
-            paired_a3m = chain.paired_msa
-          if isinstance(
-              chain, folding_input.RnaChain | folding_input.ProteinChain
-          ):
-            unpaired_a3m = chain.unpaired_msa
+        if (
+            not skip_chain
+            and need_msa_pairing
+            and chain_type == mmcif_names.PROTEIN_CHAIN
+        ):
+          paired_a3m = paired_msa_by_chain_id[b_chain_id]
         # If we generated the MSA ourselves, it is already deduplicated. If it
         # is user-provided, keep it as is to prevent destroying desired pairing.
         unpaired_msa = msa_module.Msa.from_a3m(
@@ -718,7 +723,7 @@ class Templates:
       all_tokens: atom_layout.AtomLayout,
       standard_token_idxs: np.ndarray,
       padding_shapes: PaddingShapes,
-      fold_input: folding_input.Input,
+      templates_by_chain_id: Mapping[str, Sequence[folding_input.Template]],
       max_templates: int,
       logging_name: str,
   ) -> Self:
@@ -734,13 +739,12 @@ class Templates:
     )
     np_chains_list = []
 
-    input_chains_by_id = {chain.id: chain for chain in fold_input.chains}
+    sequences = substruct.chain_single_letter_sequence()
 
     nonempty_chain_ids = set(all_tokens.chain_id)
     for chain_info in substruct.iter_chains():
       chain_id = chain_info['chain_id']
       chain_type = chain_info['chain_type']
-      chain = input_chains_by_id[chain_id]
 
       # Generalised "sequence" for ligands (can't trust residue name)
       chain_tokens = all_tokens[all_tokens.chain_id == chain_id]
@@ -764,10 +768,9 @@ class Templates:
         if skip_chain:
           template_features = data3.empty_template_features(chain_num_tokens)
         else:
-          assert isinstance(chain, folding_input.ProteinChain)
 
           sorted_features = []
-          for template in chain.templates:
+          for template in templates_by_chain_id[chain_id]:
             struc = structure.from_mmcif(
                 template.mmcif,
                 fix_mse_residues=True,
@@ -779,7 +782,7 @@ class Templates:
             hit_features = templates.get_polymer_features(
                 chain=struc,
                 chain_poly_type=mmcif_names.PROTEIN_CHAIN,
-                query_sequence_length=len(chain.sequence),
+                query_sequence_length=len(sequences[chain_id]),
                 query_to_hit_mapping=dict(template.query_to_template_map),
             )
             sorted_features.append(hit_features)
@@ -790,7 +793,8 @@ class Templates:
           )
 
           template_features = data3.fix_template_features(
-              template_features=template_features, num_res=len(chain.sequence)
+              template_features=template_features,
+              num_res=len(sequences[chain_id]),
           )
 
         template_features = _reduce_template_features(
