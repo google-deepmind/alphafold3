@@ -54,7 +54,7 @@ import numpy as np
 import tokamax
 
 
-_HOME_DIR = pathlib.Path(os.environ.get('HOME'))
+_HOME_DIR = pathlib.Path.home()
 _DEFAULT_MODEL_DIR = _HOME_DIR / 'models'
 _DEFAULT_DB_DIR = _HOME_DIR / 'public_databases'
 
@@ -980,7 +980,7 @@ def main(_):
         fold_input=fold_input,
         data_pipeline_config=data_pipeline_config,
         model_runner=model_runner,
-        output_dir=os.path.join(_OUTPUT_DIR.value, fold_input.sanitised_name()),
+        output_dir = os.path.join(_OUTPUT_DIR.value, fold_input.sanitised_name())     if not os.path.abspath(output_dir).startswith(         os.path.abspath(_OUTPUT_DIR.value)     ):       raise ValueError(           f'Output path escapes output directory: {output_dir}'       ),
         buckets=tuple(int(bucket) for bucket in _BUCKETS.value),
         ref_max_modified_date=max_template_date,
         conformer_max_iterations=_CONFORMER_MAX_ITERATIONS.value,
