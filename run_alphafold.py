@@ -672,7 +672,7 @@ def replace_db_dir(path_with_db_dir: str, db_dirs: Sequence[str]) -> str:
   template = string.Template(path_with_db_dir)
   if 'DB_DIR' in template.get_identifiers():
     for db_dir in db_dirs:
-      path = template.substitute(DB_DIR=db_dir)
+      path = template.safe_substitute(DB_DIR=db_dir)
       if os.path.exists(path):
         return path
     raise FileNotFoundError(
@@ -829,13 +829,13 @@ def process_fold_input(
   return output
 
 
-def main(_):
+def _check_binary_path(flag_name: str, path: str | None, expected_name: str) -> None:   """Validates that a binary flag points to the expected binary name."""   if path and os.path.basename(path) != expected_name:     raise ValueError(         f'--{flag_name} must point to a binary named "{expected_name}", '         f'got: "{path}". This prevents arbitrary code execution.'     )   def main(_):
   if _JAX_COMPILATION_CACHE_DIR.value is not None:
     jax.config.update(
         'jax_compilation_cache_dir', _JAX_COMPILATION_CACHE_DIR.value
     )
 
-  if _JSON_PATH.value is None == _INPUT_DIR.value is None:
+  # Security: validate all subprocess binary paths to prevent RCE.   _check_binary_path(       'jackhmmer_binary_path', _JACKHMMER_BINARY_PATH.value, 'jackhmmer'   )   _check_binary_path(       'hmmsearch_binary_path', _HMMSEARCH_BINARY_PATH.value, 'hmmsearch'   )   _check_binary_path(       'hmmbuild_binary_path', _HMMBUILD_BINARY_PATH.value, 'hmmbuild'   )   _check_binary_path(       'hmmalign_binary_path', _HMMALIGN_BINARY_PATH.value, 'hmmalign'   )   _check_binary_path(       'nhmmer_binary_path', _NHMMER_BINARY_PATH.value, 'nhmmer'   )    if _JSON_PATH.value is None == _INPUT_DIR.value is None:
     raise ValueError(
         'Exactly one of --json_path or --input_dir must be specified.'
     )
