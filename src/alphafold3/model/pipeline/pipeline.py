@@ -302,7 +302,6 @@ class WholePdbPipeline:
     batch_convert_model_output = features.ConvertModelOutput.compute_features(
         all_token_atoms_layout=all_token_atoms_layout,
         padding_shapes=padding_shapes,
-        cleaned_struc=cleaned_struc,
         flat_output_layout=flat_output_layout,
         empty_output_struc=empty_output_struc,
         polymer_ligand_bonds=polymer_ligand_bonds,
