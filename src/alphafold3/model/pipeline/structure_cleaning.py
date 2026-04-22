@@ -10,8 +10,6 @@
 
 """Prepare PDB structure for training or inference."""
 
-from typing import Any
-
 from absl import logging
 from alphafold3 import structure
 from alphafold3.constants import chemical_component_sets
@@ -19,8 +17,6 @@ from alphafold3.constants import chemical_components
 from alphafold3.constants import mmcif_names
 from alphafold3.model.atom_layout import atom_layout
 from alphafold3.model.pipeline import inter_chain_bonds
-from alphafold3.model.scoring import covalent_bond_cleaning
-from alphafold3.structure import sterics
 import numpy as np
 
 
@@ -70,9 +66,7 @@ def clean_structure(
     ccd: chemical_components.Ccd,
     *,
     drop_missing_sequence: bool,
-    filter_clashes: bool,
     drop_non_standard_atoms: bool,
-    filter_crystal_aids: bool,
     filter_waters: bool,
     filter_hydrogens: bool,
     filter_leaving_atoms: bool,
@@ -80,17 +74,14 @@ def clean_structure(
     covalent_bonds_only: bool,
     remove_polymer_polymer_bonds: bool,
     remove_bad_bonds: bool,
-    remove_nonsymmetric_bonds: bool,
-) -> tuple[structure.Structure, dict[str, Any]]:
-  """Cleans structure.
+) -> structure.Structure:
+  """Returns a cleaned version of the input structure.
 
   Args:
     struc: Structure to clean.
     ccd: The chemical components dictionary.
     drop_missing_sequence: Whether to drop chains without specified sequences.
-    filter_clashes: Whether to drop clashing chains.
     drop_non_standard_atoms: Whether to drop non CCD standard atoms.
-    filter_crystal_aids: Whether to drop ligands in the crystal aid set.
     filter_waters: Whether to drop water chains.
     filter_hydrogens: Whether to drop hyrdogen atoms.
     filter_leaving_atoms: Whether to drop leaving atoms based on heuristics.
@@ -99,43 +90,13 @@ def clean_structure(
     covalent_bonds_only: Only include covalent bonds.
     remove_polymer_polymer_bonds: Remove polymer-polymer bonds.
     remove_bad_bonds: Whether to remove badly bonded ligands.
-    remove_nonsymmetric_bonds: Whether to remove nonsymmetric polymer-ligand
-      bonds from symmetric polymer chains.
-
-  Returns:
-    Tuple of structure and metadata dict. The metadata dict has
-    information about what was cleaned from the original.
   """
-
-  metadata = {}
-  # Crop crystallization aids.
-  if (
-      filter_crystal_aids
-      and struc.structure_method in mmcif_names.CRYSTALLIZATION_METHODS
-  ):
-    struc = struc.filter_out(
-        res_name=chemical_component_sets.COMMON_CRYSTALLIZATION_AIDS
-    )
 
   # Drop chains without specified sequences.
   if drop_missing_sequence:
     chains_with_unk_sequence = struc.find_chains_with_unknown_sequence()
-    num_with_unk_sequence = len(chains_with_unk_sequence)
     if chains_with_unk_sequence:
       struc = struc.filter_out(chain_id=chains_with_unk_sequence)
-  else:
-    num_with_unk_sequence = 0
-  metadata['num_with_unk_sequence'] = num_with_unk_sequence
-
-  # Remove intersecting chains.
-  if filter_clashes and struc.num_chains > 1:
-    clashing_chains = sterics.find_clashing_chains(struc)
-    if clashing_chains:
-      struc = struc.filter_out(chain_id=clashing_chains)
-  else:
-    clashing_chains = []
-  metadata['num_clashing_chains_removed'] = len(clashing_chains)
-  metadata['chains_removed'] = clashing_chains
 
   # Drop non-standard atoms
   if drop_non_standard_atoms:
@@ -268,27 +229,7 @@ def clean_structure(
         new_bonds = structure.Bonds.make_empty()
       struc = struc.copy_and_update(bonds=new_bonds)
 
-  if struc.bonds and remove_nonsymmetric_bonds:
-    # Check for asymmetric polymer-ligand bonds and remove if these exist.
-    polymer_ligand_bonds = inter_chain_bonds.get_polymer_ligand_bonds(
-        struc,
-        only_glycan_ligands=False,
-    )
-    if polymer_ligand_bonds:
-      if covalent_bond_cleaning.has_nonsymmetric_bonds_on_symmetric_polymer_chains(
-          struc, polymer_ligand_bonds
-      ):
-        from_atom_idxs, dest_atom_idxs = struc.bonds.get_atom_indices(
-            struc.atom_key
-        )
-        poly_chain_types = list(mmcif_names.POLYMER_CHAIN_TYPES)
-        is_polymer_bond = np.logical_or(
-            np.isin(struc.chain_type[from_atom_idxs], poly_chain_types),
-            np.isin(struc.chain_type[dest_atom_idxs], poly_chain_types),
-        )
-        struc = struc.copy_and_update(bonds=struc.bonds[~is_polymer_bond])
-
-  return struc, metadata
+  return struc
 
 
 def create_empty_output_struc_and_layout(
