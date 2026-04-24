@@ -677,7 +677,7 @@ def get_link_drop_atoms(
         *chemical_component_sets.GLYCAN_OTHER_LIGANDS,
         *chemical_component_sets.GLYCAN_LINKING_LIGANDS,
     }:
-      if 'O1' not in bonded_atoms:
+      if bonded_atoms and 'O1' not in bonded_atoms:
         drop_atoms.update({'O1'})
   return drop_atoms
 
