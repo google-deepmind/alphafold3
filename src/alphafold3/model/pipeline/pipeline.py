@@ -103,8 +103,6 @@ class WholePdbPipeline:
         date the model coordinates can be used as a fallback.
       max_templates: The maximum number of templates to send through the network
         set to 0 to switch off templates.
-      filter_clashes: If true then will remove clashing chains.
-      filter_crystal_aids: If true ligands in the cryal aid list are removed.
       max_paired_sequence_per_species: The maximum number of sequences per
         species that will be used for MSA pairing.
       drop_ligand_leaving_atoms: Flag for handling leaving atoms for ligands.
@@ -115,8 +113,6 @@ class WholePdbPipeline:
       atom_cross_att_keys_subset_size: keys subset size in atom cross attention
       flatten_non_standard_residues: Whether to expand non-standard polymer
         residues into flat-atom format.
-      remove_nonsymmetric_bonds: Whether to remove nonsymmetric bonds from
-        symmetric polymer chains.
       deterministic_frames: Whether to use fixed-seed reference positions to
         construct deterministic frames.
       resolve_msa_overlaps: Whether to deduplicate unpaired MSA against paired
@@ -136,15 +132,12 @@ class WholePdbPipeline:
     max_template_date: datetime.date | None = None
     ref_max_modified_date: datetime.date | None = None
     max_templates: int = 4
-    filter_clashes: bool = False
-    filter_crystal_aids: bool = False
     max_paired_sequence_per_species: int = 600
     drop_ligand_leaving_atoms: bool = True
     average_num_atoms_per_token: int = 24
     atom_cross_att_queries_subset_size: int = 32
     atom_cross_att_keys_subset_size: int = 128
     flatten_non_standard_residues: bool = True
-    remove_nonsymmetric_bonds: bool = False
     deterministic_frames: bool = True
     conformer_max_iterations: int | None = None
     resolve_msa_overlaps: bool = True
@@ -176,13 +169,11 @@ class WholePdbPipeline:
     logging.info('Processing %s', logging_name)
 
     # Clean structure.
-    cleaned_struc, cleaning_metadata = structure_cleaning.clean_structure(
+    cleaned_struc = structure_cleaning.clean_structure(
         struct,
         ccd=ccd,
         drop_non_standard_atoms=True,
         drop_missing_sequence=True,
-        filter_clashes=self._config.filter_clashes,
-        filter_crystal_aids=self._config.filter_crystal_aids,
         filter_waters=True,
         filter_hydrogens=True,
         filter_leaving_atoms=self._config.drop_ligand_leaving_atoms,
@@ -190,21 +181,9 @@ class WholePdbPipeline:
         covalent_bonds_only=True,
         remove_polymer_polymer_bonds=True,
         remove_bad_bonds=True,
-        remove_nonsymmetric_bonds=self._config.remove_nonsymmetric_bonds,
     )
 
-    num_clashing_chains_removed = cleaning_metadata[
-        'num_clashing_chains_removed'
-    ]
-
-    if num_clashing_chains_removed:
-      logging.info(
-          'Removed %d clashing chains from %s',
-          num_clashing_chains_removed,
-          logging_name,
-      )
-
-    # No chains after fixes
+    # No chains after cleaning.
     if cleaned_struc.num_chains == 0:
       raise MmcifNumChainsError(f'{logging_name}: No chains in structure!')
 
@@ -323,7 +302,6 @@ class WholePdbPipeline:
     batch_convert_model_output = features.ConvertModelOutput.compute_features(
         all_token_atoms_layout=all_token_atoms_layout,
         padding_shapes=padding_shapes,
-        cleaned_struc=cleaned_struc,
         flat_output_layout=flat_output_layout,
         empty_output_struc=empty_output_struc,
         polymer_ligand_bonds=polymer_ligand_bonds,

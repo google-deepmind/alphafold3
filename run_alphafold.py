@@ -56,7 +56,7 @@ import numpy as np
 import tokamax
 
 
-_HOME_DIR = pathlib.Path(os.environ.get('HOME'))
+_HOME_DIR = pathlib.Path.home()
 _DEFAULT_MODEL_DIR = _HOME_DIR / 'models'
 _DEFAULT_DB_DIR = _HOME_DIR / 'public_databases'
 
