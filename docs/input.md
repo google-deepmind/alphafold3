@@ -743,6 +743,43 @@ as it could cause issues in the mmCIF format.
 The newly defined ligand can then be used as a standard CCD ligand using its
 custom name, and bonds can be linked to it using its named atom scheme.
 
+### Using a user-provided CCD for a protein modification
+
+  `userCCD` and `userCCDPath` can also be used for chain-internal non-canonical amino acids, not only custom ligands.
+
+  In this case, the custom component is referenced from the protein `modifications` field using its CCD component ID:
+
+  ```json
+  {
+    "name": "protein_with_FSY",
+    "modelSeeds": [1],
+    "sequences": [
+      {
+        "protein": {
+          "id": "A",
+          "sequence": "MDQHQAFKEATELLEKMKTSSDEERVEYLRKAVRLFNLTSEGQQGELVGKFKEAGVLIRAVDLS",
+          "modifications": [
+            {"ptmType": "FSY", "ptmPosition": 30}
+          ],
+          "unpairedMsa": "",
+          "pairedMsa": "",
+          "templates": []
+        }
+      }
+    ],
+    "version": 4
+  }
+
+  In the example above, residue 30 is replaced by the custom component FSY.
+
+  - ptmType must match the component ID defined in the user-provided CCD.
+  - The user-provided CCD should describe an appropriate peptide-linking polymer component rather than a non-polymer
+    ligand.
+  - The CCD should include the expected backbone atoms and bond graph for a chain-internal residue.
+
+  This workflow is useful for modeling chain-internal non-canonical amino acids. By contrast, external covalent ligands
+  should generally be modeled as ligand entities plus bondedAtomPairs.
+
 ### Conformer Generation
 
 The data pipeline attempts to generate a conformer for ligands using RDKit. The
