@@ -121,6 +121,12 @@ class WholePdbPipeline:
         unpaired MSA field to keep it exactly as is as deduplication against
         the paired MSA could break the manually crafted pairing between MSA
         sequences.
+      fix_standalone_glycans: AlphaFold 3 model training and evaluation filtered
+        out leaving atoms from glycan ligands even if they were not bonded to
+        anything ("standalone" glycans). Setting this flag to True fixes this
+        undesirable behavior, but moves away from the regime where AlphaFold 3
+        was trained and evaluated. This has only an effect if
+        drop_ligand_leaving_atoms is True.
     """
 
     max_atoms_per_token: int = 24
@@ -141,6 +147,7 @@ class WholePdbPipeline:
     deterministic_frames: bool = True
     conformer_max_iterations: int | None = None
     resolve_msa_overlaps: bool = True
+    fix_standalone_glycans: bool = False
 
   def __init__(self, *, config: Config):
     """Initializes WholePdb data pipeline.
@@ -181,6 +188,7 @@ class WholePdbPipeline:
         covalent_bonds_only=True,
         remove_polymer_polymer_bonds=True,
         remove_bad_bonds=True,
+        fix_standalone_glycans=self._config.fix_standalone_glycans,
     )
 
     # No chains after cleaning.
@@ -209,6 +217,7 @@ class WholePdbPipeline:
             polymer_ligand_bonds=polymer_ligand_bonds,
             ligand_ligand_bonds=ligand_ligand_bonds,
             drop_ligand_leaving_atoms=self._config.drop_ligand_leaving_atoms,
+            fix_standalone_glycans=self._config.fix_standalone_glycans,
         )
     )
 

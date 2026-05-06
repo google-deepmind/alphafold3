@@ -42,6 +42,7 @@ def featurise_input(
     ref_max_modified_date: datetime.date | None = None,
     conformer_max_iterations: int | None = None,
     resolve_msa_overlaps: bool = True,
+    fix_standalone_glycans: bool = False,
     verbose: bool = False,
 ) -> Sequence[features.BatchDict]:
   """Featurise the folding input.
@@ -66,6 +67,12 @@ def featurise_input(
       paper. Set this to false if providing custom paired MSA using the unpaired
       MSA field to keep it exactly as is as deduplication against the paired MSA
       could break the manually crafted pairing between MSA sequences.
+    fix_standalone_glycans: AlphaFold 3 model training and evaluation filtered
+      out leaving atoms from glycan ligands even if they were not bonded to
+      anything ("standalone" glycans). Setting this flag to True fixes this
+      undesirable behavior, but moves away from the regime where AlphaFold 3 was
+      trained and evaluated. This has only an effect if filter_leaving_atoms is
+      True in the WholePdbPipeline.Config.
     verbose: Whether to print progress messages.
 
   Returns:
@@ -80,6 +87,7 @@ def featurise_input(
           ref_max_modified_date=ref_max_modified_date,
           conformer_max_iterations=conformer_max_iterations,
           resolve_msa_overlaps=resolve_msa_overlaps,
+          fix_standalone_glycans=fix_standalone_glycans,
       ),
   )
 
