@@ -271,11 +271,11 @@ class DataPipelineConfig:
   uniref90_z_value: int | None = None
   # Nhmmer databases.
   ntrna_database_path: str
-  ntrna_z_value: int | None = None
+  ntrna_z_value: float | None = None
   rfam_database_path: str
-  rfam_z_value: int | None = None
+  rfam_z_value: float | None = None
   rna_central_database_path: str
-  rna_central_z_value: int | None = None
+  rna_central_z_value: float | None = None
   # Template search databases.
   seqres_database_path: str
   pdb_database_path: str
