@@ -154,7 +154,7 @@ class Bonds(table.Table):
       cif['_struct_conn.pdbx_role'].append(bond_row['role'])
       cif['_struct_conn.conn_type_id'].append(bond_type)
 
-    bond_types = np.unique(self.type)
+    bond_types = np.unique(self.type).tolist()
     cif['_struct_conn_type.id'] = bond_types
     unknown = ['?'] * len(bond_types)
     cif['_struct_conn_type.criteria'] = unknown
