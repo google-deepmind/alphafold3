@@ -707,6 +707,7 @@ def process_fold_input(
     ref_max_modified_date: datetime.date | None = None,
     conformer_max_iterations: int | None = None,
     resolve_msa_overlaps: bool = True,
+    fix_standalone_glycans: bool = False,
     force_output_dir: bool = False,
     compress_large_output_files: bool = False,
 ) -> folding_input.Input:
@@ -724,6 +725,7 @@ def process_fold_input(
     ref_max_modified_date: datetime.date | None = None,
     conformer_max_iterations: int | None = None,
     resolve_msa_overlaps: bool = True,
+    fix_standalone_glycans: bool = False,
     force_output_dir: bool = False,
     compress_large_output_files: bool = False,
 ) -> Sequence[ResultsForSeed]:
@@ -874,6 +876,9 @@ def main(_):
     raise AssertionError(
         'Exactly one of --json_path or --input_dir must be specified.'
     )
+
+  if _OUTPUT_DIR.value is None:
+    raise ValueError('Output directory must be specified with --output_dir.')
 
   # Make sure we can create the output directory before running anything.
   try:
