@@ -296,6 +296,19 @@ _HMMSEARCH_N_CPU = flags.DEFINE_integer(
     ' above 8 CPUs provides very little additional speedup.',
     lower_bound=0,
 )
+_JACKHMMER_N_WORKERS = flags.DEFINE_integer(
+    'jackhmmer_n_workers',
+    4,
+    'Maximum number of Jackhmmer database searches to run concurrently.',
+    lower_bound=1,
+)
+
+_NHMMER_N_WORKERS = flags.DEFINE_integer(
+    'nhmmer_n_workers',
+    3,
+    'Maximum number of Nhmmer database searches to run concurrently.',
+    lower_bound=1,
+)
 
 # Data pipeline configuration.
 _RESOLVE_MSA_OVERLAPS = flags.DEFINE_bool(

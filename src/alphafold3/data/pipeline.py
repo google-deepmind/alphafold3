@@ -87,6 +87,7 @@ def _get_protein_msa_and_templates(
     uniprot_msa_config: msa_config.RunConfig,
     templates_config: msa_config.TemplatesConfig,
     pdb_database_path: epath.PathLike,
+    jackhmmer_n_workers: int,
 ) -> tuple[msa.Msa, msa.Msa, templates_lib.Templates]:
   """Processes a single protein chain."""
   logging.info('Getting protein MSAs for sequence %s', sequence)
@@ -168,6 +169,7 @@ def _get_rna_msa(
     nt_rna_msa_config: msa_config.RunConfig,
     rfam_msa_config: msa_config.RunConfig,
     rnacentral_msa_config: msa_config.RunConfig,
+    nhmmer_n_workers: int,
 ) -> msa.Msa:
   """Processes a single RNA chain."""
   logging.info('Getting RNA MSAs for sequence %s', sequence)
