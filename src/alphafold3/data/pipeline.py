@@ -77,13 +77,14 @@ def _get_protein_msa_and_templates(
     uniprot_msa_config: msa_config.RunConfig,
     templates_config: msa_config.TemplatesConfig,
     pdb_database_path: str,
+    jackhmmer_n_workers: int,
 ) -> tuple[msa.Msa, msa.Msa, templates_lib.Templates]:
   """Processes a single protein chain."""
   logging.info('Getting protein MSAs for sequence %s', sequence)
   msa_start_time = time.time()
   # Run various MSA tools in parallel. Use a ThreadPoolExecutor because
   # they're not blocked by the GIL, as they're sub-shelled out.
-  with futures.ThreadPoolExecutor(max_workers=4) as executor:
+  with futures.ThreadPoolExecutor(max_workers=jackhmmer_n_workers) as executor:
     uniref90_msa_future = executor.submit(
         msa.get_msa,
         target_sequence=sequence,
@@ -158,13 +159,14 @@ def _get_rna_msa(
     nt_rna_msa_config: msa_config.NhmmerConfig,
     rfam_msa_config: msa_config.NhmmerConfig,
     rnacentral_msa_config: msa_config.NhmmerConfig,
+    nhmmer_n_workers: int,
 ) -> msa.Msa:
   """Processes a single RNA chain."""
   logging.info('Getting RNA MSAs for sequence %s', sequence)
   rna_msa_start_time = time.time()
   # Run various MSA tools in parallel. Use a ThreadPoolExecutor because
   # they're not blocked by the GIL, as they're sub-shelled out.
-  with futures.ThreadPoolExecutor() as executor:
+  with futures.ThreadPoolExecutor(max_workers=nhmmer_n_workers) as executor:
     nt_rna_msa_future = executor.submit(
         msa.get_msa,
         target_sequence=sequence,
@@ -242,11 +244,13 @@ class DataPipelineConfig:
     seqres_database_path: PDB sequence database path, used for template search.
     pdb_database_path: PDB database directory with mmCIF files path, used for
       template search.
-    jackhmmer_n_cpu: Number of CPUs to use for Jackhmmer.
+    jackhmmer_n_cpu: Number of CPUs to use for each Jackhmmer process.
+    jackhmmer_n_workers: Number of concurrent Jackhmmer database searches.
     jackhmmer_max_parallel_shards: Maximum number of shards to search against in
       parallel. If None, one Jackhmmer instance will be run per shard. Only
       applicable if the database is sharded.
-    nhmmer_n_cpu: Number of CPUs to use for Nhmmer.
+    nhmmer_n_cpu: Number of CPUs to use for each Nhmmer process.
+    nhmmer_n_workers: Number of concurrent Nhmmer database searches.
     nhmmer_max_parallel_shards: Maximum number of shards to search against in
       parallel. If None, one Nhmmer instance will be run per shard. Only
       applicable if the database is sharded.
@@ -282,18 +286,23 @@ class DataPipelineConfig:
 
   # Optional configuration for MSA tools.
   jackhmmer_n_cpu: int = 8
+  jackhmmer_n_workers: int = 4
   jackhmmer_max_parallel_shards: int | None = None
   nhmmer_n_cpu: int = 8
+  nhmmer_n_workers: int = 3
   nhmmer_max_parallel_shards: int | None = None
 
   max_template_date: datetime.date
-
 
 class DataPipeline:
   """Runs the alignment tools and assembles the input features."""
 
   def __init__(self, data_pipeline_config: DataPipelineConfig):
     """Initializes the data pipeline with default configurations."""
+
+    self._jackhmmer_n_workers = data_pipeline_config.jackhmmer_n_workers
+    self._nhmmer_n_workers = data_pipeline_config.nhmmer_n_workers
+
     self._uniref90_msa_config = msa_config.RunConfig(
         config=msa_config.JackhmmerConfig(
             binary_path=data_pipeline_config.jackhmmer_binary_path,
@@ -473,6 +482,7 @@ class DataPipeline:
           uniprot_msa_config=self._uniprot_msa_config,
           templates_config=self._templates_config,
           pdb_database_path=self._pdb_database_path,
+          jackhmmer_n_workers=self._jackhmmer_n_workers,
       )
       unpaired_msa = unpaired_msa.to_a3m()
       paired_msa = paired_msa.to_a3m()
@@ -565,6 +575,7 @@ class DataPipeline:
           nt_rna_msa_config=self._nt_rna_msa_config,
           rfam_msa_config=self._rfam_msa_config,
           rnacentral_msa_config=self._rnacentral_msa_config,
+          nhmmer_n_workers=self._nhmmer_n_workers,
       ).to_a3m()
     return folding_input.RnaChain(
         id=chain.id,
