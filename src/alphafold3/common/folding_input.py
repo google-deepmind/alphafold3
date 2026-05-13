@@ -112,7 +112,9 @@ class Template:
   def __hash__(self) -> int:
     return hash((self._mmcif, tuple(sorted(self._query_to_template))))
 
-  def __eq__(self, other: Self) -> bool:
+  def __eq__(self, other: object) -> bool:
+    if not isinstance(other, Template):
+      return NotImplemented
     mmcifs_equal = self._mmcif == other._mmcif
     maps_equal = sorted(self._query_to_template) == sorted(
         other._query_to_template
@@ -221,7 +223,9 @@ class ProteinChain:
   def __len__(self) -> int:
     return len(self._sequence)
 
-  def __eq__(self, other: Self) -> bool:
+  def __eq__(self, other: object) -> bool:
+    if not isinstance(other, ProteinChain):
+      return NotImplemented
     return (
         self._id == other._id
         and self._sequence == other._sequence
@@ -520,7 +524,9 @@ class RnaChain:
   def __len__(self) -> int:
     return len(self._sequence)
 
-  def __eq__(self, other: Self) -> bool:
+  def __eq__(self, other: object) -> bool:
+    if not isinstance(other, RnaChain):
+      return NotImplemented
     return (
         self._id == other._id
         and self._sequence == other._sequence
@@ -705,7 +711,9 @@ class DnaChain:
   def __len__(self) -> int:
     return len(self._sequence)
 
-  def __eq__(self, other: Self) -> bool:
+  def __eq__(self, other: object) -> bool:
+    if not isinstance(other, DnaChain):
+      return NotImplemented
     return (
         self._id == other._id
         and self._sequence == other._sequence
