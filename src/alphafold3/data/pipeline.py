@@ -155,9 +155,9 @@ def _get_protein_msa_and_templates(
 @functools.cache
 def _get_rna_msa(
     sequence: str,
-    nt_rna_msa_config: msa_config.NhmmerConfig,
-    rfam_msa_config: msa_config.NhmmerConfig,
-    rnacentral_msa_config: msa_config.NhmmerConfig,
+    nt_rna_msa_config: msa_config.RunConfig,
+    rfam_msa_config: msa_config.RunConfig,
+    rnacentral_msa_config: msa_config.RunConfig,
 ) -> msa.Msa:
   """Processes a single RNA chain."""
   logging.info('Getting RNA MSAs for sequence %s', sequence)
