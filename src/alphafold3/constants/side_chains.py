@@ -62,18 +62,18 @@ CHI_ANGLES_ATOMS: Mapping[str, Sequence[tuple[str, ...]]] = {
     'VAL': [('N', 'CA', 'CB', 'CG1')],
 }
 
-CHI_GROUPS_FOR_ATOM = {}
+_CHI_GROUPS_FOR_ATOM: dict[tuple[str, str], list[tuple[int, int]]] = {}
 for res_name, chi_angle_atoms_for_res in CHI_ANGLES_ATOMS.items():
   for chi_group_i, chi_group in enumerate(chi_angle_atoms_for_res):
     for atom_i, atom in enumerate(chi_group):
-      CHI_GROUPS_FOR_ATOM.setdefault((res_name, atom), []).append(
+      _CHI_GROUPS_FOR_ATOM.setdefault((res_name, atom), []).append(
           (chi_group_i, atom_i)
       )
 
 # Mapping from (residue_name, atom_name) pairs to the atom's chi group index
 # and atom index within that group.
 CHI_GROUPS_FOR_ATOM: Mapping[tuple[str, str], Sequence[tuple[int, int]]] = (
-    CHI_GROUPS_FOR_ATOM
+    _CHI_GROUPS_FOR_ATOM
 )
 
 MAX_NUM_CHI_ANGLES: int = 4

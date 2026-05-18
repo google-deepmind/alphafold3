@@ -72,10 +72,12 @@ class Ccd(Mapping[str, Mapping[str, Sequence[str]]]):
       }
       self._dict.update(user_ccd_cifs)
 
-  def __getitem__(self, key: str) -> Mapping[str, Sequence[str]]:
+  def __getitem__(self, key: object) -> Mapping[str, Sequence[str]]:
+    if not isinstance(key, str):
+      raise TypeError(f'The CCD key must be a string, got {type(key)}')
     return self._dict[key]
 
-  def __contains__(self, key: str) -> bool:
+  def __contains__(self, key: object) -> bool:
     return key in self._dict
 
   def __iter__(self) -> Iterator[str]:
@@ -87,7 +89,7 @@ class Ccd(Mapping[str, Mapping[str, Sequence[str]]]):
   def __hash__(self) -> int:
     return id(self)  # Ok since this is immutable.
 
-  def get(
+  def get(  # pyrefly: ignore[bad-override]
       self, key: str, default: None | Mapping[str, Sequence[str]] = None
   ) -> Mapping[str, Sequence[str]] | None:
     return self._dict.get(key, default)
