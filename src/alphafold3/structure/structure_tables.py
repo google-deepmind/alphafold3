@@ -67,7 +67,9 @@ class AuthorNamingScheme:
 
 
 def _default(
-    candidate_value: np.ndarray | None, default_value: Sequence[Any], dtype: Any
+    candidate_value: np.ndarray | None,
+    default_value: Sequence[Any] | np.ndarray,
+    dtype: Any,
 ) -> np.ndarray:
   if candidate_value is None:
     return np.array(default_value, dtype=dtype)
@@ -521,7 +523,7 @@ def to_mmcif_atom_site_and_bonds_table(
 
 
 def _flatten_author_naming_scheme_table(
-    res_table: Mapping[str, Mapping[int, str]],
+    res_table: Mapping[str, Mapping[int, str | None]],
     chain_ids: np.ndarray,
     res_chain_ids: np.ndarray,
     res_ids: np.ndarray,
