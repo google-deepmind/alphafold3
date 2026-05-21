@@ -839,9 +839,6 @@ def process_fold_input(
         fix_standalone_glycans=fix_standalone_glycans,
     )
     print(f'Writing outputs with {len(fold_input.rng_seeds)} seed(s)...')
-    # Build a {chain_id: description} map from the fold input so that the
-    # summary_confidences.json uses meaningful labels instead of the '.'
-    # placeholder that the mmCIF stores for entity descriptions.
     chain_descriptions: dict[str, str] = {}
     for chain in fold_input.chains:
       desc = getattr(chain, 'description', '') or ''
