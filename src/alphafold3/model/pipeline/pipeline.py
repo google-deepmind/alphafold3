@@ -13,7 +13,9 @@
 import bisect
 from collections.abc import Mapping, Sequence
 import datetime
+import functools
 import itertools
+from typing import NamedTuple
 
 from absl import logging
 from alphafold3 import structure
@@ -73,6 +75,307 @@ class TotalNumResOutOfRangeError(Exception):
 class MmcifNumChainsError(Exception):
   """Raised if the mmcif file contains too many / too few chains."""
 
+
+class _StructureCacheKey:
+  """Stable cache key for equivalent structures created for different seeds."""
+
+  __slots__ = ('struct', '_mmcif')
+
+  def __init__(self, struct: structure.Structure):
+    self.struct = struct
+    self._mmcif = struct.to_mmcif()
+
+  def __hash__(self) -> int:
+    return hash(self._mmcif)
+
+  def __eq__(self, other: object) -> bool:
+    if not isinstance(other, _StructureCacheKey):
+      return NotImplemented
+    return self._mmcif == other._mmcif
+
+
+class _SeedIndependentConfig(NamedTuple):
+  """Hashable pipeline config fields used for seed-independent features."""
+
+  max_atoms_per_token: int
+  pad_num_chains: int
+  buckets: tuple[int, ...] | None
+  max_total_residues: int | None
+  min_total_residues: int | None
+  msa_crop_size: int
+  ref_max_modified_date: datetime.date | None
+  max_templates: int
+  max_paired_sequence_per_species: int
+  drop_ligand_leaving_atoms: bool
+  average_num_atoms_per_token: int
+  atom_cross_att_queries_subset_size: int
+  atom_cross_att_keys_subset_size: int
+  flatten_non_standard_residues: bool
+  deterministic_frames: bool
+  resolve_msa_overlaps: bool
+  fix_standalone_glycans: bool
+
+
+def _seed_independent_config(config: 'WholePdbPipeline.Config') -> _SeedIndependentConfig:
+  return _SeedIndependentConfig(
+      max_atoms_per_token=config.max_atoms_per_token,
+      pad_num_chains=config.pad_num_chains,
+      buckets=None if config.buckets is None else tuple(config.buckets),
+      max_total_residues=config.max_total_residues,
+      min_total_residues=config.min_total_residues,
+      msa_crop_size=config.msa_crop_size,
+      ref_max_modified_date=config.ref_max_modified_date,
+      max_templates=config.max_templates,
+      max_paired_sequence_per_species=config.max_paired_sequence_per_species,
+      drop_ligand_leaving_atoms=config.drop_ligand_leaving_atoms,
+      average_num_atoms_per_token=config.average_num_atoms_per_token,
+      atom_cross_att_queries_subset_size=config.atom_cross_att_queries_subset_size,
+      atom_cross_att_keys_subset_size=config.atom_cross_att_keys_subset_size,
+      flatten_non_standard_residues=config.flatten_non_standard_residues,
+      deterministic_frames=config.deterministic_frames,
+      resolve_msa_overlaps=config.resolve_msa_overlaps,
+      fix_standalone_glycans=config.fix_standalone_glycans,
+  )
+
+
+@functools.lru_cache(maxsize=1)
+def _process_structure_seed_independent(
+    struct_cache_key: _StructureCacheKey,
+    config: _SeedIndependentConfig,
+    ccd: chemical_components.Ccd,
+    unpaired_msa_by_chain_id: tuple[tuple[str, str], ...],
+    paired_msa_by_chain_id: tuple[tuple[str, str], ...],
+    templates_by_chain_id: tuple[
+        tuple[str, tuple[folding_input.Template, ...]], ...
+    ],
+):
+  """Computes seed-independent features for a structure."""
+  struct = struct_cache_key.struct
+  logging_name = struct.name
+
+  # Clean structure.
+  cleaned_struc = structure_cleaning.clean_structure(
+      struct,
+      ccd=ccd,
+      drop_non_standard_atoms=True,
+      drop_missing_sequence=True,
+      filter_waters=True,
+      filter_hydrogens=True,
+      filter_leaving_atoms=config.drop_ligand_leaving_atoms,
+      only_glycan_ligands_for_leaving_atoms=True,
+      covalent_bonds_only=True,
+      remove_polymer_polymer_bonds=True,
+      remove_bad_bonds=True,
+      fix_standalone_glycans=config.fix_standalone_glycans,
+  )
+
+  # No chains after cleaning.
+  if cleaned_struc.num_chains == 0:
+    raise MmcifNumChainsError(f'{logging_name}: No chains in structure!')
+
+  polymer_ligand_bonds, ligand_ligand_bonds = (
+      inter_chain_bonds.get_polymer_ligand_and_ligand_ligand_bonds(
+          cleaned_struc,
+          only_glycan_ligands=False,
+          allow_multiple_bonds_per_atom=True,
+      )
+  )
+
+  # If empty replace with None as this causes errors downstream.
+  if ligand_ligand_bonds and not ligand_ligand_bonds.atom_name.size:
+    ligand_ligand_bonds = None
+  if polymer_ligand_bonds and not polymer_ligand_bonds.atom_name.size:
+    polymer_ligand_bonds = None
+
+  # Create the flat output AtomLayout
+  empty_output_struc, flat_output_layout = (
+      structure_cleaning.create_empty_output_struc_and_layout(
+          struc=cleaned_struc,
+          ccd=ccd,
+          polymer_ligand_bonds=polymer_ligand_bonds,
+          ligand_ligand_bonds=ligand_ligand_bonds,
+          drop_ligand_leaving_atoms=config.drop_ligand_leaving_atoms,
+          fix_standalone_glycans=config.fix_standalone_glycans,
+      )
+  )
+
+  # Select the tokens for Evoformer.
+  # Each token (e.g. a residue) is encoded as one representative atom. This
+  # is flexible enough to allow the 1-token-per-atom ligand representation
+  # in the future.
+  all_tokens, all_token_atoms_layout, standard_token_idxs = (
+      features.tokenizer(
+          flat_output_layout,
+          ccd=ccd,
+          max_atoms_per_token=config.max_atoms_per_token,
+          flatten_non_standard_residues=config.flatten_non_standard_residues,
+          logging_name=logging_name,
+      )
+  )
+  total_tokens = len(all_tokens.atom_name)
+  if config.max_total_residues and total_tokens > config.max_total_residues:
+    raise TotalNumResOutOfRangeError(
+        'Total Number of Residues > max_total_residues: '
+        f'({total_tokens} > {config.max_total_residues})'
+    )
+
+  if config.min_total_residues and total_tokens < config.min_total_residues:
+    raise TotalNumResOutOfRangeError(
+        'Total Number of Residues < min_total_residues: '
+        f'({total_tokens} < {config.min_total_residues})'
+    )
+
+  logging.info(
+      'Calculating bucket size for input with %d tokens.', total_tokens
+  )
+  padded_token_length = calculate_bucket_size(total_tokens, config.buckets)
+  logging.info(
+      'Got bucket size %d for input with %d tokens, resulting in %d padded'
+      ' tokens.',
+      padded_token_length,
+      total_tokens,
+      padded_token_length - total_tokens,
+  )
+
+  # Padding shapes for all features.
+  num_atoms = padded_token_length * config.average_num_atoms_per_token
+  # Round up to next multiple of subset size.
+  num_atoms = int(
+      np.ceil(num_atoms / config.atom_cross_att_queries_subset_size)
+      * config.atom_cross_att_queries_subset_size
+  )
+  padding_shapes = features.PaddingShapes(
+      num_tokens=padded_token_length,
+      msa_size=config.msa_crop_size,
+      num_chains=config.pad_num_chains,
+      num_templates=config.max_templates,
+      num_atoms=num_atoms,
+  )
+
+  # Create the atom layouts for flat atom cross attention
+  batch_atom_cross_att = features.AtomCrossAtt.compute_features(
+      all_token_atoms_layout=all_token_atoms_layout,
+      queries_subset_size=config.atom_cross_att_queries_subset_size,
+      keys_subset_size=config.atom_cross_att_keys_subset_size,
+      padding_shapes=padding_shapes,
+  )
+
+  # Extract per-token features
+  batch_token_features = features.TokenFeatures.compute_features(
+      all_tokens=all_tokens,
+      padding_shapes=padding_shapes,
+  )
+
+  # Create reference structure features
+  chemical_components_data = struc_chem_comps.populate_missing_ccd_data(
+      ccd=ccd,
+      chemical_components_data=cleaned_struc.chemical_components_data,
+      populate_pdbx_smiles=True,
+  )
+
+  # Add smiles info to empty_output_struc.
+  empty_output_struc = empty_output_struc.copy_and_update_globals(
+      chemical_components_data=chemical_components_data
+  )
+  # Create layouts and store structures for model output conversion.
+  batch_convert_model_output = features.ConvertModelOutput.compute_features(
+      all_token_atoms_layout=all_token_atoms_layout,
+      padding_shapes=padding_shapes,
+      flat_output_layout=flat_output_layout,
+      empty_output_struc=empty_output_struc,
+      polymer_ligand_bonds=polymer_ligand_bonds,
+      ligand_ligand_bonds=ligand_ligand_bonds,
+  )
+
+  # Create the PredictedStructureInfo
+  batch_predicted_structure_info = (
+      features.PredictedStructureInfo.compute_features(
+          all_tokens=all_tokens,
+          all_token_atoms_layout=all_token_atoms_layout,
+          padding_shapes=padding_shapes,
+      )
+  )
+
+  # Create MSA features
+  batch_msa = features.MSA.compute_features(
+      all_tokens=all_tokens,
+      standard_token_idxs=standard_token_idxs,
+      padding_shapes=padding_shapes,
+      unpaired_msa_by_chain_id=dict(unpaired_msa_by_chain_id),
+      paired_msa_by_chain_id=dict(paired_msa_by_chain_id),
+      logging_name=logging_name,
+      max_paired_sequence_per_species=config.max_paired_sequence_per_species,
+      resolve_msa_overlaps=config.resolve_msa_overlaps,
+  )
+
+  # Create template features
+  batch_templates = features.Templates.compute_features(
+      all_tokens=all_tokens,
+      standard_token_idxs=standard_token_idxs,
+      padding_shapes=padding_shapes,
+      templates_by_chain_id={
+          chain_id: list(templates)
+          for chain_id, templates in templates_by_chain_id
+      },
+      max_templates=config.max_templates,
+      logging_name=logging_name,
+  )
+
+  deterministic_ref_structure = None
+  if config.deterministic_frames:
+    deterministic_ref_structure, _ = features.RefStructure.compute_features(
+        all_token_atoms_layout=all_token_atoms_layout,
+        ccd=ccd,
+        padding_shapes=padding_shapes,
+        chemical_components_data=chemical_components_data,
+        random_state=np.random.RandomState(_DETERMINISTIC_FRAMES_RANDOM_SEED),
+        ref_max_modified_date=config.ref_max_modified_date,
+        conformer_max_iterations=None,
+        ligand_ligand_bonds=ligand_ligand_bonds,
+    )
+
+  # Create ligand-polymer bond features.
+  polymer_ligand_bond_info = features.PolymerLigandBondInfo.compute_features(
+      all_tokens=all_tokens,
+      all_token_atoms_layout=all_token_atoms_layout,
+      bond_layout=polymer_ligand_bonds,
+      padding_shapes=padding_shapes,
+  )
+
+  # Create the Pseudo-beta layout for distogram head and distance error head.
+  batch_pseudo_beta_info = features.PseudoBetaInfo.compute_features(
+      all_token_atoms_layout=all_token_atoms_layout,
+      ccd=ccd,
+      padding_shapes=padding_shapes,
+      logging_name=logging_name,
+  )
+
+  batch_frames = None
+  if config.deterministic_frames:
+    # Frame construction.
+    batch_frames = features.Frames.compute_features(
+        all_tokens=all_tokens,
+        all_token_atoms_layout=all_token_atoms_layout,
+        ref_structure=deterministic_ref_structure,
+        padding_shapes=padding_shapes,
+    )
+
+  return (
+      all_tokens,
+      all_token_atoms_layout,
+      padding_shapes,
+      chemical_components_data,
+      ligand_ligand_bonds,
+      batch_atom_cross_att,
+      batch_token_features,
+      batch_convert_model_output,
+      batch_predicted_structure_info,
+      batch_msa,
+      batch_templates,
+      polymer_ligand_bond_info,
+      batch_pseudo_beta_info,
+      batch_frames,
+  )
 
 class WholePdbPipeline:
   """Processes an entire mmcif entity and merges the content."""
@@ -175,182 +478,39 @@ class WholePdbPipeline:
     logging_name = f'{struct.name}, random_seed={random_seed}'
     logging.info('Processing %s', logging_name)
 
-    # Clean structure.
-    cleaned_struc = structure_cleaning.clean_structure(
-        struct,
+    # Compute seed-independent features
+    (
+        all_tokens,
+        all_token_atoms_layout,
+        padding_shapes,
+        chemical_components_data,
+        ligand_ligand_bonds,
+        batch_atom_cross_att,
+        batch_token_features,
+        batch_convert_model_output,
+        batch_predicted_structure_info,
+        batch_msa,
+        batch_templates,
+        polymer_ligand_bond_info,
+        batch_pseudo_beta_info,
+        batch_frames,
+    ) = _process_structure_seed_independent(
+        struct_cache_key=_StructureCacheKey(struct),
+        config=_seed_independent_config(self._config),
         ccd=ccd,
-        drop_non_standard_atoms=True,
-        drop_missing_sequence=True,
-        filter_waters=True,
-        filter_hydrogens=True,
-        filter_leaving_atoms=self._config.drop_ligand_leaving_atoms,
-        only_glycan_ligands_for_leaving_atoms=True,
-        covalent_bonds_only=True,
-        remove_polymer_polymer_bonds=True,
-        remove_bad_bonds=True,
-        fix_standalone_glycans=self._config.fix_standalone_glycans,
-    )
-
-    # No chains after cleaning.
-    if cleaned_struc.num_chains == 0:
-      raise MmcifNumChainsError(f'{logging_name}: No chains in structure!')
-
-    polymer_ligand_bonds, ligand_ligand_bonds = (
-        inter_chain_bonds.get_polymer_ligand_and_ligand_ligand_bonds(
-            cleaned_struc,
-            only_glycan_ligands=False,
-            allow_multiple_bonds_per_atom=True,
-        )
-    )
-
-    # If empty replace with None as this causes errors downstream.
-    if ligand_ligand_bonds and not ligand_ligand_bonds.atom_name.size:
-      ligand_ligand_bonds = None
-    if polymer_ligand_bonds and not polymer_ligand_bonds.atom_name.size:
-      polymer_ligand_bonds = None
-
-    # Create the flat output AtomLayout
-    empty_output_struc, flat_output_layout = (
-        structure_cleaning.create_empty_output_struc_and_layout(
-            struc=cleaned_struc,
-            ccd=ccd,
-            polymer_ligand_bonds=polymer_ligand_bonds,
-            ligand_ligand_bonds=ligand_ligand_bonds,
-            drop_ligand_leaving_atoms=self._config.drop_ligand_leaving_atoms,
-            fix_standalone_glycans=self._config.fix_standalone_glycans,
-        )
-    )
-
-    # Select the tokens for Evoformer.
-    # Each token (e.g. a residue) is encoded as one representative atom. This
-    # is flexible enough to allow the 1-token-per-atom ligand representation
-    # in the future.
-    all_tokens, all_token_atoms_layout, standard_token_idxs = (
-        features.tokenizer(
-            flat_output_layout,
-            ccd=ccd,
-            max_atoms_per_token=self._config.max_atoms_per_token,
-            flatten_non_standard_residues=self._config.flatten_non_standard_residues,
-            logging_name=logging_name,
-        )
-    )
-    total_tokens = len(all_tokens.atom_name)
-    if (
-        self._config.max_total_residues
-        and total_tokens > self._config.max_total_residues
-    ):
-      raise TotalNumResOutOfRangeError(
-          'Total Number of Residues > max_total_residues: '
-          f'({total_tokens} > {self._config.max_total_residues})'
-      )
-
-    if (
-        self._config.min_total_residues
-        and total_tokens < self._config.min_total_residues
-    ):
-      raise TotalNumResOutOfRangeError(
-          'Total Number of Residues < min_total_residues: '
-          f'({total_tokens} < {self._config.min_total_residues})'
-      )
-
-    logging.info(
-        'Calculating bucket size for input with %d tokens.', total_tokens
-    )
-    padded_token_length = calculate_bucket_size(
-        total_tokens, self._config.buckets
-    )
-    logging.info(
-        'Got bucket size %d for input with %d tokens, resulting in %d padded'
-        ' tokens.',
-        padded_token_length,
-        total_tokens,
-        padded_token_length - total_tokens,
-    )
-
-    # Padding shapes for all features.
-    num_atoms = padded_token_length * self._config.average_num_atoms_per_token
-    # Round up to next multiple of subset size.
-    num_atoms = int(
-        np.ceil(num_atoms / self._config.atom_cross_att_queries_subset_size)
-        * self._config.atom_cross_att_queries_subset_size
-    )
-    padding_shapes = features.PaddingShapes(
-        num_tokens=padded_token_length,
-        msa_size=self._config.msa_crop_size,
-        num_chains=self._config.pad_num_chains,
-        num_templates=self._config.max_templates,
-        num_atoms=num_atoms,
-    )
-
-    # Create the atom layouts for flat atom cross attention
-    batch_atom_cross_att = features.AtomCrossAtt.compute_features(
-        all_token_atoms_layout=all_token_atoms_layout,
-        queries_subset_size=self._config.atom_cross_att_queries_subset_size,
-        keys_subset_size=self._config.atom_cross_att_keys_subset_size,
-        padding_shapes=padding_shapes,
-    )
-
-    # Extract per-token features
-    batch_token_features = features.TokenFeatures.compute_features(
-        all_tokens=all_tokens,
-        padding_shapes=padding_shapes,
-    )
-
-    # Create reference structure features
-    chemical_components_data = struc_chem_comps.populate_missing_ccd_data(
-        ccd=ccd,
-        chemical_components_data=cleaned_struc.chemical_components_data,
-        populate_pdbx_smiles=True,
-    )
-
-    # Add smiles info to empty_output_struc.
-    empty_output_struc = empty_output_struc.copy_and_update_globals(
-        chemical_components_data=chemical_components_data
-    )
-    # Create layouts and store structures for model output conversion.
-    batch_convert_model_output = features.ConvertModelOutput.compute_features(
-        all_token_atoms_layout=all_token_atoms_layout,
-        padding_shapes=padding_shapes,
-        flat_output_layout=flat_output_layout,
-        empty_output_struc=empty_output_struc,
-        polymer_ligand_bonds=polymer_ligand_bonds,
-        ligand_ligand_bonds=ligand_ligand_bonds,
-    )
-
-    # Create the PredictedStructureInfo
-    batch_predicted_structure_info = (
-        features.PredictedStructureInfo.compute_features(
-            all_tokens=all_tokens,
-            all_token_atoms_layout=all_token_atoms_layout,
-            padding_shapes=padding_shapes,
-        )
-    )
-
-    # Create MSA features
-    batch_msa = features.MSA.compute_features(
-        all_tokens=all_tokens,
-        standard_token_idxs=standard_token_idxs,
-        padding_shapes=padding_shapes,
-        unpaired_msa_by_chain_id=unpaired_msa_by_chain_id,
-        paired_msa_by_chain_id=paired_msa_by_chain_id,
-        logging_name=logging_name,
-        max_paired_sequence_per_species=self._config.max_paired_sequence_per_species,
-        resolve_msa_overlaps=self._config.resolve_msa_overlaps,
-    )
-
-    # Create template features
-    batch_templates = features.Templates.compute_features(
-        all_tokens=all_tokens,
-        standard_token_idxs=standard_token_idxs,
-        padding_shapes=padding_shapes,
-        templates_by_chain_id=templates_by_chain_id,
-        max_templates=self._config.max_templates,
-        logging_name=logging_name,
+        unpaired_msa_by_chain_id=tuple(
+            sorted(unpaired_msa_by_chain_id.items())
+        ),
+        paired_msa_by_chain_id=tuple(sorted(paired_msa_by_chain_id.items())),
+        templates_by_chain_id=tuple(
+            (chain_id, tuple(templates))
+            for chain_id, templates in sorted(templates_by_chain_id.items())
+        ),
     )
 
     ref_max_modified_date = self._config.ref_max_modified_date
     conformer_max_iterations = self._config.conformer_max_iterations
-    batch_ref_structure, ligand_ligand_bonds = (
+    batch_ref_structure, adjusted_ligand_ligand_bonds = (
         features.RefStructure.compute_features(
             all_token_atoms_layout=all_token_atoms_layout,
             ccd=ccd,
@@ -362,54 +522,20 @@ class WholePdbPipeline:
             ligand_ligand_bonds=ligand_ligand_bonds,
         )
     )
-    deterministic_ref_structure = None
-    if self._config.deterministic_frames:
-      deterministic_ref_structure, _ = features.RefStructure.compute_features(
-          all_token_atoms_layout=all_token_atoms_layout,
-          ccd=ccd,
-          padding_shapes=padding_shapes,
-          chemical_components_data=chemical_components_data,
-          random_state=(
-              np.random.RandomState(_DETERMINISTIC_FRAMES_RANDOM_SEED)
-          ),
-          ref_max_modified_date=ref_max_modified_date,
-          conformer_max_iterations=None,
-          ligand_ligand_bonds=ligand_ligand_bonds,
-      )
-
-    # Create ligand-polymer bond features.
-    polymer_ligand_bond_info = features.PolymerLigandBondInfo.compute_features(
-        all_tokens=all_tokens,
-        all_token_atoms_layout=all_token_atoms_layout,
-        bond_layout=polymer_ligand_bonds,
-        padding_shapes=padding_shapes,
-    )
-    # Create ligand-ligand bond features.
     ligand_ligand_bond_info = features.LigandLigandBondInfo.compute_features(
         all_tokens,
-        ligand_ligand_bonds,
+        adjusted_ligand_ligand_bonds,
         padding_shapes,
     )
 
-    # Create the Pseudo-beta layout for distogram head and distance error head.
-    batch_pseudo_beta_info = features.PseudoBetaInfo.compute_features(
-        all_token_atoms_layout=all_token_atoms_layout,
-        ccd=ccd,
-        padding_shapes=padding_shapes,
-        logging_name=logging_name,
-    )
-
-    # Frame construction.
-    batch_frames = features.Frames.compute_features(
-        all_tokens=all_tokens,
-        all_token_atoms_layout=all_token_atoms_layout,
-        ref_structure=(
-            deterministic_ref_structure
-            if self._config.deterministic_frames
-            else batch_ref_structure
-        ),
-        padding_shapes=padding_shapes,
-    )
+    if not self._config.deterministic_frames:
+      # Frame construction.
+      batch_frames = features.Frames.compute_features(
+          all_tokens=all_tokens,
+          all_token_atoms_layout=all_token_atoms_layout,
+          ref_structure=batch_ref_structure,
+          padding_shapes=padding_shapes,
+      )
 
     # Assemble the Batch object.
     batch = feat_batch.Batch(
