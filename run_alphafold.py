@@ -24,7 +24,6 @@ import csv
 import dataclasses
 import datetime
 import functools
-import json
 import os
 import pathlib
 import shutil
@@ -612,7 +611,6 @@ def write_outputs(
     output_dir: os.PathLike[str] | str,
     job_name: str,
     compress_large_output_files: bool = False,
-    chain_descriptions: dict[str, str] | None = None,
 ) -> None:
   """Writes outputs to the specified output directory."""
   ranking_scores = []
@@ -634,7 +632,6 @@ def write_outputs(
           output_dir=sample_dir,
           name=f'{job_name}_seed-{seed}_sample-{sample_idx}',
           compress=compress_large_output_files,
-          chain_descriptions=chain_descriptions,
       )
       ranking_score = float(result.metadata['ranking_score'])
       ranking_scores.append((seed, sample_idx, ranking_score))
@@ -668,7 +665,6 @@ def write_outputs(
         terms_of_use=output_terms,
         name=job_name,
         compress=compress_large_output_files,
-        chain_descriptions=chain_descriptions,
     )
     # Save csv of ranking scores with seeds and sample indices, to allow easier
     # comparison of ranking scores across different runs.
@@ -839,18 +835,11 @@ def process_fold_input(
         fix_standalone_glycans=fix_standalone_glycans,
     )
     print(f'Writing outputs with {len(fold_input.rng_seeds)} seed(s)...')
-    chain_descriptions: dict[str, str] = {}
-    for chain in fold_input.chains:
-      desc = getattr(chain, 'description', '') or ''
-      ids = chain.id if isinstance(chain.id, list) else [chain.id]
-      for cid in ids:
-        chain_descriptions[cid] = desc
     write_outputs(
         all_inference_results=all_inference_results,
         output_dir=output_dir,
         job_name=fold_input.sanitised_name(),
         compress_large_output_files=compress_large_output_files,
-        chain_descriptions=chain_descriptions,
     )
     output = all_inference_results
 
