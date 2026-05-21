@@ -196,6 +196,8 @@ class StructureConfidenceSummary:
    chain_pair_iptm: [num_chains, num_chains] Chain pair ipTM.
    chain_ptm: [num_chains] Chain pTM.
    chain_iptm: [num_chains] Mean cross chain ipTM for a chain.
+   token_chain_ids: List of chain IDs for each token.
+   unique_chain_ids: List of unique chain IDs in the structure.
   """
 
   ptm: float
@@ -207,12 +209,24 @@ class StructureConfidenceSummary:
   chain_pair_iptm: np.ndarray
   chain_ptm: np.ndarray
   chain_iptm: np.ndarray
+  token_chain_ids: list[str]
+  unique_chain_ids: list[str]
 
   @classmethod
   def from_inference_result(
-      cls, inference_result: model.InferenceResult
+      cls,
+      inference_result: model.InferenceResult,
   ) -> Self:
     """Returns a new instance based on a given inference result."""
+
+    unique_chain_ids = list(sorted(set(
+        str(token_id)
+        for token_id in inference_result.metadata['token_chain_ids']
+    )))
+
+    # Use descriptions supplied by the caller (sourced from the fold input
+    # JSON).  Fall back to an empty dict so chain_id is used as the label.
+
     return cls(
         ptm=float(inference_result.metadata['ptm']),
         iptm=float(inference_result.metadata['iptm']),
@@ -225,6 +239,11 @@ class StructureConfidenceSummary:
         chain_pair_iptm=inference_result.metadata['chain_pair_iptm'],
         chain_ptm=inference_result.metadata['iptm_ichain'],
         chain_iptm=inference_result.metadata['iptm_xchain'],
+        token_chain_ids=[
+            str(token_id)
+            for token_id in inference_result.metadata['token_chain_ids']
+        ],
+        unique_chain_ids=unique_chain_ids,
     )
 
   @classmethod
@@ -233,16 +252,52 @@ class StructureConfidenceSummary:
     return cls(**json.loads(json_string))
 
   def to_json(self) -> str:
+    """Converts this instance into a JSON string."""
     def convert(data):
       if isinstance(data, np.ndarray):
         # Cast to np.float64 before rounding, since casting to Python float will
         # cast to a 64 bit float, potentially undoing np.float32 rounding.
         rounded_data = np.round(data.astype(np.float64), decimals=2).tolist()
-      else:
+      elif isinstance(data, (int, float)):
         rounded_data = np.round(data, decimals=2)
+      else:
+        # For non-numeric data (like strings, dicts, etc.), return as-is
+        rounded_data = data
       return rounded_data
 
-    return _dump_json(jax.tree.map(convert, dataclasses.asdict(self)), indent=1)
+    basic_dict = dataclasses.asdict(self)
+    converted_dict = jax.tree.map(convert, basic_dict)
+
+    annotated_dict = {
+        'ptm': float(converted_dict['ptm']),
+        'iptm': float(converted_dict['iptm']),
+        'ranking_score': float(converted_dict['ranking_score']),
+        'fraction_disordered': float(converted_dict['fraction_disordered']),
+        'has_clash': float(converted_dict['has_clash']),
+        'chain_ptm': {},
+        'chain_iptm': {},
+        'chain_pair_iptm': {},
+        'chain_pair_pae_min': {},
+    }
+
+    for i, chain_id_i in enumerate(self.unique_chain_ids):
+      annotated_dict['chain_ptm'][chain_id_i] = float(
+          converted_dict['chain_ptm'][i]
+      )
+      annotated_dict['chain_iptm'][chain_id_i] = float(
+          converted_dict['chain_iptm'][i]
+      )
+      annotated_dict['chain_pair_iptm'][chain_id_i] = {}
+      annotated_dict['chain_pair_pae_min'][chain_id_i] = {}
+      for j, chain_id_j in enumerate(self.unique_chain_ids):
+        annotated_dict['chain_pair_iptm'][chain_id_i][chain_id_j] = float(
+            converted_dict['chain_pair_iptm'][i][j]
+        )
+        annotated_dict['chain_pair_pae_min'][chain_id_i][chain_id_j] = float(
+            converted_dict['chain_pair_pae_min'][i][j]
+        )
+
+    return _dump_json(annotated_dict, indent=1)
 
 
 @dataclasses.dataclass(frozen=True, slots=True, kw_only=True)
