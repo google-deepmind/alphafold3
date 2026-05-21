@@ -648,6 +648,7 @@ class RnaChain:
         id=self.id,
         sequence=self.sequence,
         modifications=self.modifications,
+        description=self._description,
         unpaired_msa=self._unpaired_msa or '',
     )
 
