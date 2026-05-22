@@ -538,6 +538,7 @@ class DataPipeline:
         id=chain.id,
         sequence=chain.sequence,
         ptms=chain.ptms,
+        description=chain.description,
         unpaired_msa=unpaired_msa,
         paired_msa=paired_msa,
         templates=templates,
@@ -570,6 +571,7 @@ class DataPipeline:
         id=chain.id,
         sequence=chain.sequence,
         modifications=chain.modifications,
+        description=chain.description,
         unpaired_msa=unpaired_msa,
     )
 
