@@ -500,7 +500,7 @@ class WholePdbPipeline:
         batch_pseudo_beta_info,
         batch_frames,
     ) = _process_structure_seed_independent(
-        struct_cache_key=_HashableStructure(struct),
+        input_struct=_HashableStructure(struct),
         config=self._config._dump_seed_independent_config(),
         ccd=ccd,
         unpaired_msa_by_chain_id=tuple(
