@@ -76,8 +76,8 @@ class MmcifNumChainsError(Exception):
   """Raised if the mmcif file contains too many / too few chains."""
 
 
-class _StructureCacheKey:
-  """Stable cache key for equivalent structures created for different seeds."""
+class _HashableStructure:
+  """Hashable representation of a structure used for caching."""
 
   __slots__ = ('struct', '_mmcif')
 
@@ -89,7 +89,7 @@ class _StructureCacheKey:
     return hash(self._mmcif)
 
   def __eq__(self, other: object) -> bool:
-    if not isinstance(other, _StructureCacheKey):
+    if not isinstance(other, _HashableStructure):
       return NotImplemented
     return self._mmcif == other._mmcif
 
@@ -116,31 +116,9 @@ class _SeedIndependentConfig(NamedTuple):
   fix_standalone_glycans: bool
 
 
-def _seed_independent_config(config: 'WholePdbPipeline.Config') -> _SeedIndependentConfig:
-  return _SeedIndependentConfig(
-      max_atoms_per_token=config.max_atoms_per_token,
-      pad_num_chains=config.pad_num_chains,
-      buckets=None if config.buckets is None else tuple(config.buckets),
-      max_total_residues=config.max_total_residues,
-      min_total_residues=config.min_total_residues,
-      msa_crop_size=config.msa_crop_size,
-      ref_max_modified_date=config.ref_max_modified_date,
-      max_templates=config.max_templates,
-      max_paired_sequence_per_species=config.max_paired_sequence_per_species,
-      drop_ligand_leaving_atoms=config.drop_ligand_leaving_atoms,
-      average_num_atoms_per_token=config.average_num_atoms_per_token,
-      atom_cross_att_queries_subset_size=config.atom_cross_att_queries_subset_size,
-      atom_cross_att_keys_subset_size=config.atom_cross_att_keys_subset_size,
-      flatten_non_standard_residues=config.flatten_non_standard_residues,
-      deterministic_frames=config.deterministic_frames,
-      resolve_msa_overlaps=config.resolve_msa_overlaps,
-      fix_standalone_glycans=config.fix_standalone_glycans,
-  )
-
-
 @functools.lru_cache(maxsize=1)
 def _process_structure_seed_independent(
-    struct_cache_key: _StructureCacheKey,
+    input_struct: _HashableStructure,
     config: _SeedIndependentConfig,
     ccd: chemical_components.Ccd,
     unpaired_msa_by_chain_id: tuple[tuple[str, str], ...],
@@ -150,7 +128,7 @@ def _process_structure_seed_independent(
     ],
 ):
   """Computes seed-independent features for a structure."""
-  struct = struct_cache_key.struct
+  struct = input_struct.struct
   logging_name = struct.name
 
   # Clean structure.
@@ -452,6 +430,33 @@ class WholePdbPipeline:
     resolve_msa_overlaps: bool = True
     fix_standalone_glycans: bool = False
 
+    def _dump_seed_independent_config(self) -> _SeedIndependentConfig:
+      """Dumps the seed-independent configuration for cachable use.
+
+      Keys `max_template_date` and `conformer_max_iterations` are excluded
+      because they are only used by a non-deterministic method
+      `features.RefStructure.compute_features`.
+      """
+      return _SeedIndependentConfig(
+        max_atoms_per_token=self.max_atoms_per_token,
+        pad_num_chains=self.pad_num_chains,
+        buckets=None if self.buckets is None else tuple(self.buckets),
+        max_total_residues=self.max_total_residues,
+        min_total_residues=self.min_total_residues,
+        msa_crop_size=self.msa_crop_size,
+        ref_max_modified_date=self.ref_max_modified_date,
+        max_templates=self.max_templates,
+        max_paired_sequence_per_species=self.max_paired_sequence_per_species,
+        drop_ligand_leaving_atoms=self.drop_ligand_leaving_atoms,
+        average_num_atoms_per_token=self.average_num_atoms_per_token,
+        atom_cross_att_queries_subset_size=self.atom_cross_att_queries_subset_size,
+        atom_cross_att_keys_subset_size=self.atom_cross_att_keys_subset_size,
+        flatten_non_standard_residues=self.flatten_non_standard_residues,
+        deterministic_frames=self.deterministic_frames,
+        resolve_msa_overlaps=self.resolve_msa_overlaps,
+        fix_standalone_glycans=self.fix_standalone_glycans,
+      )
+
   def __init__(self, *, config: Config):
     """Initializes WholePdb data pipeline.
 
@@ -495,8 +500,8 @@ class WholePdbPipeline:
         batch_pseudo_beta_info,
         batch_frames,
     ) = _process_structure_seed_independent(
-        struct_cache_key=_StructureCacheKey(struct),
-        config=_seed_independent_config(self._config),
+        struct_cache_key=_HashableStructure(struct),
+        config=self._config._dump_seed_independent_config(),
         ccd=ccd,
         unpaired_msa_by_chain_id=tuple(
             sorted(unpaired_msa_by_chain_id.items())

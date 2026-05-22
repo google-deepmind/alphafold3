@@ -224,9 +224,8 @@ class DataPipelineTest(parameterized.TestCase):
       )
     self.compare_golden(result_path)
 
-  def test_featurisation_reuses_seed_independent_features(
-      self,
-  ):
+  def test_featurisation_reuses_seed_independent_features(self):
+    """Test that seed-independent features are reused for the same input."""
     test_input = json.loads(self._test_input_json)
     test_input['modelSeeds'] = [1234, 5678]
     fold_input = folding_input.Input.from_json(json.dumps(test_input))
