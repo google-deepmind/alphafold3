@@ -238,6 +238,9 @@ class StructureConfidenceSummary:
         # Cast to np.float64 before rounding, since casting to Python float will
         # cast to a 64 bit float, potentially undoing np.float32 rounding.
         rounded_data = np.round(data.astype(np.float64), decimals=2).tolist()
+      elif isinstance(data, str):
+        # String leaves (e.g. chain_ids entries) are passed through unchanged.
+        rounded_data = data
       else:
         rounded_data = np.round(data, decimals=2)
       return rounded_data
