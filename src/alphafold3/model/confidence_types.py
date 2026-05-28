@@ -196,6 +196,7 @@ class StructureConfidenceSummary:
    chain_pair_iptm: [num_chains, num_chains] Chain pair ipTM.
    chain_ptm: [num_chains] Chain pTM.
    chain_iptm: [num_chains] Mean cross chain ipTM for a chain.
+   chain_ids: [num_chains] Unique chain IDs in the same order as the chain-level arrays
   """
 
   ptm: float
@@ -207,12 +208,15 @@ class StructureConfidenceSummary:
   chain_pair_iptm: np.ndarray
   chain_ptm: np.ndarray
   chain_iptm: np.ndarray
+  chain_ids: list[str] = dataclasses.field(default_factory=list)
 
   @classmethod
   def from_inference_result(
       cls, inference_result: model.InferenceResult
   ) -> Self:
     """Returns a new instance based on a given inference result."""
+    token_chain_ids = inference_result.metadata['token_chain_ids']
+    chain_ids = list(dict.fromkeys(str(c) for c in token_chain_ids))
     return cls(
         ptm=float(inference_result.metadata['ptm']),
         iptm=float(inference_result.metadata['iptm']),
@@ -225,6 +229,7 @@ class StructureConfidenceSummary:
         chain_pair_iptm=inference_result.metadata['chain_pair_iptm'],
         chain_ptm=inference_result.metadata['iptm_ichain'],
         chain_iptm=inference_result.metadata['iptm_xchain'],
+        chain_ids=chain_ids,
     )
 
   @classmethod
