@@ -26,7 +26,7 @@ import numpy as np
 
 
 class Error(Exception):
-  """Error indicatating a problem with MSA Search."""
+  """Error indicating a problem with MSA Search."""
 
 
 def _featurize(seq: str, chain_poly_type: str) -> str | list[int]:

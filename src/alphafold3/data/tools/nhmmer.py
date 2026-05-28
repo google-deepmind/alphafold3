@@ -54,7 +54,7 @@ class Nhmmer(msa_tool.MsaTool):
 
     NOTE: The MSA obtained by running against sharded dbs won't be always
     exactly the same as the MSA obtained by running against an unsharded db.
-    This is because of Jackhmmer deduplication logic, which won't spot duplicate
+    This is because of Nhmmer deduplication logic, which won't spot duplicate
     hits across multiple shards. Usually this means that the sharded search
     finds more hits (likely bounded by the number of shards), but this should
     not pose an issue given how the results are used downstream. The problem is
