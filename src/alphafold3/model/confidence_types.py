@@ -16,45 +16,10 @@ import json
 from typing import Any, Self
 
 from absl import logging
+from alphafold3.cpp import json_serialize
 from alphafold3.model import model
 import jax
 import numpy as np
-
-
-class StructureConfidenceFullEncoder(json.JSONEncoder):
-  """JSON encoder for serializing confidence types."""
-
-  def __init__(self, **kwargs):
-    super().__init__(**(kwargs | dict(separators=(',', ':'))))
-
-  def encode(self, o: 'StructureConfidenceFull'):
-    # Cast to np.float64 before rounding, since casting to Python float will
-    # cast to a 64 bit float, potentially undoing np.float32 rounding.
-    atom_plddts = np.round(
-        np.clip(np.asarray(o.atom_plddts, dtype=np.float64), 0.0, 99.99), 2
-    ).astype(float)
-    contact_probs = np.round(
-        np.clip(np.asarray(o.contact_probs, dtype=np.float64), 0.0, 1.0), 2
-    ).astype(float)
-    pae = np.round(
-        np.clip(np.asarray(o.pae, dtype=np.float64), 0.0, 99.9), 1
-    ).astype(float)
-    return """\
-{
-  "atom_chain_ids": %s,
-  "atom_plddts": %s,
-  "contact_probs": %s,
-  "pae": %s,
-  "token_chain_ids": %s,
-  "token_res_ids": %s
-}""" % (
-        super().encode(o.atom_chain_ids),
-        super().encode(list(atom_plddts)).replace('NaN', 'null'),
-        super().encode([list(x) for x in contact_probs]).replace('NaN', 'null'),
-        super().encode([list(x) for x in pae]).replace('NaN', 'null'),
-        super().encode(o.token_chain_ids),
-        super().encode(o.token_res_ids),
-    )
 
 
 def _dump_json(data: Any, indent: int | None = None) -> str:
@@ -298,4 +263,11 @@ class StructureConfidenceFull:
 
   def to_json(self) -> str:
     """Converts StructureConfidenceFull to json string."""
-    return json.dumps(self, cls=StructureConfidenceFullEncoder)
+    return json_serialize.structure_confidence_full_to_json(
+        pae=self.pae,
+        token_chain_ids=self.token_chain_ids,
+        token_res_ids=self.token_res_ids,
+        atom_plddts=self.atom_plddts,
+        atom_chain_ids=self.atom_chain_ids,
+        contact_probs=self.contact_probs,
+    )

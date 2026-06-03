@@ -9,6 +9,7 @@
 // https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md
 
 #include "alphafold3/data/cpp/msa_profile_pybind.h"
+#include "alphafold3/model/json_serialize_pybind.h"
 #include "alphafold3/model/mkdssp_pybind.h"
 #include "alphafold3/parsers/cpp/cif_dict_pybind.h"
 #include "alphafold3/parsers/cpp/fasta_iterator_pybind.h"
@@ -37,6 +38,7 @@ PYBIND11_MODULE(cpp, m) {
   RegisterModuleAggregation(m.def_submodule("aggregation"));
   RegisterModuleStringArray(m.def_submodule("string_array"));
   RegisterModuleMmcifAtomSite(m.def_submodule("mmcif_atom_site"));
+  RegisterModuleJsonSerialize(m.def_submodule("json_serialize"));
   RegisterModuleMkdssp(m.def_submodule("mkdssp"));
   RegisterModuleMsaProfile(m.def_submodule("msa_profile"));
 }
