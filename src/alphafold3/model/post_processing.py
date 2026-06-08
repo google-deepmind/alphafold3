@@ -79,7 +79,7 @@ def post_process_inference_result(
   )
   return ProcessedInferenceResult(
       cif=cif,
-      mean_confidence_1d=mean_confidence_1d,
+      mean_confidence_1d=float(mean_confidence_1d),
       ranking_score=float(inference_result.metadata['ranking_score']),
       structure_confidence_summary_json=structure_confidence_summary_json,
       structure_full_data_json=structure_full_data_json,
