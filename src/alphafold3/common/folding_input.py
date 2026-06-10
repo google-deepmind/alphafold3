@@ -1013,16 +1013,17 @@ class Input:
   def ligands(self) -> Sequence[Ligand]:
     return [chain for chain in self.chains if isinstance(chain, Ligand)]
 
+  @staticmethod
+  def _validate_seed(seed: int) -> int:
+    if not (0 <= seed <= 2**32 - 1):
+        raise ValueError(f"Seed must be between 0 and 2**32 - 1. Got: {seed}")
+    return seed
+
   def sanitised_name(self) -> str:
     """Returns sanitised version of the name that can be used as a filename."""
     spaceless_name = self.name.replace(' ', '_')
     allowed_chars = set(string.ascii_letters + string.digits + '_-.')
     return ''.join(l for l in spaceless_name if l in allowed_chars)
-
-  def _validate_seed(seed: int) -> int:
-    if not (0 <= seed <= 2**32 - 1):
-        raise ValueError(f"Seed must be between 0 and 2**32 - 1. Got: {seed}")
-    return seed
 
   @classmethod
   def from_alphafoldserver_fold_job(cls, fold_job: Mapping[str, Any]) -> Self:
@@ -1107,7 +1108,7 @@ class Input:
         raise ValueError(f'Unknown sequence type: {sequence}')
 
     if 'modelSeeds' in fold_job and fold_job['modelSeeds']:
-      rng_seeds = [_validate_seed(int(seed)) for seed in fold_job['modelSeeds']]
+      rng_seeds = [cls._validate_seed(int(seed)) for seed in fold_job['modelSeeds']]
     else:
       rng_seeds = [_sample_rng_seed()]
 
@@ -1259,7 +1260,7 @@ class Input:
     return cls(
         name=raw_json['name'],
         chains=chains,
-        rng_seeds=[_validate_seed(int(seed)) for seed in raw_json['modelSeeds']],
+        rng_seeds=[cls._validate_seed(int(seed)) for seed in raw_json['modelSeeds']],
         bonded_atom_pairs=bonded_atom_pairs,
         user_ccd=user_ccd,
     )
