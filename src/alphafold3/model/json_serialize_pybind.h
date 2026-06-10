@@ -17,15 +17,15 @@
 // if received directly from Google. Use is subject to terms of use available at
 // https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md
 
-#ifndef ALPHAFOLD3_SRC_ALPHAFOLD3_PARSERS_PYTHON_MSA_CONVERSION_PYBIND_H_
-#define ALPHAFOLD3_SRC_ALPHAFOLD3_PARSERS_PYTHON_MSA_CONVERSION_PYBIND_H_
+#ifndef ALPHAFOLD3_SRC_ALPHAFOLD3_MODEL_JSON_SERIALIZE_PYBIND_H_
+#define ALPHAFOLD3_SRC_ALPHAFOLD3_MODEL_JSON_SERIALIZE_PYBIND_H_
 
 #include "pybind11/pybind11.h"
 
 namespace alphafold3 {
 
-void RegisterModuleMsaConversion(pybind11::module m);
+void RegisterModuleJsonSerialize(pybind11::module m);
 
 }
 
-#endif  // ALPHAFOLD3_SRC_ALPHAFOLD3_PARSERS_PYTHON_MSA_CONVERSION_PYBIND_H_
+#endif  // ALPHAFOLD3_SRC_ALPHAFOLD3_MODEL_JSON_SERIALIZE_PYBIND_H_
