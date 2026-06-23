@@ -980,6 +980,11 @@ class Input:
     if not self.rng_seeds:
       raise ValueError('Input must have at least one RNG seed.')
 
+    if any(seed < 0 or seed > 2**32 - 1 for seed in self.rng_seeds):
+      raise ValueError(
+          f'RNG seeds must be 32-bit unsigned integers, got {self.rng_seeds}'
+      )
+
     if not self.name.strip() or not self.sanitised_name():
       raise ValueError(
           'Input name must be non-empty and contain at least one valid'
