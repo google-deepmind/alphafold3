@@ -35,7 +35,7 @@ NUM_RESTYPES_WITH_UNK_AND_GAP = (
 )
 
 
-def _make_restype_rigidgroup_dense_atom_idx():
+def _make_restype_rigidgroup_dense_atom_idx() -> np.ndarray:
   """Create Mapping from rigid_groups to dense_atom indices."""
   # Create an array with the atom names.
   # shape (num_restypes, num_rigidgroups, 3_atoms):
@@ -82,7 +82,7 @@ def _make_restype_rigidgroup_dense_atom_idx():
 RESTYPE_RIGIDGROUP_DENSE_ATOM_IDX = _make_restype_rigidgroup_dense_atom_idx()
 
 
-def _make_restype_pseudobeta_idx():
+def _make_restype_pseudobeta_idx() -> np.ndarray:
   """Returns indices of residue's pseudo-beta."""
   restype_pseudobeta_index = np.zeros(
       (NUM_RESTYPES_WITH_UNK_AND_GAP,), dtype=np.int32
@@ -111,7 +111,7 @@ def _make_restype_pseudobeta_idx():
 RESTYPE_PSEUDOBETA_INDEX = _make_restype_pseudobeta_idx()
 
 
-def _make_aatype_dense_atom_to_atom37():
+def _make_aatype_dense_atom_to_atom37() -> np.ndarray:
   """Map from dense_atom to atom37 per residue type."""
   restype_dense_atom_to_atom37 = []  # mapping (restype, dense_atom) --> atom37
   for rt in residue_names.PROTEIN_TYPES_ONE_LETTER:
