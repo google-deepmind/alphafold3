@@ -21,16 +21,16 @@
 
 import bisect
 import collections
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 import contextlib
 import io
 import os
-import pathlib
 import re
 import struct
 import sys
 from typing import IO
 
+from etils import epath
 import haiku as hk
 import jax.numpy as jnp
 import numpy as np
@@ -95,11 +95,11 @@ def read_records(stream: IO[bytes]) -> Iterator[tuple[str, str, np.ndarray]]:
 class _MultiFileIO(io.RawIOBase):
   """A file-like object that presents a concatenated view of multiple files."""
 
-  def __init__(self, files: list[pathlib.Path]):
-    self._files = files
+  def __init__(self, files: Sequence[epath.PathLike]):
+    self._files = [epath.Path(file) for file in files]
     self._stack = contextlib.ExitStack()
     self._handles = [
-        self._stack.enter_context(file.open('rb')) for file in files
+        self._stack.enter_context(file.open('rb')) for file in self._files
     ]
     self._sizes = []
     for handle in self._handles:
@@ -161,7 +161,7 @@ class _MultiFileIO(io.RawIOBase):
 
 
 @contextlib.contextmanager
-def open_for_reading(model_files: list[pathlib.Path], is_compressed: bool):
+def open_for_reading(model_files: list[epath.PathLike], is_compressed: bool):
   with contextlib.closing(_MultiFileIO(model_files)) as f:
     if is_compressed:
       buffered = io.BufferedReader(f)
@@ -171,8 +171,8 @@ def open_for_reading(model_files: list[pathlib.Path], is_compressed: bool):
 
 
 def _match_model(
-    paths: list[pathlib.Path], pattern: re.Pattern[str]
-) -> dict[str, list[pathlib.Path]]:
+    paths: list[epath.Path], pattern: re.Pattern[str]
+) -> dict[str, list[epath.Path]]:
   """Match files in a directory with a pattern, and group by model name."""
   models = collections.defaultdict(list)
   for path in paths:
@@ -183,10 +183,14 @@ def _match_model(
 
 
 def select_model_files(
-    model_dir: pathlib.Path, model_name: str | None = None
-) -> tuple[list[pathlib.Path], bool]:
+    model_dir: epath.PathLike, model_name: str | None = None
+) -> tuple[list[epath.Path], bool]:
   """Select the model files from a model directory."""
-  files = [file for file in model_dir.iterdir() if file.is_file()]
+  model_dir = epath.Path(model_dir)
+  if model_dir.exists():
+    files = [file for file in model_dir.iterdir() if file.is_file()]
+  else:
+    files = []
 
   for pattern, is_compressed in (
       (r'(?P<model_name>.*)\.[0-9]+\.bin\.zst$', True),
@@ -209,7 +213,7 @@ def select_model_files(
   raise FileNotFoundError(f'No models matched in {model_dir}')
 
 
-def get_model_haiku_params(model_dir: pathlib.Path) -> hk.Params:
+def get_model_haiku_params(model_dir: epath.PathLike) -> hk.Params:
   """Get the Haiku parameters from a model name."""
   params: dict[str, dict[str, jnp.Array]] = {}
   model_files, is_compressed = select_model_files(model_dir)

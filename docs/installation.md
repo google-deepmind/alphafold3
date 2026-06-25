@@ -17,8 +17,8 @@ should aid others with different setups. If you are installing locally outside
 of a Docker container, please ensure CUDA, cuDNN, and JAX are correctly
 installed; the
 [JAX installation documentation](https://jax.readthedocs.io/en/latest/installation.html#nvidia-gpu)
-is a useful reference for this case. Please note that the Docker container
-requires that the host machine has CUDA 12.6 installed.
+is a useful reference for this case. Note that the Docker container requires
+that the host machine has CUDA 12.6 installed.
 
 The instructions provided below describe how to:
 
@@ -367,6 +367,33 @@ docker run alphafold3 python run_alphafold.py --help
 ```
 
 for more information.
+
+:ledger: **Optional: Enable Google cloud storage path support**
+
+AlphaFold 3 supports reading and writing specific files directly from Google
+Cloud Storage (`gs://` paths). Since GCS is an optional feature, the required
+`gcsfs` dependency is not installed by default. To enable GCS support when
+building the Docker container, pass the `UV_EXTRAS` build argument when running
+`docker build`:
+
+```sh
+docker build --build-arg UV_EXTRAS="--extra gcsfs" -t alphafold3 -f docker/Dockerfile .
+```
+
+The following command-line flags support `gs://` paths:
+
+-   `--input_dir`
+-   `--json_path`
+-   `--output_dir`
+-   `--model_dir`
+-   `--pdb_database_path`
+-   In the JSON input file, fields with names ending in `Path` (e.g.
+    `pairedMsaPath`) can be provided as Google Cloud Storage paths, if enabled.
+
+:warning: All other database paths (e.g., `--db_dir`,
+`--small_bfd_database_path`, etc.) and binary paths (e.g.,
+`--jackhmmer_binary_path`) do **not** support `gs://` paths and must be local
+file paths.
 
 ## Running Using Singularity Instead of Docker
 

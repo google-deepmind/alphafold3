@@ -17,6 +17,7 @@ license = {file = "LICENSE"}
 dependencies = [
     "absl-py>=2.3.1",
     "dm-haiku==0.0.16",
+    "etils[epath]",
     "jax==0.9.1",
     "jax[cuda12]==0.9.1",
     "numpy",
@@ -24,6 +25,12 @@ dependencies = [
     "tokamax==0.0.11",
     "tqdm",
     "zstandard",
+]
+
+[project.optional-dependencies]
+gcsfs = [
+  # Use `uv sync --extra gcsfs` to enable GCS paths for inputs and outputs
+  "gcsfs",
 ]
 
 [dependency-groups]

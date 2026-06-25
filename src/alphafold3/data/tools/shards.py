@@ -32,8 +32,8 @@ on the filesystem content.
 
 from collections.abc import Sequence
 import dataclasses
-import pathlib
 import re
+from etils import epath
 
 
 _MAX_NUM_SHARDS = 99_999
@@ -73,7 +73,7 @@ def parse_shard_spec(path: str) -> ShardSpec | None:
   if shards != '*':
     return ShardSpec(prefix=prefix, num_shards=int(shards), suffix=suffix)
   shard_slice = slice(len(prefix) + 10, len(prefix) + 15)
-  shard_path = pathlib.Path(f'{prefix}-00000-of-?????{suffix}')
+  shard_path = epath.Path(f'{prefix}-00000-of-?????{suffix}')
   for shard in sorted(shard_path.parent.glob(shard_path.name), reverse=True):
     try:
       num_shards = int(str(shard)[shard_slice])

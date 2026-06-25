@@ -9,6 +9,10 @@ AlphaFold 3 will write its outputs in a directory called `My_first_fold_TEST`
 append a timestamp to the directory name to avoid overwriting existing data
 unless `--force_output_dir` is passed.
 
+The output directory can also be a Google Cloud Storage path (`gs://`) if the
+`gcsfs` dependency is installed (see the
+[installation instructions](installation.md#optional-enable-google-cloud-storage-path-support)).
+
 The following structure is used within the output directory:
 
 *   Sub-directories with results for each sample and seed. There will be

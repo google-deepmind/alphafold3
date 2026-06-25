@@ -26,7 +26,6 @@ import datetime
 import difflib
 import json
 import os
-import pathlib
 import pickle
 
 from absl import logging
@@ -37,6 +36,7 @@ from alphafold3.common import resources
 from alphafold3.common.testing import data as testing_data
 from alphafold3.data import pipeline
 from alphafold3.model.scoring import alignment
+from etils import epath
 import jax
 import numpy as np
 
@@ -159,7 +159,7 @@ class InferenceTest(parameterized.TestCase):
     self._runner = run_alphafold.ModelRunner(
         config=self._model_config,
         device=jax.local_devices()[0],
-        model_dir=pathlib.Path(run_alphafold.MODEL_DIR.value),
+        model_dir=run_alphafold.MODEL_DIR.value,
     )
 
   def test_model_inference(self):
@@ -213,17 +213,25 @@ class InferenceTest(parameterized.TestCase):
     fold_input = folding_input.Input.from_json(self._test_input_json)
     fold_input = dataclasses.replace(fold_input, rng_seeds=[seed])
 
-    output_dir = self.create_tempdir().full_path
+    output_dir = epath.Path(self.create_tempdir().full_path)
+
+    # Pre-create output directories to explicitly catch exist_ok=False bugs.
+    (output_dir / f'seed-{seed}_sample-0').mkdir(parents=True)
+    (output_dir / f'seed-{seed}_sample-1').mkdir(parents=True)
+    (output_dir / f'seed-{seed}_embeddings').mkdir(parents=True)
+    (output_dir / f'seed-{seed}_distogram').mkdir(parents=True)
+
     actual = run_alphafold.process_fold_input(
         fold_input,
         self._data_pipeline_config,
         model_runner=run_alphafold.ModelRunner(
             config=self._model_config,
             device=jax.local_devices(backend='gpu')[0],
-            model_dir=pathlib.Path(run_alphafold.MODEL_DIR.value),
+            model_dir=run_alphafold.MODEL_DIR.value,
         ),
         output_dir=output_dir,
         buckets=None if bucket is None else [bucket],
+        force_output_dir=True,
     )
     logging.info('finished get_inference_result')
     expected_model_cif_filename = f'{fold_input.sanitised_name()}_model.cif'

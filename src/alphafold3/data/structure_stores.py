@@ -21,9 +21,8 @@
 
 from collections.abc import Mapping, Sequence
 import functools
-import os
-import pathlib
 import tarfile
+from etils import epath
 
 
 class NotFoundError(KeyError):
@@ -35,7 +34,7 @@ class StructureStore:
 
   def __init__(
       self,
-      structures: str | os.PathLike[str] | Mapping[str, str],
+      structures: epath.PathLike | Mapping[str, str],
   ):
     """Initialises the instance.
 
@@ -47,14 +46,19 @@ class StructureStore:
       self._structure_mapping = structures
       self._structure_path = None
       self._structure_tar = None
+
     else:
       self._structure_mapping = None
-      path_str = os.fspath(structures)
-      if path_str.endswith('.tar'):
-        self._structure_tar = tarfile.open(path_str, 'r')
+      structures = epath.Path(structures)
+      if structures.suffix == '.tar':
+        self._structure_tar = tarfile.open(
+            fileobj=structures.open('rb'),
+            mode='r',
+        )
         self._structure_path = None
+
       else:
-        self._structure_path = pathlib.Path(structures)
+        self._structure_path = structures
         self._structure_tar = None
 
   @functools.cached_property
@@ -64,7 +68,7 @@ class StructureStore:
         path.stem: tarinfo
         for tarinfo in self._structure_tar.getmembers()
         if tarinfo.isfile()
-        and (path := pathlib.Path(tarinfo.path.lower())).suffix == '.cif'
+        and (path := epath.Path(tarinfo.path.lower())).suffix == '.cif'
     }
 
   def get_mmcif_str(self, target_name: str) -> str:
@@ -95,8 +99,16 @@ class StructureStore:
     filepath = self._structure_path / f'{target_name}.cif'
     try:
       return filepath.read_text()
-    except FileNotFoundError as e:
-      raise NotFoundError(f'{target_name=} not found at {filepath=}') from e
+    except Exception as e:
+      # Unfortunately, we can't predict which error type will be raised from the
+      # underlying storage library (e.g. tensorflow or gcsfs), so this is an
+      # attempt to stay backward compatible with file not found without
+      # obscuring other possible error conditions
+      exc_str = str(e).lower()
+      if 'no such file' in exc_str or 'not found' in exc_str:
+        raise NotFoundError(f'{target_name=} not found at {filepath=}') from e
+
+      raise IOError(f'Error reading file {filepath}: {e}') from e
 
   def target_names(self) -> Sequence[str]:
     """Returns all targets in the store."""

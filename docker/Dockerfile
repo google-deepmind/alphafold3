@@ -77,8 +77,9 @@ WORKDIR /app/alphafold
 # --no-editable: install as a static package.
 # If using this as a recipe for local installation, we recommend removing the
 # --frozen and --no-editable flags.
-RUN --mount=type=cache,target=/root/.cache/uv \ 
-    UV_LINK_MODE=copy uv sync --frozen --all-groups --no-editable
+ARG UV_EXTRAS=""
+RUN --mount=type=cache,target=/root/.cache/uv \
+    UV_LINK_MODE=copy uv sync --frozen --all-groups --no-editable $UV_EXTRAS
 
 # Build chemical components database (this binary was installed by uv sync).
 RUN uv run build_data

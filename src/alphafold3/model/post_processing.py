@@ -21,12 +21,11 @@
 
 import dataclasses
 import datetime
-import os
-
 from alphafold3 import version
 from alphafold3.model import confidence_types
 from alphafold3.model import mmcif_metadata
 from alphafold3.model import model
+from etils import epath
 import numpy as np
 import zstandard
 
@@ -98,7 +97,7 @@ def post_process_inference_result(
 
 def write_output(
     inference_result: model.InferenceResult,
-    output_dir: os.PathLike[str] | str,
+    output_dir: epath.PathLike,
     terms_of_use: str | None = None,
     name: str | None = None,
     compress: bool = False,
@@ -106,41 +105,39 @@ def write_output(
   """Writes processed inference result to a directory."""
   processed_result = post_process_inference_result(inference_result)
 
+  output_dir = epath.Path(output_dir)
   prefix = f'{name}_' if name is not None else ''
 
-  if compress:
-    opener = zstandard.open
-    path_transform = lambda path: f'{path}.zst'
-  else:
-    opener = open
-    path_transform = lambda path: path
+  mmcif_path = output_dir / f'{prefix}model.cif'
+  full_confidences_path = output_dir / f'{prefix}confidences.json'
+  summary_confidences_path = output_dir / f'{prefix}summary_confidences.json'
 
-  mmcif_path = os.path.join(output_dir, f'{prefix}model.cif')
-  with opener(path_transform(mmcif_path), 'wb') as f:
-    f.write(processed_result.cif)
+  def write_bytes(path: epath.Path, data: bytes):
+    if compress:
+      with path.with_suffix(path.suffix + '.zst').open('wb') as f:
+        with zstandard.ZstdCompressor().stream_writer(f) as compressor:
+          compressor.write(data)
+    else:
+      path.write_bytes(data)
 
-  full_confidences_path = os.path.join(output_dir, f'{prefix}confidences.json')
-  with opener(path_transform(full_confidences_path), 'wb') as f:
-    f.write(processed_result.structure_full_data_json)
-
-  summary_confidences_path = os.path.join(
-      output_dir, f'{prefix}summary_confidences.json'
+  write_bytes(mmcif_path, processed_result.cif)
+  write_bytes(full_confidences_path, processed_result.structure_full_data_json)
+  summary_confidences_path.write_bytes(
+      processed_result.structure_confidence_summary_json
   )
-  with open(summary_confidences_path, 'wb') as f:
-    f.write(processed_result.structure_confidence_summary_json)
 
   if terms_of_use is not None:
-    with open(os.path.join(output_dir, 'TERMS_OF_USE.md'), 'wt') as f:
-      f.write(terms_of_use)
+    (output_dir / 'TERMS_OF_USE.md').write_text(terms_of_use)
 
 
 def write_embeddings(
     embeddings: dict[str, np.ndarray],
-    output_dir: os.PathLike[str] | str,
+    output_dir: epath.PathLike,
     name: str | None = None,
 ) -> None:
   """Writes embeddings to a directory."""
-  prefix = f'{name}_' if name is not None else ''
+  output_dir = epath.Path(output_dir)
+  prefix = f'{name}_' if name else ''
 
-  with open(os.path.join(output_dir, f'{prefix}embeddings.npz'), 'wb') as f:
+  with (output_dir / f'{prefix}embeddings.npz').open('wb') as f:
     np.savez_compressed(f, **embeddings)

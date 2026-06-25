@@ -32,6 +32,7 @@ from alphafold3.data import msa
 from alphafold3.data import msa_config
 from alphafold3.data import structure_stores
 from alphafold3.data import templates as templates_lib
+from etils import epath
 
 
 # Cache to avoid re-running template search for the same sequence in homomers.
@@ -41,7 +42,7 @@ def _get_protein_templates(
     input_msa_a3m: str,
     run_template_search: bool,
     templates_config: msa_config.TemplatesConfig,
-    pdb_database_path: str,
+    pdb_database_path: epath.PathLike,
 ) -> templates_lib.Templates:
   """Searches for templates for a single protein chain."""
   if run_template_search:
@@ -85,7 +86,7 @@ def _get_protein_msa_and_templates(
     small_bfd_msa_config: msa_config.RunConfig,
     uniprot_msa_config: msa_config.RunConfig,
     templates_config: msa_config.TemplatesConfig,
-    pdb_database_path: str,
+    pdb_database_path: epath.PathLike,
 ) -> tuple[msa.Msa, msa.Msa, templates_lib.Templates]:
   """Processes a single protein chain."""
   logging.info('Getting protein MSAs for sequence %s', sequence)
@@ -287,7 +288,7 @@ class DataPipelineConfig:
   rna_central_z_value: float | None = None
   # Template search databases.
   seqres_database_path: str
-  pdb_database_path: str
+  pdb_database_path: epath.PathLike
 
   # Optional configuration for MSA tools.
   jackhmmer_n_cpu: int = 8

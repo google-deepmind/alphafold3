@@ -5,9 +5,20 @@
 You can provide inputs to `run_alphafold.py` in one of two ways:
 
 -   Single input file: Use the `--json_path` flag followed by the path to a
-    single JSON file.
+    single JSON file. This path can be either a local path or a Google Cloud
+    Storage path (starting with `gs://`), if enabled.
 -   Multiple input files: Use the `--input_dir` flag followed by the path to a
-    directory of JSON files.
+    directory of JSON files. This path can be either a local directory path or a
+    GCS path, if enabled.
+-   Within an input file, fields with names ending in `Path` (e.g.
+    `pairedMsaPath`) can be provided as Google Cloud Storage paths, if enabled.
+
+### Note: Google Cloud Storage paths
+
+Google Cloud Storage (`gs://`) paths are supported for certain flags and fields
+if the optional `gcsfs` dependency is installed. See the
+[installation instructions](installation.md#optional-enable-google-cloud-storage-path-support)
+for details and a complete list of supported paths.
 
 ## Input Format
 
