@@ -403,9 +403,11 @@ class OuterProductMean(hk.Module):
       # so it will be treated as the real batch by XLA (both during the forward
       # and the backward pass)
       left_act = jnp.transpose(left_act, [0, 2, 1])
-      act = jnp.einsum('acb,ade->dceb', left_act, right_act)
-      act = jnp.einsum('dceb,cef->dbf', act, output_w) + output_b
-      return jnp.transpose(act, [1, 0, 2])
+      # Fused three-way einsum: XLA contracts the two C_outer dims before
+      # summing over MSA, avoiding the large [N, C, C, chunk] intermediate
+      # (~256 MB at N=1024, C=32, chunk=128, bfloat16; ~72 MB with this form).
+      act = jnp.einsum('acb,ade,cef->dbf', left_act, right_act, output_w)
+      return jnp.transpose(act, [1, 0, 2]) + output_b
 
     act = mapping.inference_subbatch(
         compute_chunk,
