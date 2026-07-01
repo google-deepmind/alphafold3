@@ -149,8 +149,16 @@ class _MultiFileIO(io.RawIOBase):
     result = 0
     mem = memoryview(b)
     while mem:
-      self._handles[self._relpos[0]].seek(self._relpos[1])
-      count = self._handles[self._relpos[0]].readinto(mem)
+      file_handle = self._handles[self._relpos[0]]
+      file_handle.seek(self._relpos[1])
+      if hasattr(file_handle, 'readinto'):
+        count = file_handle.readinto(mem)
+      else:
+        # Workaround for file providers that do not support readinto.
+        data = file_handle.read(len(mem))
+        count = len(data)
+        mem[:count] = data
+
       result += count
       self._abspos += count
       self._relpos = self._abs_to_rel(self._abspos)
