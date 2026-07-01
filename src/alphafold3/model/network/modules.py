@@ -402,10 +402,8 @@ class OuterProductMean(hk.Module):
       # Make sure that the 'b' dimension is the most minor batch like dimension
       # so it will be treated as the real batch by XLA (both during the forward
       # and the backward pass)
-      left_act = jnp.transpose(left_act, [0, 2, 1])
-      act = jnp.einsum('acb,ade->dceb', left_act, right_act)
-      act = jnp.einsum('dceb,cef->dbf', act, output_w) + output_b
-      return jnp.transpose(act, [1, 0, 2])
+      out = jnp.einsum('abc,ade,cef->bdf', left_act, right_act, output_w)
+      return out + output_b
 
     act = mapping.inference_subbatch(
         compute_chunk,
