@@ -240,7 +240,7 @@ class GridSelfAttention(hk.Module):
 
     act = mapping.inference_subbatch(
         self._attention,
-        chunk_size,
+        chunk_size,  # pyrefly: ignore[bad-argument-type]
         batched_args=[act, pair_mask],
         nonbatched_args=[nonbatched_bias],
     )
@@ -519,9 +519,9 @@ class PairFormerIteration(hk.Module):
 
       pair_logits = jnp.transpose(pair_logits, [2, 0, 1])
 
-      single_act += diffusion_transformer.self_attention(
-          single_act,
-          seq_mask,
+      single_act += diffusion_transformer.self_attention(  # pyrefly: ignore[unsupported-operation]
+          single_act,  # pyrefly: ignore[bad-argument-type]
+          seq_mask,  # pyrefly: ignore[bad-argument-type]
           pair_logits=pair_logits,
           config=self.config.single_attention,
           global_config=self.global_config,

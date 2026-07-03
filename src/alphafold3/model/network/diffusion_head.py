@@ -335,7 +335,7 @@ def sample(
     key, key_noise, key_aug = jax.random.split(key, 3)
 
     positions = random_augmentation(
-        rng_key=key_aug, positions=positions, mask=mask
+        rng_key=key_aug, positions=positions, mask=mask  # pyrefly: ignore[bad-argument-type]
     )
 
     gamma = config.gamma_0 * (noise_level > config.gamma_min)

@@ -277,7 +277,7 @@ class Jackhmmer(msa_tool.MsaTool):
       return msa_tool.MsaToolResult(
           target_sequence=target_sequence,
           a3m=a3m,
-          e_value=self._e_value,
+          e_value=self._e_value,  # pyrefly: ignore[bad-argument-type]
           tblout=tbl,
       )
 

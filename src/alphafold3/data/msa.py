@@ -197,7 +197,7 @@ class Msa:
       all_descriptions.extend(descriptions)
 
     return cls(
-        query_sequence=query_sequence,
+        query_sequence=query_sequence,  # pyrefly: ignore[bad-argument-type]
         chain_poly_type=chain_poly_type,
         sequences=all_sequences,
         descriptions=all_descriptions,

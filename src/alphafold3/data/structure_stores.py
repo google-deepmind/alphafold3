@@ -96,7 +96,7 @@ class StructureStore:
       except KeyError:
         raise NotFoundError(f'{target_name=} not found') from None
 
-    filepath = self._structure_path / f'{target_name}.cif'
+    filepath = self._structure_path / f'{target_name}.cif'  # pyrefly: ignore[unsupported-operation]
     try:
       return filepath.read_text()
     except Exception as e:

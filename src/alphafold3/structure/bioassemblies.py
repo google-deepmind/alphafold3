@@ -327,7 +327,7 @@ class BioassemblyData:
           )
         row['_pdbx_struct_assembly_gen.asym_id_list'] = ','.join(new_asym_ids)  # pytype: disable=unsupported-operands
 
-    return BioassemblyData(
+    return BioassemblyData(  # pyrefly: ignore[bad-return]
         pdbx_struct_assembly=copy.deepcopy(self._pdbx_struct_assembly),
         pdbx_struct_assembly_gen=new_pdbx_struct_assembly_gen,
         pdbx_struct_oper_list=copy.deepcopy(self._pdbx_struct_oper_list),

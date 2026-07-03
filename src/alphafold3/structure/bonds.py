@@ -92,7 +92,7 @@ class Bonds(table.Table):
     from_atom_mask = np.isin(self.from_atom_key, atom_key)
     dest_atom_mask = np.isin(self.dest_atom_key, atom_key)
     mask = np.logical_and(from_atom_mask, dest_atom_mask)
-    return typing.cast(Bonds, self.filter(mask=mask))
+    return typing.cast(Bonds, self.filter(mask=mask))  # pyrefly: ignore[bad-return]
 
   def to_mmcif_dict_from_atom_arrays(
       self,

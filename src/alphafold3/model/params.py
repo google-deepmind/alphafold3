@@ -43,8 +43,8 @@ class RecordError(Exception):
 
 def encode_record(scope: str, name: str, arr: np.ndarray) -> bytes:
   """Encodes a single haiku param as bytes, preserving non-numpy dtypes."""
-  scope = scope.encode('utf-8')
-  name = name.encode('utf-8')
+  scope = scope.encode('utf-8')  # pyrefly: ignore[bad-assignment]
+  name = name.encode('utf-8')  # pyrefly: ignore[bad-assignment]
   shape = arr.shape
   dtype = str(arr.dtype).encode('utf-8')
   arr = np.ascontiguousarray(arr)
@@ -55,7 +55,7 @@ def encode_record(scope: str, name: str, arr: np.ndarray) -> bytes:
       '<5i', len(scope), len(name), len(dtype), len(shape), len(arr_buffer)
   )
   return header + b''.join(
-      (scope, name, dtype, struct.pack(f'{len(shape)}i', *shape), arr_buffer)
+      (scope, name, dtype, struct.pack(f'{len(shape)}i', *shape), arr_buffer)  # pyrefly: ignore[bad-argument-type]
   )
 
 
@@ -145,14 +145,14 @@ class _MultiFileIO(io.RawIOBase):
     self._abspos = pos
     self._relpos = self._abs_to_rel(pos)
 
-  def readinto(self, b: bytearray | memoryview) -> int:
+  def readinto(self, b: bytearray | memoryview) -> int:  # pyrefly: ignore[bad-override]
     result = 0
     mem = memoryview(b)
     while mem:
       file_handle = self._handles[self._relpos[0]]
       file_handle.seek(self._relpos[1])
       if hasattr(file_handle, 'readinto'):
-        count = file_handle.readinto(mem)
+        count = file_handle.readinto(mem)  # pyrefly: ignore[missing-attribute]
       else:
         # Workaround for file providers that do not support readinto.
         data = file_handle.read(len(mem))
@@ -225,7 +225,7 @@ def get_model_haiku_params(model_dir: epath.PathLike) -> hk.Params:
   """Get the Haiku parameters from a model name."""
   params: dict[str, dict[str, jnp.Array]] = {}
   model_files, is_compressed = select_model_files(model_dir)
-  with open_for_reading(model_files, is_compressed) as stream:
+  with open_for_reading(model_files, is_compressed) as stream:  # pyrefly: ignore[bad-argument-type]
     for scope, name, arr in read_records(stream):
       params.setdefault(scope, {})[name] = jnp.array(arr)
   if not params:

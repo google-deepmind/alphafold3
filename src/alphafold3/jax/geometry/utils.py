@@ -72,6 +72,6 @@ def weighted_mean(
   elif axis is None:
     axis = list(range(len(weights_shape)))
 
-  return jnp.sum(weights * value, axis=axis) / (
-      jnp.sum(weights, axis=axis) + eps
+  return jnp.sum(weights * value, axis=axis) / (  # pyrefly: ignore[bad-argument-type]
+      jnp.sum(weights, axis=axis) + eps  # pyrefly: ignore[bad-argument-type]
   )

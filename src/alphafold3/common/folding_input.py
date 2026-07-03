@@ -445,7 +445,7 @@ class ProteinChain:
 
   def fill_missing_fields(self) -> Self:
     """Fill missing MSA and template fields with default values."""
-    return ProteinChain(
+    return ProteinChain(  # pyrefly: ignore[bad-return]
         id=self.id,
         sequence=self._sequence,
         ptms=self._ptms,
@@ -656,7 +656,7 @@ class RnaChain:
 
   def fill_missing_fields(self) -> Self:
     """Fill missing MSA fields with default values."""
-    return RnaChain(
+    return RnaChain(  # pyrefly: ignore[bad-return]
         id=self.id,
         sequence=self.sequence,
         modifications=self.modifications,

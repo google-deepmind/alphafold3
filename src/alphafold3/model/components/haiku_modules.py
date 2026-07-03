@@ -94,7 +94,7 @@ class LayerNorm(hk.LayerNorm):
     if self.upcast and is_16bit:
       x = x.astype(jnp.float32)
 
-    param_axis = self.param_axis[0] if self.param_axis else -1
+    param_axis = self.param_axis[0] if self.param_axis else -1  # pyrefly: ignore[bad-index]
     param_shape = (x.shape[param_axis],)
 
     param_broadcast_shape = [1] * x.ndim
@@ -156,7 +156,7 @@ def haiku_linear_get_params(
   if isinstance(num_output, numbers.Integral):
     output_shape = (num_output,)
   else:
-    output_shape = tuple(num_output)
+    output_shape = tuple(num_output)  # pyrefly: ignore[bad-argument-type]
 
   if num_input_dims > 0:
     in_shape = inputs.shape[-num_input_dims:]
@@ -240,7 +240,7 @@ class Linear(hk.Module):
     if isinstance(num_output, numbers.Integral):
       self.output_shape = (num_output,)
     else:
-      self.output_shape = tuple(num_output)
+      self.output_shape = tuple(num_output)  # pyrefly: ignore[bad-argument-type]
     self.initializer = initializer
     self.use_bias = use_bias
     self.bias_init = bias_init

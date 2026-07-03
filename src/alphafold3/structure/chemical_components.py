@@ -36,11 +36,11 @@ def _value_is_missing(value: Collection[Any] | str | None) -> bool:
 
 
 def _to_optional_int(values: Sequence[str | None]) -> Sequence[int | None]:
-  return [None if _value_is_missing(x) else int(x) for x in values]
+  return [None if _value_is_missing(x) else int(x) for x in values]  # pyrefly: ignore[bad-argument-type]
 
 
 def _to_optional_float(values: Sequence[str | None]) -> Sequence[float | None]:
-  return [None if _value_is_missing(x) else float(x) for x in values]
+  return [None if _value_is_missing(x) else float(x) for x in values]  # pyrefly: ignore[bad-argument-type]
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True, slots=True)
@@ -208,7 +208,7 @@ class ChemicalComponentsData:
             pdbx_smiles=None,
         )
 
-    return ChemicalComponentsData(chem_comp)
+    return ChemicalComponentsData(chem_comp)  # pyrefly: ignore[bad-return]
 
   def to_mmcif_dict(self) -> Mapping[str, Sequence[str]]:
     """Returns chemical components data as a dict suitable for `mmcif.Mmcif`."""

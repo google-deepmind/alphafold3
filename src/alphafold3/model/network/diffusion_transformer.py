@@ -373,7 +373,7 @@ class CrossAttTransformer(hk.Module):
       # cross attention
       queries_act += cross_attention(
           x_q=queries_act,
-          x_k=keys_act,
+          x_k=keys_act,  # pyrefly: ignore[bad-argument-type]
           mask_q=queries_mask,
           mask_k=keys_mask,
           config=self.config.attention,

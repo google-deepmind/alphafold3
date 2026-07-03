@@ -140,4 +140,4 @@ def write_embeddings(
   prefix = f'{name}_' if name else ''
 
   with (output_dir / f'{prefix}embeddings.npz').open('wb') as f:
-    np.savez_compressed(f, **embeddings)
+    np.savez_compressed(f, **embeddings)  # pyrefly: ignore[bad-argument-type]

@@ -73,7 +73,7 @@ def open_resource(
       root of the repository.
     mode: the mode to use when opening the file.
   """
-  return (_DATA_ROOT / name).open(mode)
+  return (_DATA_ROOT / name).open(mode)  # pyrefly: ignore[bad-return]
 
 
 def get_resource_dir(path: str | os.PathLike[str]) -> os.PathLike[str]:

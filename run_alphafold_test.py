@@ -179,7 +179,7 @@ class InferenceTest(parameterized.TestCase):
     )
     embeddings = self._runner.extract_embeddings(
         result=result,
-        num_tokens=len(inference_results[0].metadata['token_chain_ids']),
+        num_tokens=len(inference_results[0].metadata['token_chain_ids']),  # pyrefly: ignore[bad-argument-type]
     )
     self.assertLen(embeddings, 2)
 
@@ -320,7 +320,7 @@ class InferenceTest(parameterized.TestCase):
     )
     self.assertSequenceEqual(
         actual_input_json['sequences'][1]['ligand']['ccdCodes'],
-        fold_input.ligands[0].ccd_ids,
+        fold_input.ligands[0].ccd_ids,  # pyrefly: ignore[bad-argument-type]
     )
     self.assertNotEmpty(
         actual_input_json['sequences'][0]['protein']['unpairedMsa']

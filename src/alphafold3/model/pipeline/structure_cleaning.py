@@ -41,8 +41,8 @@ def _get_leaving_atom_mask(
 ) -> np.ndarray:
   """Updates a drop_leaving_atoms mask with new leaving atom locations."""
   bonded_atoms = atom_layout.get_bonded_atoms(
-      polymer_ligand_bonds,
-      ligand_ligand_bonds,
+      polymer_ligand_bonds,  # pyrefly: ignore[bad-argument-type]
+      ligand_ligand_bonds,  # pyrefly: ignore[bad-argument-type]
       res_id,
       chain_id,
   )
@@ -197,7 +197,7 @@ def clean_structure(
       new_bonds = struc.bonds[is_covalent]
     else:
       new_bonds = structure.Bonds.make_empty()
-    struc = struc.copy_and_update(bonds=new_bonds)
+    struc = struc.copy_and_update(bonds=new_bonds)  # pyrefly: ignore[bad-argument-type]
 
   # Other bond filters require iterating over individual bonds.
   if struc.bonds and (remove_bad_bonds or remove_polymer_polymer_bonds):
@@ -246,7 +246,7 @@ def clean_structure(
         new_bonds = struc.bonds[np.array(include_bond, dtype=bool)]
       else:
         new_bonds = structure.Bonds.make_empty()
-      struc = struc.copy_and_update(bonds=new_bonds)
+      struc = struc.copy_and_update(bonds=new_bonds)  # pyrefly: ignore[bad-argument-type]
 
   return struc
 

@@ -59,7 +59,7 @@ def _clone_field(
 ) -> dataclasses.Field[_T]:
   if new_default is _NO_UPDATE:
     return copy.copy(field)
-  return dataclasses.field(
+  return dataclasses.field(  # pyrefly: ignore[bad-return]
       default=new_default,
       init=True,
       kw_only=True,
@@ -89,9 +89,9 @@ class ConfigMeta(type):
           for f, t in field_to_type_and_default.items()
           if issubclass(type(t[0]), ConfigMeta)
       }
-      return coercable_fields
+      return coercable_fields  # pyrefly: ignore[bad-return]
 
-    cls._coercable_fields = property(_coercable_fields)
+    cls._coercable_fields = property(_coercable_fields)  # pyrefly: ignore[missing-attribute]
 
     old_post_init = getattr(cls, '__post_init__', None)
 
@@ -129,9 +129,9 @@ class ConfigMeta(type):
       if old_post_init:
         old_post_init(self)
 
-    cls.__post_init__ = _post_init
+    cls.__post_init__ = _post_init  # pyrefly: ignore[missing-attribute]
 
-    return dataclasses.dataclass(kw_only=True)(cls)
+    return dataclasses.dataclass(kw_only=True)(cls)  # pyrefly: ignore[bad-argument-type]
 
 
 class BaseConfig(metaclass=ConfigMeta):

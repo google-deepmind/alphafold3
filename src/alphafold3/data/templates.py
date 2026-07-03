@@ -547,7 +547,7 @@ class Templates:
             pdb_id=pdb_id,
             auth_chain_id=auth_chain_id,
             hmmsearch_sequence=hit_seq,
-            structure_sequence=sequence,
+            structure_sequence=sequence,  # pyrefly: ignore[bad-argument-type]
             query_sequence=query_sequence,
             unresolved_res_indices=unresolved_indices,
             start_index=start - 1,  # Raw value is residue number, not index.
@@ -570,7 +570,7 @@ class Templates:
           max_hits=filter_config.max_hits,
       )
 
-    return Templates(
+    return Templates(  # pyrefly: ignore[bad-return]
         query_sequence=query_sequence,
         query_release_date=query_release_date,
         hits=hits,
@@ -642,7 +642,7 @@ class Templates:
         deduplicate_sequences=deduplicate_sequences,
         max_hits=max_hits,
     )
-    return Templates(
+    return Templates(  # pyrefly: ignore[bad-return]
         query_sequence=self.query_sequence,
         query_release_date=self.query_release_date,
         hits=filtered_hits,
@@ -823,7 +823,7 @@ def _parse_hit_metadata(
       chain_auth_asym_id=auth_chain_id
   ).unresolved_residues.id
 
-  return release_date, sequence, unresolved_res_ids
+  return release_date, sequence, unresolved_res_ids  # pyrefly: ignore[bad-return]
 
 
 def get_polymer_features(
@@ -948,7 +948,7 @@ def package_template_features(
   stacked_features = {}
   for k, v in features.items():
     if k in _POLYMER_FEATURES:
-      v = np.stack(v, axis=0) if v else np.array([], dtype=_POLYMER_FEATURES[k])
+      v = np.stack(v, axis=0) if v else np.array([], dtype=_POLYMER_FEATURES[k])  # pyrefly: ignore[no-matching-overload]
     stacked_features[k] = v
 
   return stacked_features
@@ -988,5 +988,5 @@ def run_hmmsearch_with_a3m(
       filter_max=hmmsearch_config.filter_max,
   )
   # STO enables us to annotate query non-gap columns as reference columns.
-  sto = parsers.convert_a3m_to_stockholm(a3m, max_a3m_query_sequences)
+  sto = parsers.convert_a3m_to_stockholm(a3m, max_a3m_query_sequences)  # pyrefly: ignore[bad-argument-type]
   return searcher.query_with_sto(sto, model_construction='hand')

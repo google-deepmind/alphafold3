@@ -118,7 +118,7 @@ class AtomLayout:
         ),
     )
 
-  def __eq__(self, other: 'AtomLayout') -> bool:
+  def __eq__(self, other: 'AtomLayout') -> bool:  # pyrefly: ignore[bad-override]
     if not np.array_equal(self.atom_name, other.atom_name):
       return False
 
@@ -299,7 +299,7 @@ class Residues:
         ),
     )
 
-  def __eq__(self, other: 'Residues') -> bool:
+  def __eq__(self, other: 'Residues') -> bool:  # pyrefly: ignore[bad-override]
     return all(
         np.array_equal(getattr(self, field.name), getattr(other, field.name))
         for field in dataclasses.fields(self)
@@ -426,10 +426,10 @@ def fill_in_optional_fields(
   return dataclasses.replace(
       minimal_atom_layout,
       atom_element=_convert_str_array(
-          ref_to_self, reference_atoms.atom_element
+          ref_to_self, reference_atoms.atom_element  # pyrefly: ignore[bad-argument-type]
       ),
-      res_name=_convert_str_array(ref_to_self, reference_atoms.res_name),
-      chain_type=_convert_str_array(ref_to_self, reference_atoms.chain_type),
+      res_name=_convert_str_array(ref_to_self, reference_atoms.res_name),  # pyrefly: ignore[bad-argument-type]
+      chain_type=_convert_str_array(ref_to_self, reference_atoms.chain_type),  # pyrefly: ignore[bad-argument-type]
   )
 
 
@@ -821,11 +821,12 @@ def make_flat_atom_layout(
               strict=True,
           )
       )
-    elif residues.smiles_string[idx]:
+    elif residues.smiles_string[idx]:  # pyrefly: ignore[unsupported-operation]
       # Get atoms from RDKit via SMILES.
-      mol = Chem.MolFromSmiles(residues.smiles_string[idx])
+      mol = Chem.MolFromSmiles(residues.smiles_string[idx])  # pyrefly: ignore[unsupported-operation]
       if mol is None:
         raise ValueError(
+            # pyrefly: ignore[unsupported-operation]
             f'Failed to construct RDKit Mol for {residues.res_name[idx]} from'
             f' SMILES string: {residues.smiles_string[idx]} . This is likely'
             ' due to an issue with the SMILES string. Note that the userCCD'
@@ -847,8 +848,8 @@ def make_flat_atom_layout(
           (n, e) for n, e in atom_names_elements if (e != 'H' and e != 'D')
       ]
     bonded_atoms = get_bonded_atoms(
-        polymer_ligand_bonds,
-        ligand_ligand_bonds,
+        polymer_ligand_bonds,  # pyrefly: ignore[bad-argument-type]
+        ligand_ligand_bonds,  # pyrefly: ignore[bad-argument-type]
         residues.res_id[idx],
         residues.chain_id[idx],
     )

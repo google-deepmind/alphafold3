@@ -110,7 +110,7 @@ def make_backbone_rigid(
       frame_positions[2] - frame_positions[1],
       frame_positions[0] - frame_positions[1],
   )
-  rigid = geometry.Rigid3Array(rotation, frame_positions[1])
+  rigid = geometry.Rigid3Array(rotation, frame_positions[1])  # pyrefly: ignore[bad-argument-count]
 
   return rigid, rigid_mask
 
@@ -307,7 +307,7 @@ class SingleTemplateEmbedding(hk.Module):
           template_group_indices.astype(jnp.int32),
       )
       points = rigid.translation
-      rigid_vec = rigid[:, None].inverse().apply_to_point(points)
+      rigid_vec = rigid[:, None].inverse().apply_to_point(points)  # pyrefly: ignore[bad-index]
       unit_vector = rigid_vec.normalized()
       unit_vector = [unit_vector.x, unit_vector.y, unit_vector.z]
 

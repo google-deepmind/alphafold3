@@ -195,10 +195,10 @@ class StructureConfidenceSummary:
             inference_result.metadata['fraction_disordered']
         ),
         has_clash=float(inference_result.metadata['has_clash']),
-        chain_pair_pae_min=inference_result.metadata['chain_pair_pae_min'],
-        chain_pair_iptm=inference_result.metadata['chain_pair_iptm'],
-        chain_ptm=inference_result.metadata['iptm_ichain'],
-        chain_iptm=inference_result.metadata['iptm_xchain'],
+        chain_pair_pae_min=inference_result.metadata['chain_pair_pae_min'],  # pyrefly: ignore[bad-argument-type]
+        chain_pair_iptm=inference_result.metadata['chain_pair_iptm'],  # pyrefly: ignore[bad-argument-type]
+        chain_ptm=inference_result.metadata['iptm_ichain'],  # pyrefly: ignore[bad-argument-type]
+        chain_iptm=inference_result.metadata['iptm_xchain'],  # pyrefly: ignore[bad-argument-type]
     )
 
   @classmethod
@@ -251,10 +251,10 @@ class StructureConfidenceFull:
     atom_plddts = struc.atom_b_factor.tolist()
     token_chain_ids = [
         str(token_id)
-        for token_id in inference_result.metadata['token_chain_ids']
+        for token_id in inference_result.metadata['token_chain_ids']  # pyrefly: ignore[not-iterable]
     ]
     token_res_ids = [
-        int(token_id) for token_id in inference_result.metadata['token_res_ids']
+        int(token_id) for token_id in inference_result.metadata['token_res_ids']  # pyrefly: ignore[not-iterable]
     ]
     return cls(
         pae=pae,

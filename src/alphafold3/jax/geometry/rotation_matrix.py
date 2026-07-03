@@ -132,8 +132,8 @@ class Rot3Array:
 
   def inverse(self) -> Self:
     """Returns inverse of Rot3Array."""
-    return Rot3Array(
-        *(self.xx, self.yx, self.zx),
+    return Rot3Array(  # pyrefly: ignore[bad-return]
+        *(self.xx, self.yx, self.zx),  # pyrefly: ignore[bad-argument-count]
         *(self.xy, self.yy, self.zy),
         *(self.xz, self.yz, self.zz),
     )
@@ -141,7 +141,7 @@ class Rot3Array:
   def apply_to_point(self, point: vector.Vec3Array) -> vector.Vec3Array:
     """Applies Rot3Array to point."""
     return vector.Vec3Array(
-        self.xx * point.x + self.xy * point.y + self.xz * point.z,
+        self.xx * point.x + self.xy * point.y + self.xz * point.z,  # pyrefly: ignore[bad-argument-count]
         self.yx * point.x + self.yy * point.y + self.yz * point.z,
         self.zx * point.x + self.zy * point.y + self.zz * point.z,
     )
@@ -152,10 +152,10 @@ class Rot3Array:
 
   def __matmul__(self, other: Self) -> Self:
     """Composes two Rot3Arrays."""
-    c0 = self.apply_to_point(vector.Vec3Array(other.xx, other.yx, other.zx))
-    c1 = self.apply_to_point(vector.Vec3Array(other.xy, other.yy, other.zy))
-    c2 = self.apply_to_point(vector.Vec3Array(other.xz, other.yz, other.zz))
-    return Rot3Array(c0.x, c1.x, c2.x, c0.y, c1.y, c2.y, c0.z, c1.z, c2.z)
+    c0 = self.apply_to_point(vector.Vec3Array(other.xx, other.yx, other.zx))  # pyrefly: ignore[bad-argument-count]
+    c1 = self.apply_to_point(vector.Vec3Array(other.xy, other.yy, other.zy))  # pyrefly: ignore[bad-argument-count]
+    c2 = self.apply_to_point(vector.Vec3Array(other.xz, other.yz, other.zz))  # pyrefly: ignore[bad-argument-count]
+    return Rot3Array(c0.x, c1.x, c2.x, c0.y, c1.y, c2.y, c0.z, c1.z, c2.z)  # pyrefly: ignore[bad-argument-count, bad-return]
 
   @classmethod
   def identity(cls, shape: Any, dtype: jnp.dtype = jnp.float32) -> Self:
@@ -266,7 +266,7 @@ class Rot3Array:
       symmetric_4by4 = jnp.reshape(symmetric_4by4, mat.shape[:-1] + (4, 4))
       largest_eigvec = largest_evec(symmetric_4by4)
       return cls.from_quaternion(
-          *utils.unstack(largest_eigvec, axis=-1)
+          *utils.unstack(largest_eigvec, axis=-1)  # pyrefly: ignore[bad-argument-type]
       ).inverse()
 
     else:
@@ -288,7 +288,7 @@ class Rot3Array:
     """Samples uniform random Rot3Array according to Haar Measure."""
     quat_array = jax.random.normal(key, tuple(shape) + (4,), dtype=dtype)
     quats = utils.unstack(quat_array)
-    return cls.from_quaternion(*quats)
+    return cls.from_quaternion(*quats)  # pyrefly: ignore[bad-argument-type]
 
   def __getstate__(self):
     return (VERSION, [np.asarray(getattr(self, field)) for field in COMPONENTS])

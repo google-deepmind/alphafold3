@@ -308,7 +308,7 @@ class WholePdbPipeline:
     # Create reference structure features
     chemical_components_data = struc_chem_comps.populate_missing_ccd_data(
         ccd=ccd,
-        chemical_components_data=cleaned_struc.chemical_components_data,
+        chemical_components_data=cleaned_struc.chemical_components_data,  # pyrefly: ignore[bad-argument-type]
         populate_pdbx_smiles=True,
     )
 
@@ -322,8 +322,8 @@ class WholePdbPipeline:
         padding_shapes=padding_shapes,
         flat_output_layout=flat_output_layout,
         empty_output_struc=empty_output_struc,
-        polymer_ligand_bonds=polymer_ligand_bonds,
-        ligand_ligand_bonds=ligand_ligand_bonds,
+        polymer_ligand_bonds=polymer_ligand_bonds,  # pyrefly: ignore[bad-argument-type]
+        ligand_ligand_bonds=ligand_ligand_bonds,  # pyrefly: ignore[bad-argument-type]
     )
 
     # Create the PredictedStructureInfo
@@ -366,7 +366,7 @@ class WholePdbPipeline:
             padding_shapes=padding_shapes,
             chemical_components_data=chemical_components_data,
             random_state=random_state,
-            ref_max_modified_date=ref_max_modified_date,
+            ref_max_modified_date=ref_max_modified_date,  # pyrefly: ignore[bad-argument-type]
             conformer_max_iterations=conformer_max_iterations,
             ligand_ligand_bonds=ligand_ligand_bonds,
         )
@@ -381,7 +381,7 @@ class WholePdbPipeline:
           random_state=(
               np.random.RandomState(_DETERMINISTIC_FRAMES_RANDOM_SEED)
           ),
-          ref_max_modified_date=ref_max_modified_date,
+          ref_max_modified_date=ref_max_modified_date,  # pyrefly: ignore[bad-argument-type]
           conformer_max_iterations=None,
           ligand_ligand_bonds=ligand_ligand_bonds,
       )
@@ -413,7 +413,7 @@ class WholePdbPipeline:
         all_tokens=all_tokens,
         all_token_atoms_layout=all_token_atoms_layout,
         ref_structure=(
-            deterministic_ref_structure
+            deterministic_ref_structure  # pyrefly: ignore[bad-argument-type]
             if self._config.deterministic_frames
             else batch_ref_structure
         ),
@@ -456,7 +456,7 @@ class WholePdbPipeline:
         unpaired_msa_by_chain_id[chain.id] = chain.unpaired_msa
       if isinstance(chain, folding_input.ProteinChain):
         paired_msa_by_chain_id[chain.id] = chain.paired_msa
-        templates_by_chain_id[chain.id] = list(chain.templates)
+        templates_by_chain_id[chain.id] = list(chain.templates)  # pyrefly: ignore[bad-argument-type]
 
     batch = self.process_structure(
         struct=struct,

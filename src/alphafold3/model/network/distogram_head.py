@@ -89,4 +89,4 @@ class DistogramHead(hk.Module):
     if return_distogram:
       return_dict['distogram'] = logits
 
-    return return_dict
+    return return_dict  # pyrefly: ignore[bad-return]

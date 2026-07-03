@@ -89,7 +89,7 @@ class Vec3Array:
     new_x = self.y * other.z - self.z * other.y
     new_y = self.z * other.x - self.x * other.z
     new_z = self.x * other.y - self.y * other.x
-    return Vec3Array(new_x, new_y, new_z)
+    return Vec3Array(new_x, new_y, new_z)  # pyrefly: ignore[bad-argument-count, bad-return]
 
   def dot(self, other: Self) -> Float:
     """Compute dot product between 'self' and 'other'."""
@@ -114,7 +114,7 @@ class Vec3Array:
   def zeros(cls, shape, dtype=jnp.float32):
     """Return Vec3Array corresponding to zeros of given shape."""
     return cls(
-        jnp.zeros(shape, dtype),
+        jnp.zeros(shape, dtype),  # pyrefly: ignore[bad-argument-count]
         jnp.zeros(shape, dtype),
         jnp.zeros(shape, dtype),
     )  # pytype: disable=wrong-arg-count  # trace-all-classes
@@ -166,7 +166,7 @@ def dot(vector1: Vec3Array, vector2: Vec3Array) -> Float:
 
 
 def cross(vector1: Vec3Array, vector2: Vec3Array) -> Float:
-  return vector1.cross(vector2)
+  return vector1.cross(vector2)  # pyrefly: ignore[bad-return]
 
 
 def norm(vector: Vec3Array, epsilon: float = 1e-6) -> Float:

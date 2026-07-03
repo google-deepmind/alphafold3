@@ -390,9 +390,9 @@ class Table:
       if not invert:
         return self
       else:
-        return self[np.array((), dtype=np.int64)]
+        return self[np.array((), dtype=np.int64)]  # pyrefly: ignore[bad-return]
     else:
-      return self[~filter_mask if invert else filter_mask]
+      return self[~filter_mask if invert else filter_mask]  # pyrefly: ignore[bad-return]
 
   def _validate_keys_are_column_names(self, keys: Collection[str]) -> None:
     """Raises an error if any of the keys are not column names."""

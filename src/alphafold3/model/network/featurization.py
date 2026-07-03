@@ -163,7 +163,7 @@ def create_target_feat(
     ref_mask = batch.ref_structure.mask
     element_feat = jax.nn.one_hot(batch.ref_structure.element, 128)
     element_feat = utils.mask_mean(
-        mask=ref_mask[..., None], value=element_feat, axis=-2, eps=1e-6
+        mask=ref_mask[..., None], value=element_feat, axis=-2, eps=1e-6  # pyrefly: ignore[bad-argument-type]
     )
     target_features.append(element_feat)
     pos_feat = batch.ref_structure.positions

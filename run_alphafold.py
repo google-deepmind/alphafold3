@@ -573,7 +573,7 @@ def predict_structure(
     inference_results = model_runner.extract_inference_results(
         batch=example, result=result, target_name=fold_input.name
     )
-    num_tokens = len(inference_results[0].metadata['token_chain_ids'])
+    num_tokens = len(inference_results[0].metadata['token_chain_ids'])  # pyrefly: ignore[bad-argument-type]
     embeddings = model_runner.extract_embeddings(
         result=result, num_tokens=num_tokens
     )
@@ -935,11 +935,11 @@ def main(_):
   if _RUN_DATA_PIPELINE.value:
     expand_path = lambda x: replace_db_dir(x, DB_DIR.value)
     data_pipeline_config = pipeline.DataPipelineConfig(
-        jackhmmer_binary_path=_JACKHMMER_BINARY_PATH.value,
-        nhmmer_binary_path=_NHMMER_BINARY_PATH.value,
-        hmmalign_binary_path=_HMMALIGN_BINARY_PATH.value,
-        hmmsearch_binary_path=_HMMSEARCH_BINARY_PATH.value,
-        hmmbuild_binary_path=_HMMBUILD_BINARY_PATH.value,
+        jackhmmer_binary_path=_JACKHMMER_BINARY_PATH.value,  # pyrefly: ignore[bad-argument-type]
+        nhmmer_binary_path=_NHMMER_BINARY_PATH.value,  # pyrefly: ignore[bad-argument-type]
+        hmmalign_binary_path=_HMMALIGN_BINARY_PATH.value,  # pyrefly: ignore[bad-argument-type]
+        hmmsearch_binary_path=_HMMSEARCH_BINARY_PATH.value,  # pyrefly: ignore[bad-argument-type]
+        hmmbuild_binary_path=_HMMBUILD_BINARY_PATH.value,  # pyrefly: ignore[bad-argument-type]
         small_bfd_database_path=expand_path(_SMALL_BFD_DATABASE_PATH.value),
         small_bfd_z_value=_SMALL_BFD_Z_VALUE.value,
         mgnify_database_path=expand_path(_MGNIFY_DATABASE_PATH.value),

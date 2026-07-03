@@ -92,7 +92,7 @@ def featurise_input(
   # Set up data pipeline for single use.
   data_pipeline = pipeline.WholePdbPipeline(
       config=pipeline.WholePdbPipeline.Config(
-          buckets=buckets,
+          buckets=buckets,  # pyrefly: ignore[bad-argument-type]
           ref_max_modified_date=ref_max_modified_date,
           conformer_max_iterations=conformer_max_iterations,
           resolve_msa_overlaps=resolve_msa_overlaps,
