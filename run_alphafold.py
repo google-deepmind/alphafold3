@@ -376,6 +376,11 @@ _SAVE_DISTOGRAM = flags.DEFINE_bool(
     'Whether to save the final distogram in the output. Note that the distogram'
     ' is a large float16 array: num_tokens * num_tokens * 64.',
 )
+_SAVE_TERMS_OF_USE = flags.DEFINE_bool(
+    'save_terms_of_use',
+    True,
+    'Whether to save the terms of use as an MD file in the output directory.',
+)
 _FORCE_OUTPUT_DIR = flags.DEFINE_bool(
     'force_output_dir',
     False,
@@ -618,7 +623,9 @@ def write_outputs(
     all_inference_results: Sequence[ResultsForSeed],
     output_dir: epath.PathLike,
     job_name: str,
+    *,
     compress_large_output_files: bool = False,
+    save_terms_of_use: bool = True,
 ) -> None:
   """Writes outputs to the specified output directory."""
   ranking_scores = []
@@ -669,7 +676,7 @@ def write_outputs(
         inference_result=max_ranking_result,
         output_dir=output_dir,
         # The output terms of use are the same for all seeds/samples.
-        terms_of_use=output_terms,
+        terms_of_use=output_terms if save_terms_of_use else None,
         name=job_name,
         compress=compress_large_output_files,
     )
@@ -719,6 +726,7 @@ def process_fold_input(
     fix_standalone_glycans: bool = False,
     force_output_dir: bool = False,
     compress_large_output_files: bool = False,
+    save_terms_of_use: bool = True,
 ) -> folding_input.Input:
   ...
 
@@ -737,6 +745,7 @@ def process_fold_input(
     fix_standalone_glycans: bool = False,
     force_output_dir: bool = False,
     compress_large_output_files: bool = False,
+    save_terms_of_use: bool = True,
 ) -> Sequence[ResultsForSeed]:
   ...
 
@@ -754,6 +763,7 @@ def process_fold_input(
     fix_standalone_glycans: bool = False,
     force_output_dir: bool = False,
     compress_large_output_files: bool = False,
+    save_terms_of_use: bool = True,
 ) -> folding_input.Input | Sequence[ResultsForSeed]:
   """Runs data pipeline and/or inference on a single fold input.
 
@@ -791,6 +801,7 @@ def process_fold_input(
       output directory instead if the existing one is non-empty.
     compress_large_output_files: If True, compress large output files (mmCIF and
       confidences JSON) using zstandard.
+    save_terms_of_use: If True, write the terms of use to the output directory.
 
   Returns:
     The processed fold input, or the inference results for each seed.
@@ -847,6 +858,7 @@ def process_fold_input(
         output_dir=output_dir,
         job_name=fold_input.sanitised_name(),
         compress_large_output_files=compress_large_output_files,
+        save_terms_of_use=save_terms_of_use,
     )
     output = all_inference_results
 
@@ -1012,6 +1024,7 @@ def main(_):
         fix_standalone_glycans=_FIX_STANDALONE_GLYCANS.value,
         force_output_dir=_FORCE_OUTPUT_DIR.value,
         compress_large_output_files=_COMPRESS_LARGE_OUTPUT_FILES.value,
+        save_terms_of_use=_SAVE_TERMS_OF_USE.value,
     )
     num_fold_inputs += 1
 
