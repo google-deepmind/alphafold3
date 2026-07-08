@@ -21,6 +21,7 @@
 
 import dataclasses
 import datetime
+import io
 from alphafold3 import version
 from alphafold3.model import confidence_types
 from alphafold3.model import mmcif_metadata
@@ -139,5 +140,6 @@ def write_embeddings(
   output_dir = epath.Path(output_dir)
   prefix = f'{name}_' if name else ''
 
-  with (output_dir / f'{prefix}embeddings.npz').open('wb') as f:
-    np.savez_compressed(f, **embeddings)  # pyrefly: ignore[bad-argument-type]
+  with io.BytesIO() as bio:
+    np.savez_compressed(bio, **embeddings)
+    (output_dir / f'{prefix}embeddings.npz').write_bytes(bio.getvalue())

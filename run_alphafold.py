@@ -33,6 +33,7 @@ import csv
 import dataclasses
 import datetime
 import functools
+import io
 import os
 import shutil
 import string
@@ -668,8 +669,9 @@ def write_outputs(
       distogram_dir = output_dir / f'seed-{seed}_distogram'
       distogram_dir.mkdir(parents=True, exist_ok=True)
       distogram_path = distogram_dir / f'{job_name}_seed-{seed}_distogram.npz'
-      with distogram_path.open('wb') as f:
-        np.savez_compressed(f, distogram=distogram.astype(np.float16))
+      with io.BytesIO() as bio:
+        np.savez_compressed(bio, distogram=distogram.astype(np.float16))
+        distogram_path.write_bytes(bio.getvalue())
 
   if max_ranking_result is not None:  # True iff ranking_scores non-empty.
     post_processing.write_output(
