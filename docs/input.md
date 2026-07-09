@@ -754,6 +754,39 @@ as it could cause issues in the mmCIF format.
 The newly defined ligand can then be used as a standard CCD ligand using its
 custom name, and bonds can be linked to it using its named atom scheme.
 
+### Using user-provided CCD for polymer modifications
+
+The user-provided CCD can also be used for specifying non-canonical amino acids
+or nucleotides in the protein/RNA/DNA chains, not only custom ligands.
+
+In this case, the custom component is referenced from the polymer
+`modifications` field using its CCD component ID:
+
+```json
+{
+  "protein": {
+    "id": "A",
+    "sequence": "MDQHQAFKEATELLEKMKTSSDEERVEYLRKAVRLFNLTSEGQQGELVGKFKEAGVLIRAVDLS",
+    "modifications": [{"ptmType": "MYMOD", "ptmPosition": 30}]
+  }
+}
+```
+
+In the example above, residue 30 is replaced by the custom component `MYMOD`.
+
+*   `ptmType` must match the component ID defined in the user-provided CCD.
+*   The user-provided CCD should describe an appropriate peptide-linking polymer
+    component rather than a free non-polymer ligand.
+*   The user-provided CCD entry should include the expected backbone atoms and
+    bond graph for the residue, adjusted for the residue position in the polymer
+    chain. E.g. atoms and bond graphs for the mid-chain residue and terminal
+    residue may differ.
+
+The same principle applies to RNA and DNA chains. This workflow is useful for
+modeling non-canonical amino acids or nucleotides in the context of polymer
+chains. By contrast, external covalent ligands should generally be modeled as
+ligand entities plus `bondedAtomPairs`.
+
 ### Conformer Generation
 
 The data pipeline attempts to generate a conformer for ligands using RDKit. The
