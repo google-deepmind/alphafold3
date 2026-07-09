@@ -192,6 +192,8 @@ Summary outputs:
     Can be used for ranking a specific chain, when you care about where the
     chain binds to the rest of the complex and you do not know which other
     chains you expect it to interact with. This is often the case with ligands.
+*   `chain_ids:` A \[num_chains\] array with chain IDs in the same order as all
+    of the other chain-level arrays to make the JSON more self-contained.
 
 Full array outputs:
 
