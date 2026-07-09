@@ -413,9 +413,7 @@ class ProteinChain:
           {
               'mmcif': template.mmcif,
               'queryIndices': list(template.query_to_template_map.keys()),
-              'templateIndices': (
-                  list(template.query_to_template_map.values()) or None
-              ),
+              'templateIndices': list(template.query_to_template_map.values()),
           }
           for template in self._templates
       ]
