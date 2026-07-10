@@ -442,6 +442,59 @@ class InferenceTest(parameterized.TestCase):
     if any(rmsd > 1.4 for rmsd in actual_masked_rmsds):
       self.fail(f'Masked RMSD too high: {actual_masked_rmsds=}')
 
+  @parameterized.parameters(
+      'barnase_barstar',
+      'calmodulin_4calcium',
+      'erk2_phosphorylated',
+      'kras_g12c_sotorasib',
+      'methylated_dna',
+      'modified_rna',
+      'rnaseb_glycosylated',
+      'streptavidin_biotin_smiles',
+      'tetr_dimer_dna',
+      'tetr_dimer_tetracycline',
+      'tetr_homodimer',
+      'u1a_rna_hairpin',
+      'ubiquitin_monomer',
+  )
+  def test_examples(self, example_name: str):
+
+    json_path = testing_data.Data(
+        resources.ROOT / f'../../examples/{example_name}.json'
+    ).path()
+    with open(json_path, 'rt') as f:
+      test_input_json = f.read()
+    fold_input = folding_input.Input.from_json(test_input_json)
+    output_dir = self.create_tempdir().full_path
+    run_alphafold.process_fold_input(
+        fold_input=fold_input,
+        data_pipeline_config=self._data_pipeline_config,
+        model_runner=run_alphafold.ModelRunner(
+            # Use fast settings.
+            config=run_alphafold.make_model_config(
+                num_diffusion_samples=1,
+                num_recycles=1,
+            ),
+            device=jax.local_devices(backend='gpu')[0],
+            model_dir=run_alphafold.MODEL_DIR.value,
+        ),
+        ref_max_modified_date=datetime.date(2021, 9, 30),
+        output_dir=output_dir,
+    )
+    prefix = f'seed-{fold_input.rng_seeds[0]}'
+    self.assertSameElements(
+        os.listdir(output_dir),
+        [
+            f'{prefix}_sample-0',
+            f'{fold_input.sanitised_name()}_model.cif',
+            f'{fold_input.sanitised_name()}_summary_confidences.json',
+            f'{fold_input.sanitised_name()}_confidences.json',
+            f'{fold_input.sanitised_name()}_ranking_scores.csv',
+            f'{fold_input.sanitised_name()}_data.json',
+            'TERMS_OF_USE.md',
+        ],
+    )
+
 
 if __name__ == '__main__':
   absltest.main()

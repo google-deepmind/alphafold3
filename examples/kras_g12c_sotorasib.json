@@ -1,0 +1,25 @@
+{
+  "name": "KRAS_G12C_sotorasib_covalent",
+  "sequences": [
+    {
+      "protein": {
+        "id": "A",
+        "sequence": "MTEYKLVVVGACGVGKSALTIQLIQNHFVDEYDPTIEDSYRKQVVIDGETCLLDILDTAGQEEYSAMRDQYMRTGEGFLCVFAINNTKSFEDIHHYREQIKRVKDSEDVPMVLVGNKCDLPSRTVDTKQAQDLARSYGIPFIETSAKTRQRVEDAFYTLVREIRQYRLKKISKEEKTPGCVKIKKCIIM",
+        "description": "Human KRAS4B G12C mutant (UniProt P01116 with G12C, 189 aa)"
+      }
+    },
+    {
+      "ligand": {
+        "id": "B",
+        "ccdCodes": ["MOV"],
+        "description": "Sotorasib / AMG-510 (CCD: MOV), covalent KRAS G12C inhibitor"
+      }
+    }
+  ],
+  "bondedAtomPairs": [
+    [["A", 12, "SG"], ["B", 1, "C25"]]
+  ],
+  "modelSeeds": [42],
+  "dialect": "alphafold3",
+  "version": 4
+}

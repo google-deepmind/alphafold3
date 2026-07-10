@@ -1,0 +1,22 @@
+{
+  "name": "U1A_RNA_hairpin",
+  "sequences": [
+    {
+      "protein": {
+        "id": "A",
+        "sequence": "AVPETRPNHTIYINNLNEKIKKDELKKSLYAIFSQFGQILDILVSRSLKMRGQAFVIFKEVSSATNALRSMQGFPFYDKPMRIQYAKTDSDIIAKMKGTFV",
+        "description": "Human U1A spliceosomal protein, RRM1 domain (UniProt P09012, residues 2-102, 101 aa)"
+      }
+    },
+    {
+      "rna": {
+        "id": "B",
+        "sequence": "AAUCCAUUGCACUCCGGAUUU",
+        "description": "U1 snRNA stem-loop II hairpin (21 nt, from PDB 1URN)"
+      }
+    }
+  ],
+  "modelSeeds": [42],
+  "dialect": "alphafold3",
+  "version": 4
+}

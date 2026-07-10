@@ -40,6 +40,9 @@ The custom AlphaFold 3 format allows:
 *   Specifying covalent bonds between entities.
 *   Specifying multiple random seeds.
 
+Multiple examples of input JSON files are provided in
+https://github.com/google-deepmind/alphafold3/tree/main/examples.
+
 ## AlphaFold Server JSON Compatibility
 
 The [AlphaFold Server](https://alphafoldserver.com/) uses a separate
