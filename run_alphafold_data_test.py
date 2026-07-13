@@ -226,10 +226,11 @@ class DataPipelineTest(parameterized.TestCase):
         ccd=chemical_components.Ccd(),
         buckets=None,
     )
-    del featurised_example[0]['ref_pos']  # Depends on specific RDKit version.
 
     with _output('featurised_example.pkl') as (_, output):
       output.write(pickle.dumps(featurised_example))
+
+    del featurised_example[0]['ref_pos']  # Depends on specific RDKit version.
     featurised_example = jax.tree_util.tree_map(_hash_data, featurised_example)
     with _output('featurised_example.json') as (result_path, output):
       output.write(
