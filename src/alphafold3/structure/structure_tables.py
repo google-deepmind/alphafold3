@@ -1,7 +1,16 @@
 # Copyright 2024 DeepMind Technologies Limited
 #
-# AlphaFold 3 source code is licensed under CC BY-NC-SA 4.0. To view a copy of
-# this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
+# AlphaFold 3 source code is licensed under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # To request access to the AlphaFold 3 model parameters, follow the process set
 # out at https://github.com/google-deepmind/alphafold3. You may only use these
@@ -67,7 +76,9 @@ class AuthorNamingScheme:
 
 
 def _default(
-    candidate_value: np.ndarray | None, default_value: Sequence[Any], dtype: Any
+    candidate_value: np.ndarray | None,
+    default_value: Sequence[Any] | np.ndarray,
+    dtype: Any,
 ) -> np.ndarray:
   if candidate_value is None:
     return np.array(default_value, dtype=dtype)
@@ -141,7 +152,7 @@ class Atoms(table.Table):
     num_atoms = len(chain_key)
     if not num_atoms:
       return cls.make_empty()
-    return Atoms(
+    return Atoms(  # pyrefly: ignore[bad-return]
         chain_key=chain_key,
         res_key=res_key,
         key=_default(key, np.arange(num_atoms), np.int64),
@@ -168,7 +179,7 @@ class Atoms(table.Table):
       raise ValueError(
           f'Expecting 3-dimensional coordinates, got {coords.shape}'
       )
-    return typing.cast(
+    return typing.cast(  # pyrefly: ignore[bad-return]
         Atoms,
         self.copy_and_update(
             x=coords[..., 0], y=coords[..., 1], z=coords[..., 2]
@@ -235,7 +246,7 @@ class Residues(table.Table):
     num_res = len(id)
     if not num_res:
       return cls.make_empty()
-    return Residues(
+    return Residues(  # pyrefly: ignore[bad-return]
         key=_default(key, np.arange(num_res), np.int64),
         id=id,
         chain_key=chain_key,
@@ -282,7 +293,7 @@ class Chains(table.Table):
     if not num_chains:
       return cls.make_empty()
 
-    return Chains(
+    return Chains(  # pyrefly: ignore[bad-return]
         key=_default(key, np.arange(num_chains), np.int64),
         id=id,
         type=_default(type, [mmcif_names.PROTEIN_CHAIN] * num_chains, object),
@@ -505,7 +516,7 @@ def to_mmcif_atom_site_and_bonds_table(
   ).tolist()
 
   if bonds.key.size > 0:
-    raw_mmcif.update(
+    raw_mmcif.update(  # pyrefly: ignore[no-matching-overload]
         bonds.to_mmcif_dict_from_atom_arrays(
             atom_key=atoms.key,
             chain_id=label_asym_id,
@@ -521,7 +532,7 @@ def to_mmcif_atom_site_and_bonds_table(
 
 
 def _flatten_author_naming_scheme_table(
-    res_table: Mapping[str, Mapping[int, str]],
+    res_table: Mapping[str, Mapping[int, str | None]],
     chain_ids: np.ndarray,
     res_chain_ids: np.ndarray,
     res_ids: np.ndarray,

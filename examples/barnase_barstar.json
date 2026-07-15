@@ -1,0 +1,22 @@
+{
+  "name": "barnase_barstar_complex",
+  "sequences": [
+    {
+      "protein": {
+        "id": "A",
+        "sequence": "AQVINTFDGVADYLQTYHKLPDNYITKSEAQALGWVASKGNLADVAPGKSIGGDIFSNREGKLPGKSGRTWREADINYTSGFRNSDRILYSSDWLIYKTTDHYQTFTKIR",
+        "description": "Barnase (ribonuclease), B. amyloliquefaciens (UniProt P00648, mature chain, 110 aa)"
+      }
+    },
+    {
+      "protein": {
+        "id": "B",
+        "sequence": "KKAVINGEQIRSISDLHQTLKKELALPEYYGENLDALWDCLTGWVEYPLVLEWRQFEQSKQLTENGAESVLQVFREAKAEGCDITIILS",
+        "description": "Barstar (barnase inhibitor), B. amyloliquefaciens (UniProt P11540, mature chain, 89 aa)"
+      }
+    }
+  ],
+  "modelSeeds": [42],
+  "dialect": "alphafold3",
+  "version": 4
+}

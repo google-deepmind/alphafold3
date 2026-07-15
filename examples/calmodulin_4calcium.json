@@ -1,0 +1,22 @@
+{
+  "name": "calmodulin_4calcium",
+  "sequences": [
+    {
+      "protein": {
+        "id": "A",
+        "sequence": "MADQLTEEQIAEFKEAFSLFDKDGDGTITTKELGTVMRSLGQNPTEAELQDMINEVDADGNGTIDFPEFLTMMARKMKDTDSEEEIREAFRVFDKDGNGYISAAELRHVMTNLGEKLTDEEVDEMIREADIDGDGQVNYEEFVQMMTAK",
+        "description": "Human calmodulin-1 (UniProt P0DP23, 149 aa)"
+      }
+    },
+    {
+      "ligand": {
+        "id": ["B", "C", "D", "E"],
+        "ccdCodes": ["CA"],
+        "description": "Calcium ions (CCD: CA), 4 copies for 4 EF-hand binding sites"
+      }
+    }
+  ],
+  "modelSeeds": [42],
+  "dialect": "alphafold3",
+  "version": 4
+}

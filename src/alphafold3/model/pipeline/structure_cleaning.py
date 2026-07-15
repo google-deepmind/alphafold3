@@ -1,7 +1,16 @@
 # Copyright 2024 DeepMind Technologies Limited
 #
-# AlphaFold 3 source code is licensed under CC BY-NC-SA 4.0. To view a copy of
-# this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
+# AlphaFold 3 source code is licensed under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # To request access to the AlphaFold 3 model parameters, follow the process set
 # out at https://github.com/google-deepmind/alphafold3. You may only use these
@@ -32,8 +41,8 @@ def _get_leaving_atom_mask(
 ) -> np.ndarray:
   """Updates a drop_leaving_atoms mask with new leaving atom locations."""
   bonded_atoms = atom_layout.get_bonded_atoms(
-      polymer_ligand_bonds,
-      ligand_ligand_bonds,
+      polymer_ligand_bonds,  # pyrefly: ignore[bad-argument-type]
+      ligand_ligand_bonds,  # pyrefly: ignore[bad-argument-type]
       res_id,
       chain_id,
   )
@@ -188,7 +197,7 @@ def clean_structure(
       new_bonds = struc.bonds[is_covalent]
     else:
       new_bonds = structure.Bonds.make_empty()
-    struc = struc.copy_and_update(bonds=new_bonds)
+    struc = struc.copy_and_update(bonds=new_bonds)  # pyrefly: ignore[bad-argument-type]
 
   # Other bond filters require iterating over individual bonds.
   if struc.bonds and (remove_bad_bonds or remove_polymer_polymer_bonds):
@@ -237,7 +246,7 @@ def clean_structure(
         new_bonds = struc.bonds[np.array(include_bond, dtype=bool)]
       else:
         new_bonds = structure.Bonds.make_empty()
-      struc = struc.copy_and_update(bonds=new_bonds)
+      struc = struc.copy_and_update(bonds=new_bonds)  # pyrefly: ignore[bad-argument-type]
 
   return struc
 

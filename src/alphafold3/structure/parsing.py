@@ -1,7 +1,16 @@
 # Copyright 2024 DeepMind Technologies Limited
 #
-# AlphaFold 3 source code is licensed under CC BY-NC-SA 4.0. To view a copy of
-# this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
+# AlphaFold 3 source code is licensed under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # To request access to the AlphaFold 3 model parameters, follow the process set
 # out at https://github.com/google-deepmind/alphafold3. You may only use these
@@ -538,7 +547,7 @@ def from_res_arrays(atom_mask: np.ndarray, **kwargs) -> structure.Structure:
       key=chain_key[chain_start],
       id=chain_id[chain_start],
       type=fields.get('chain_type', chain_str_empty)[chain_start],
-      auth_asym_id=fields.get('chain_auth_asym_id', chain_id)[chain_start],
+      auth_asym_id=fields.get('chain_auth_asym_id', chain_id)[chain_start],  # pyrefly: ignore[unsupported-operation]
       entity_id=entity_id,
       entity_desc=fields.get('chain_entity_desc', chain_str_empty)[chain_start],
   )
@@ -706,7 +715,7 @@ def from_sequences_and_bonds(
       if bond_indices_by_atom_name := bond_lookup.get((chain_i, res_i)):
         comp_atoms = None
         if sequence_format != SequenceFormat.LIGAND_SMILES:
-          comp_atoms = set(ccd.get(full_res_name)['_chem_comp_atom.atom_id'])
+          comp_atoms = set(ccd.get(full_res_name)['_chem_comp_atom.atom_id'])  # pyrefly: ignore[unsupported-operation]
         for bond_atom_name, bond_indices in bond_indices_by_atom_name.items():
           if comp_atoms is not None and bond_atom_name not in comp_atoms:
             raise ValueError(
@@ -892,7 +901,7 @@ class _ChainResBuilder:
     if chain_ids.size == 0:
       return
 
-    chain_ids_with_prev = np.concatenate(
+    chain_ids_with_prev = np.concatenate(  # pyrefly: ignore[no-matching-overload]
         (([self.chain_id[-1] if self.chain_id else None], chain_ids))
     )
     chain_change_mask = chain_ids_with_prev[:-1] != chain_ids_with_prev[1:]

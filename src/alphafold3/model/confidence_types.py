@@ -1,7 +1,16 @@
 # Copyright 2024 DeepMind Technologies Limited
 #
-# AlphaFold 3 source code is licensed under CC BY-NC-SA 4.0. To view a copy of
-# this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
+# AlphaFold 3 source code is licensed under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # To request access to the AlphaFold 3 model parameters, follow the process set
 # out at https://github.com/google-deepmind/alphafold3. You may only use these
@@ -10,51 +19,17 @@
 
 """Confidence categories for predictions."""
 
+from collections.abc import Sequence
 import dataclasses
 import enum
 import json
 from typing import Any, Self
 
 from absl import logging
+from alphafold3.cpp import json_serialize
 from alphafold3.model import model
 import jax
 import numpy as np
-
-
-class StructureConfidenceFullEncoder(json.JSONEncoder):
-  """JSON encoder for serializing confidence types."""
-
-  def __init__(self, **kwargs):
-    super().__init__(**(kwargs | dict(separators=(',', ':'))))
-
-  def encode(self, o: 'StructureConfidenceFull'):
-    # Cast to np.float64 before rounding, since casting to Python float will
-    # cast to a 64 bit float, potentially undoing np.float32 rounding.
-    atom_plddts = np.round(
-        np.clip(np.asarray(o.atom_plddts, dtype=np.float64), 0.0, 99.99), 2
-    ).astype(float)
-    contact_probs = np.round(
-        np.clip(np.asarray(o.contact_probs, dtype=np.float64), 0.0, 1.0), 2
-    ).astype(float)
-    pae = np.round(
-        np.clip(np.asarray(o.pae, dtype=np.float64), 0.0, 99.9), 1
-    ).astype(float)
-    return """\
-{
-  "atom_chain_ids": %s,
-  "atom_plddts": %s,
-  "contact_probs": %s,
-  "pae": %s,
-  "token_chain_ids": %s,
-  "token_res_ids": %s
-}""" % (
-        super().encode(o.atom_chain_ids),
-        super().encode(list(atom_plddts)).replace('NaN', 'null'),
-        super().encode([list(x) for x in contact_probs]).replace('NaN', 'null'),
-        super().encode([list(x) for x in pae]).replace('NaN', 'null'),
-        super().encode(o.token_chain_ids),
-        super().encode(o.token_res_ids),
-    )
 
 
 def _dump_json(data: Any, indent: int | None = None) -> str:
@@ -196,6 +171,8 @@ class StructureConfidenceSummary:
    chain_pair_iptm: [num_chains, num_chains] Chain pair ipTM.
    chain_ptm: [num_chains] Chain pTM.
    chain_iptm: [num_chains] Mean cross chain ipTM for a chain.
+   chain_ids: [num_chains] Chain IDs in the same order as the chain-level
+     arrays.
   """
 
   ptm: float
@@ -207,12 +184,14 @@ class StructureConfidenceSummary:
   chain_pair_iptm: np.ndarray
   chain_ptm: np.ndarray
   chain_iptm: np.ndarray
+  chain_ids: Sequence[str] = dataclasses.field(default_factory=list)
 
   @classmethod
   def from_inference_result(
       cls, inference_result: model.InferenceResult
   ) -> Self:
     """Returns a new instance based on a given inference result."""
+    chain_ids = [str(c) for c in inference_result.metadata['token_chain_ids']]
     return cls(
         ptm=float(inference_result.metadata['ptm']),
         iptm=float(inference_result.metadata['iptm']),
@@ -221,10 +200,11 @@ class StructureConfidenceSummary:
             inference_result.metadata['fraction_disordered']
         ),
         has_clash=float(inference_result.metadata['has_clash']),
-        chain_pair_pae_min=inference_result.metadata['chain_pair_pae_min'],
-        chain_pair_iptm=inference_result.metadata['chain_pair_iptm'],
-        chain_ptm=inference_result.metadata['iptm_ichain'],
-        chain_iptm=inference_result.metadata['iptm_xchain'],
+        chain_pair_pae_min=inference_result.metadata['chain_pair_pae_min'],  # pyrefly: ignore[bad-argument-type]
+        chain_pair_iptm=inference_result.metadata['chain_pair_iptm'],  # pyrefly: ignore[bad-argument-type]
+        chain_ptm=inference_result.metadata['iptm_ichain'],  # pyrefly: ignore[bad-argument-type]
+        chain_iptm=inference_result.metadata['iptm_xchain'],  # pyrefly: ignore[bad-argument-type]
+        chain_ids=chain_ids,
     )
 
   @classmethod
@@ -233,11 +213,16 @@ class StructureConfidenceSummary:
     return cls(**json.loads(json_string))
 
   def to_json(self) -> str:
+    """Returns a JSON representation of the dataclass."""
+
     def convert(data):
       if isinstance(data, np.ndarray):
         # Cast to np.float64 before rounding, since casting to Python float will
         # cast to a 64 bit float, potentially undoing np.float32 rounding.
         rounded_data = np.round(data.astype(np.float64), decimals=2).tolist()
+      elif isinstance(data, str):
+        # String leaves (e.g. chain_ids entries) are passed through unchanged.
+        rounded_data = data
       else:
         rounded_data = np.round(data, decimals=2)
       return rounded_data
@@ -277,10 +262,10 @@ class StructureConfidenceFull:
     atom_plddts = struc.atom_b_factor.tolist()
     token_chain_ids = [
         str(token_id)
-        for token_id in inference_result.metadata['token_chain_ids']
+        for token_id in inference_result.metadata['token_chain_ids']  # pyrefly: ignore[not-iterable]
     ]
     token_res_ids = [
-        int(token_id) for token_id in inference_result.metadata['token_res_ids']
+        int(token_id) for token_id in inference_result.metadata['token_res_ids']  # pyrefly: ignore[not-iterable]
     ]
     return cls(
         pae=pae,
@@ -298,4 +283,11 @@ class StructureConfidenceFull:
 
   def to_json(self) -> str:
     """Converts StructureConfidenceFull to json string."""
-    return json.dumps(self, cls=StructureConfidenceFullEncoder)
+    return json_serialize.structure_confidence_full_to_json(
+        pae=self.pae,
+        token_chain_ids=self.token_chain_ids,
+        token_res_ids=self.token_res_ids,
+        atom_plddts=self.atom_plddts,
+        atom_chain_ids=self.atom_chain_ids,
+        contact_probs=self.contact_probs,
+    )

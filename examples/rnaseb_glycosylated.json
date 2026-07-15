@@ -1,0 +1,29 @@
+{
+  "name": "RNaseB_glycosylated",
+  "sequences": [
+    {
+      "protein": {
+        "id": "A",
+        "sequence": "KETAAAKFERQHMDSSTSAASSSNYCNQMMKSRNLTKDRCKPVNTFVHESLADVQAVCSQKNVACKNGQTNCYQSYSTMSITDCRETGSSKYPNCAYKTTQANKHIIVACEGNPYVPVHFDASV",
+        "description": "Bovine RNase B (UniProt P61823, mature chain 27-150, 124 aa), N-glycosylated at Asn34"
+      }
+    },
+    {
+      "ligand": {
+        "id": "B",
+        "ccdCodes": ["NAG", "NAG", "BMA", "MAN", "MAN"],
+        "description": "Core N-linked glycan pentasaccharide (Man3GlcNAc2)"
+      }
+    }
+  ],
+  "bondedAtomPairs": [
+    [["A", 34, "ND2"], ["B", 1, "C1"]],
+    [["B", 1, "O4"],   ["B", 2, "C1"]],
+    [["B", 2, "O4"],   ["B", 3, "C1"]],
+    [["B", 3, "O3"],   ["B", 4, "C1"]],
+    [["B", 3, "O6"],   ["B", 5, "C1"]]
+  ],
+  "modelSeeds": [42],
+  "dialect": "alphafold3",
+  "version": 4
+}

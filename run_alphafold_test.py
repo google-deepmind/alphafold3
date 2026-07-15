@@ -1,7 +1,16 @@
 # Copyright 2024 DeepMind Technologies Limited
 #
-# AlphaFold 3 source code is licensed under CC BY-NC-SA 4.0. To view a copy of
-# this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
+# AlphaFold 3 source code is licensed under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # To request access to the AlphaFold 3 model parameters, follow the process set
 # out at https://github.com/google-deepmind/alphafold3. You may only use these
@@ -17,7 +26,6 @@ import datetime
 import difflib
 import json
 import os
-import pathlib
 import pickle
 
 from absl import logging
@@ -28,6 +36,7 @@ from alphafold3.common import resources
 from alphafold3.common.testing import data as testing_data
 from alphafold3.data import pipeline
 from alphafold3.model.scoring import alignment
+from etils import epath
 import jax
 import numpy as np
 
@@ -150,7 +159,7 @@ class InferenceTest(parameterized.TestCase):
     self._runner = run_alphafold.ModelRunner(
         config=self._model_config,
         device=jax.local_devices()[0],
-        model_dir=pathlib.Path(run_alphafold.MODEL_DIR.value),
+        model_dir=run_alphafold.MODEL_DIR.value,
     )
 
   def test_model_inference(self):
@@ -170,7 +179,7 @@ class InferenceTest(parameterized.TestCase):
     )
     embeddings = self._runner.extract_embeddings(
         result=result,
-        num_tokens=len(inference_results[0].metadata['token_chain_ids']),
+        num_tokens=len(inference_results[0].metadata['token_chain_ids']),  # pyrefly: ignore[bad-argument-type]
     )
     self.assertLen(embeddings, 2)
 
@@ -204,17 +213,25 @@ class InferenceTest(parameterized.TestCase):
     fold_input = folding_input.Input.from_json(self._test_input_json)
     fold_input = dataclasses.replace(fold_input, rng_seeds=[seed])
 
-    output_dir = self.create_tempdir().full_path
+    output_dir = epath.Path(self.create_tempdir().full_path)
+
+    # Pre-create output directories to explicitly catch exist_ok=False bugs.
+    (output_dir / f'seed-{seed}_sample-0').mkdir(parents=True)
+    (output_dir / f'seed-{seed}_sample-1').mkdir(parents=True)
+    (output_dir / f'seed-{seed}_embeddings').mkdir(parents=True)
+    (output_dir / f'seed-{seed}_distogram').mkdir(parents=True)
+
     actual = run_alphafold.process_fold_input(
         fold_input,
         self._data_pipeline_config,
         model_runner=run_alphafold.ModelRunner(
             config=self._model_config,
             device=jax.local_devices(backend='gpu')[0],
-            model_dir=pathlib.Path(run_alphafold.MODEL_DIR.value),
+            model_dir=run_alphafold.MODEL_DIR.value,
         ),
         output_dir=output_dir,
         buckets=None if bucket is None else [bucket],
+        force_output_dir=True,
     )
     logging.info('finished get_inference_result')
     expected_model_cif_filename = f'{fold_input.sanitised_name()}_model.cif'
@@ -303,7 +320,7 @@ class InferenceTest(parameterized.TestCase):
     )
     self.assertSequenceEqual(
         actual_input_json['sequences'][1]['ligand']['ccdCodes'],
-        fold_input.ligands[0].ccd_ids,
+        fold_input.ligands[0].ccd_ids,  # pyrefly: ignore[bad-argument-type]
     )
     self.assertNotEmpty(
         actual_input_json['sequences'][0]['protein']['unpairedMsa']
@@ -424,6 +441,59 @@ class InferenceTest(parameterized.TestCase):
     # of lower confidence regions).
     if any(rmsd > 1.4 for rmsd in actual_masked_rmsds):
       self.fail(f'Masked RMSD too high: {actual_masked_rmsds=}')
+
+  @parameterized.parameters(
+      'barnase_barstar',
+      'calmodulin_4calcium',
+      'erk2_phosphorylated',
+      'kras_g12c_sotorasib',
+      'methylated_dna',
+      'modified_rna',
+      'rnaseb_glycosylated',
+      'streptavidin_biotin_smiles',
+      'tetr_dimer_dna',
+      'tetr_dimer_tetracycline',
+      'tetr_homodimer',
+      'u1a_rna_hairpin',
+      'ubiquitin_monomer',
+  )
+  def test_examples(self, example_name: str):
+
+    json_path = testing_data.Data(
+        resources.ROOT / f'../../examples/{example_name}.json'
+    ).path()
+    with open(json_path, 'rt') as f:
+      test_input_json = f.read()
+    fold_input = folding_input.Input.from_json(test_input_json)
+    output_dir = self.create_tempdir().full_path
+    run_alphafold.process_fold_input(
+        fold_input=fold_input,
+        data_pipeline_config=self._data_pipeline_config,
+        model_runner=run_alphafold.ModelRunner(
+            # Use fast settings.
+            config=run_alphafold.make_model_config(
+                num_diffusion_samples=1,
+                num_recycles=1,
+            ),
+            device=jax.local_devices(backend='gpu')[0],
+            model_dir=run_alphafold.MODEL_DIR.value,
+        ),
+        ref_max_modified_date=datetime.date(2021, 9, 30),
+        output_dir=output_dir,
+    )
+    prefix = f'seed-{fold_input.rng_seeds[0]}'
+    self.assertSameElements(
+        os.listdir(output_dir),
+        [
+            f'{prefix}_sample-0',
+            f'{fold_input.sanitised_name()}_model.cif',
+            f'{fold_input.sanitised_name()}_summary_confidences.json',
+            f'{fold_input.sanitised_name()}_confidences.json',
+            f'{fold_input.sanitised_name()}_ranking_scores.csv',
+            f'{fold_input.sanitised_name()}_data.json',
+            'TERMS_OF_USE.md',
+        ],
+    )
 
 
 if __name__ == '__main__':

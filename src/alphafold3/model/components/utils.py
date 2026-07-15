@@ -1,7 +1,16 @@
 # Copyright 2024 DeepMind Technologies Limited
 #
-# AlphaFold 3 source code is licensed under CC BY-NC-SA 4.0. To view a copy of
-# this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
+# AlphaFold 3 source code is licensed under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # To request access to the AlphaFold 3 model parameters, follow the process set
 # out at https://github.com/google-deepmind/alphafold3. You may only use these
@@ -11,6 +20,7 @@
 """Utility functions for training AlphaFold and similar models."""
 
 from collections import abc
+from collections.abc import Sequence
 import contextlib
 import numbers
 
@@ -18,7 +28,6 @@ from alphafold3.model import features
 import haiku as hk
 import jax.numpy as jnp
 import numpy as np
-
 
 VALID_DTYPES = [np.float32, np.float64, np.int8, np.int32, np.int64, bool]
 
@@ -48,23 +57,26 @@ def bfloat16_context():
     yield
 
 
-def mask_mean(mask, value, axis=None, keepdims=False, eps=1e-10):
+def mask_mean(
+    mask: jnp.ndarray,
+    value: jnp.ndarray,
+    axis: int | Sequence[int] | None = None,
+    keepdims: bool = False,
+    eps: float = 1e-10,
+) -> jnp.ndarray:
   """Masked mean."""
 
   mask_shape = mask.shape
   value_shape = value.shape
 
-  assert len(mask_shape) == len(
-      value_shape
-  ), 'Shapes are not compatible, shapes: {}, {}'.format(mask_shape, value_shape)
+  if len(mask_shape) != len(value_shape):
+    raise ValueError(f'Incompatible shapes: {mask_shape=}, {value_shape=}')
 
   if isinstance(axis, numbers.Integral):
     axis = [axis]
   elif axis is None:
     axis = list(range(len(mask_shape)))
-  assert isinstance(
-      axis, abc.Iterable
-  ), 'axis needs to be either an iterable, integer or "None"'
+  assert isinstance(axis, abc.Sequence)
 
   broadcast_factor = 1.0
   for axis_ in axis:
@@ -73,8 +85,8 @@ def mask_mean(mask, value, axis=None, keepdims=False, eps=1e-10):
     if mask_size == 1:
       broadcast_factor *= value_size
     else:
-      error = f'Shapes are not compatible, shapes: {mask_shape}, {value_shape}'
-      assert mask_size == value_size, error
+      if mask_size != value_size:
+        raise ValueError(f'Incompatible shapes: {mask_shape=}, {value_shape=}')
 
   return jnp.sum(mask * value, keepdims=keepdims, axis=axis) / (
       jnp.maximum(

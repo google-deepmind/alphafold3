@@ -1,0 +1,19 @@
+{
+  "name": "ERK2_dual_phosphorylated",
+  "sequences": [
+    {
+      "protein": {
+        "id": "A",
+        "sequence": "MAAAAAAGAGPEMVRGQVFDVGPRYTNLSYIGEGAYGMVCSAYDNVNKVRVAIKKISPFEHQTYCQRTLREIKILLRFRHENIIGINDIIRAPTIEQMKDVYIVQDLMETDLYKLLKTQHLSNDHICYFLYQILRGLKYIHSANVLHRDLKPSNLLLNTTCDLKICDFGLARVADPDHDHTGFLTEYVATRWYRAPEIMLNSKGYTKSIDIWSVGCILAEMLSNRPIFPGKHYLDQLNHILGILGSPSQEDLNCIINLKARNYLLSLPHKNKVPWNRLFPNADSKALDLLDKMLTFNPHKRIEVEQALAHPYLEQYYDPSDEPIAEAPFKFDMELDDLPKEKLKELIFEETARFQPGYRS",
+        "modifications": [
+          {"ptmType": "TPO", "ptmPosition": 185},
+          {"ptmType": "PTR", "ptmPosition": 187}
+        ],
+        "description": "Human ERK2/MAPK1 (UniProt P28482, 360 aa) with activation-loop dual phosphorylation: pThr185 (TPO) + pTyr187 (PTR)"
+      }
+    }
+  ],
+  "modelSeeds": [42],
+  "dialect": "alphafold3",
+  "version": 4
+}

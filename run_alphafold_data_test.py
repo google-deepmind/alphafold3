@@ -1,7 +1,16 @@
 # Copyright 2024 DeepMind Technologies Limited
 #
-# AlphaFold 3 source code is licensed under CC BY-NC-SA 4.0. To view a copy of
-# this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
+# AlphaFold 3 source code is licensed under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # To request access to the AlphaFold 3 model parameters, follow the process set
 # out at https://github.com/google-deepmind/alphafold3. You may only use these
@@ -192,6 +201,13 @@ class DataPipelineTest(parameterized.TestCase):
 
     self.assertEqual(diff, "", f"Result differs from golden:\n{diff}")
 
+  def test_all_examples_are_valid(self):
+    examples_dir = testing_data.Data(resources.ROOT / '../../examples').path()
+    for filename in sorted(os.listdir(examples_dir)):
+      with open(os.path.join(examples_dir, filename), 'rt') as f:
+        with self.subTest(filename):
+          folding_input.Input.from_json(f.read())
+
   def test_config(self):
     model_config = run_alphafold.make_model_config()
     model_config_as_str = json.dumps(
@@ -211,10 +227,11 @@ class DataPipelineTest(parameterized.TestCase):
         ccd=chemical_components.Ccd(),
         buckets=None,
     )
-    del featurised_example[0]['ref_pos']  # Depends on specific RDKit version.
 
     with _output('featurised_example.pkl') as (_, output):
       output.write(pickle.dumps(featurised_example))
+
+    del featurised_example[0]['ref_pos']  # Depends on specific RDKit version.
     featurised_example = jax.tree_util.tree_map(_hash_data, featurised_example)
     with _output('featurised_example.json') as (result_path, output):
       output.write(

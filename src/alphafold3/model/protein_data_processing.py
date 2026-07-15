@@ -1,7 +1,16 @@
 # Copyright 2024 DeepMind Technologies Limited
 #
-# AlphaFold 3 source code is licensed under CC BY-NC-SA 4.0. To view a copy of
-# this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
+# AlphaFold 3 source code is licensed under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # To request access to the AlphaFold 3 model parameters, follow the process set
 # out at https://github.com/google-deepmind/alphafold3. You may only use these
@@ -26,7 +35,7 @@ NUM_RESTYPES_WITH_UNK_AND_GAP = (
 )
 
 
-def _make_restype_rigidgroup_dense_atom_idx():
+def _make_restype_rigidgroup_dense_atom_idx() -> np.ndarray:
   """Create Mapping from rigid_groups to dense_atom indices."""
   # Create an array with the atom names.
   # shape (num_restypes, num_rigidgroups, 3_atoms):
@@ -73,7 +82,7 @@ def _make_restype_rigidgroup_dense_atom_idx():
 RESTYPE_RIGIDGROUP_DENSE_ATOM_IDX = _make_restype_rigidgroup_dense_atom_idx()
 
 
-def _make_restype_pseudobeta_idx():
+def _make_restype_pseudobeta_idx() -> np.ndarray:
   """Returns indices of residue's pseudo-beta."""
   restype_pseudobeta_index = np.zeros(
       (NUM_RESTYPES_WITH_UNK_AND_GAP,), dtype=np.int32
@@ -102,7 +111,7 @@ def _make_restype_pseudobeta_idx():
 RESTYPE_PSEUDOBETA_INDEX = _make_restype_pseudobeta_idx()
 
 
-def _make_aatype_dense_atom_to_atom37():
+def _make_aatype_dense_atom_to_atom37() -> np.ndarray:
   """Map from dense_atom to atom37 per residue type."""
   restype_dense_atom_to_atom37 = []  # mapping (restype, dense_atom) --> atom37
   for rt in residue_names.PROTEIN_TYPES_ONE_LETTER:

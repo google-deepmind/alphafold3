@@ -1,7 +1,16 @@
 # Copyright 2024 DeepMind Technologies Limited
 #
-# AlphaFold 3 source code is licensed under CC BY-NC-SA 4.0. To view a copy of
-# this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
+# AlphaFold 3 source code is licensed under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # To request access to the AlphaFold 3 model parameters, follow the process set
 # out at https://github.com/google-deepmind/alphafold3. You may only use these
@@ -80,7 +89,7 @@ class Vec3Array:
     new_x = self.y * other.z - self.z * other.y
     new_y = self.z * other.x - self.x * other.z
     new_z = self.x * other.y - self.y * other.x
-    return Vec3Array(new_x, new_y, new_z)
+    return Vec3Array(new_x, new_y, new_z)  # pyrefly: ignore[bad-argument-count, bad-return]
 
   def dot(self, other: Self) -> Float:
     """Compute dot product between 'self' and 'other'."""
@@ -105,7 +114,7 @@ class Vec3Array:
   def zeros(cls, shape, dtype=jnp.float32):
     """Return Vec3Array corresponding to zeros of given shape."""
     return cls(
-        jnp.zeros(shape, dtype),
+        jnp.zeros(shape, dtype),  # pyrefly: ignore[bad-argument-count]
         jnp.zeros(shape, dtype),
         jnp.zeros(shape, dtype),
     )  # pytype: disable=wrong-arg-count  # trace-all-classes
@@ -157,7 +166,7 @@ def dot(vector1: Vec3Array, vector2: Vec3Array) -> Float:
 
 
 def cross(vector1: Vec3Array, vector2: Vec3Array) -> Float:
-  return vector1.cross(vector2)
+  return vector1.cross(vector2)  # pyrefly: ignore[bad-return]
 
 
 def norm(vector: Vec3Array, epsilon: float = 1e-6) -> Float:

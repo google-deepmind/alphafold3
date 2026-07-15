@@ -1,7 +1,16 @@
 # Copyright 2024 DeepMind Technologies Limited
 #
-# AlphaFold 3 source code is licensed under CC BY-NC-SA 4.0. To view a copy of
-# this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
+# AlphaFold 3 source code is licensed under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # To request access to the AlphaFold 3 model parameters, follow the process set
 # out at https://github.com/google-deepmind/alphafold3. You may only use these
@@ -538,7 +547,7 @@ class Templates:
             pdb_id=pdb_id,
             auth_chain_id=auth_chain_id,
             hmmsearch_sequence=hit_seq,
-            structure_sequence=sequence,
+            structure_sequence=sequence,  # pyrefly: ignore[bad-argument-type]
             query_sequence=query_sequence,
             unresolved_res_indices=unresolved_indices,
             start_index=start - 1,  # Raw value is residue number, not index.
@@ -561,7 +570,7 @@ class Templates:
           max_hits=filter_config.max_hits,
       )
 
-    return Templates(
+    return Templates(  # pyrefly: ignore[bad-return]
         query_sequence=query_sequence,
         query_release_date=query_release_date,
         hits=hits,
@@ -633,7 +642,7 @@ class Templates:
         deduplicate_sequences=deduplicate_sequences,
         max_hits=max_hits,
     )
-    return Templates(
+    return Templates(  # pyrefly: ignore[bad-return]
         query_sequence=self.query_sequence,
         query_release_date=self.query_release_date,
         hits=filtered_hits,
@@ -814,7 +823,7 @@ def _parse_hit_metadata(
       chain_auth_asym_id=auth_chain_id
   ).unresolved_residues.id
 
-  return release_date, sequence, unresolved_res_ids
+  return release_date, sequence, unresolved_res_ids  # pyrefly: ignore[bad-return]
 
 
 def get_polymer_features(
@@ -939,7 +948,7 @@ def package_template_features(
   stacked_features = {}
   for k, v in features.items():
     if k in _POLYMER_FEATURES:
-      v = np.stack(v, axis=0) if v else np.array([], dtype=_POLYMER_FEATURES[k])
+      v = np.stack(v, axis=0) if v else np.array([], dtype=_POLYMER_FEATURES[k])  # pyrefly: ignore[no-matching-overload]
     stacked_features[k] = v
 
   return stacked_features
@@ -979,5 +988,5 @@ def run_hmmsearch_with_a3m(
       filter_max=hmmsearch_config.filter_max,
   )
   # STO enables us to annotate query non-gap columns as reference columns.
-  sto = parsers.convert_a3m_to_stockholm(a3m, max_a3m_query_sequences)
+  sto = parsers.convert_a3m_to_stockholm(a3m, max_a3m_query_sequences)  # pyrefly: ignore[bad-argument-type]
   return searcher.query_with_sto(sto, model_construction='hand')

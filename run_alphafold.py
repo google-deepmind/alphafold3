@@ -1,7 +1,16 @@
 # Copyright 2024 DeepMind Technologies Limited
 #
-# AlphaFold 3 source code is licensed under CC BY-NC-SA 4.0. To view a copy of
-# this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
+# AlphaFold 3 source code is licensed under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # To request access to the AlphaFold 3 model parameters, follow the process set
 # out at https://github.com/google-deepmind/alphafold3. You may only use these
@@ -10,8 +19,8 @@
 
 """AlphaFold 3 structure prediction script.
 
-AlphaFold 3 source code is licensed under CC BY-NC-SA 4.0. To view a copy of
-this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
+AlphaFold 3 source code is licensed under Apache License, Version 2.0. To view a
+copy of this license, visit http://www.apache.org/licenses/LICENSE-2.0
 
 To request access to the AlphaFold 3 model parameters, follow the process set
 out at https://github.com/google-deepmind/alphafold3. You may only use these
@@ -24,8 +33,8 @@ import csv
 import dataclasses
 import datetime
 import functools
+import io
 import os
-import pathlib
 import shutil
 import string
 import textwrap
@@ -47,34 +56,34 @@ from alphafold3.model import model
 from alphafold3.model import params
 from alphafold3.model import post_processing
 from alphafold3.model.components import utils
+from etils import epath
 import haiku as hk
 import jax
 from jax import numpy as jnp
 import numpy as np
 import tokamax
 
-_HOME_DIR = pathlib.Path.home()
+_HOME_DIR = epath.Path('~').expanduser()
 _DEFAULT_MODEL_DIR = _HOME_DIR / 'models'
 _DEFAULT_DB_DIR = _HOME_DIR / 'public_databases'
 
-
 # Input and output paths.
-_JSON_PATH = flags.DEFINE_string(
+_JSON_PATH = epath.DEFINE_path(
     'json_path',
     None,
     'Path to the input JSON file.',
 )
-_INPUT_DIR = flags.DEFINE_string(
+_INPUT_DIR = epath.DEFINE_path(
     'input_dir',
     None,
     'Path to the directory containing input JSON files.',
 )
-_OUTPUT_DIR = flags.DEFINE_string(
+_OUTPUT_DIR = epath.DEFINE_path(
     'output_dir',
     None,
     'Path to a directory where the results will be saved.',
 )
-MODEL_DIR = flags.DEFINE_string(
+MODEL_DIR = epath.DEFINE_path(
     'model_dir',
     _DEFAULT_MODEL_DIR.as_posix(),
     'Path to the model to use for inference.',
@@ -211,7 +220,7 @@ _RNA_CENTRAL_Z_VALUE = flags.DEFINE_float(
     ' calculation. Must be set for sharded databases.',
     lower_bound=0.0,
 )
-_PDB_DATABASE_PATH = flags.DEFINE_string(
+_PDB_DATABASE_PATH = epath.DEFINE_path(
     'pdb_database_path',
     '${DB_DIR}/mmcif_files',
     'PDB database directory with mmCIF files path, used for template search.',
@@ -368,6 +377,11 @@ _SAVE_DISTOGRAM = flags.DEFINE_bool(
     'Whether to save the final distogram in the output. Note that the distogram'
     ' is a large float16 array: num_tokens * num_tokens * 64.',
 )
+_SAVE_TERMS_OF_USE = flags.DEFINE_bool(
+    'save_terms_of_use',
+    True,
+    'Whether to save the terms of use as an MD file in the output directory.',
+)
 _FORCE_OUTPUT_DIR = flags.DEFINE_bool(
     'force_output_dir',
     False,
@@ -411,11 +425,11 @@ class ModelRunner:
       self,
       config: model.Model.Config,
       device: jax.Device,
-      model_dir: pathlib.Path,
+      model_dir: epath.PathLike,
   ):
     self._model_config = config
     self._device = device
-    self._model_dir = model_dir
+    self._model_dir = epath.Path(model_dir)
 
   @functools.cached_property
   def model_params(self) -> hk.Params:
@@ -565,7 +579,7 @@ def predict_structure(
     inference_results = model_runner.extract_inference_results(
         batch=example, result=result, target_name=fold_input.name
     )
-    num_tokens = len(inference_results[0].metadata['token_chain_ids'])
+    num_tokens = len(inference_results[0].metadata['token_chain_ids'])  # pyrefly: ignore[bad-argument-type]
     embeddings = model_runner.extract_embeddings(
         result=result, num_tokens=num_tokens
     )
@@ -596,21 +610,23 @@ def predict_structure(
 
 def write_fold_input_json(
     fold_input: folding_input.Input,
-    output_dir: os.PathLike[str] | str,
+    output_dir: epath.PathLike,
 ) -> None:
   """Writes the input JSON to the output directory."""
-  os.makedirs(output_dir, exist_ok=True)
-  path = os.path.join(output_dir, f'{fold_input.sanitised_name()}_data.json')
+  output_dir = epath.Path(output_dir)
+  output_dir.mkdir(parents=True, exist_ok=True)
+  path = output_dir / f'{fold_input.sanitised_name()}_data.json'
   print(f'Writing model input JSON to {path}')
-  with open(path, 'wt') as f:
-    f.write(fold_input.to_json())
+  path.write_text(fold_input.to_json())
 
 
 def write_outputs(
     all_inference_results: Sequence[ResultsForSeed],
-    output_dir: os.PathLike[str] | str,
+    output_dir: epath.PathLike,
     job_name: str,
+    *,
     compress_large_output_files: bool = False,
+    save_terms_of_use: bool = True,
 ) -> None:
   """Writes outputs to the specified output directory."""
   ranking_scores = []
@@ -618,15 +634,16 @@ def write_outputs(
   max_ranking_result = None
 
   output_terms = (
-      pathlib.Path(alphafold3.cpp.__file__).parent / 'OUTPUT_TERMS_OF_USE.md'
+      epath.Path(alphafold3.cpp.__file__).parent / 'OUTPUT_TERMS_OF_USE.md'
   ).read_text()
 
-  os.makedirs(output_dir, exist_ok=True)
+  output_dir = epath.Path(output_dir)
+  output_dir.mkdir(parents=True, exist_ok=True)
   for results_for_seed in all_inference_results:
     seed = results_for_seed.seed
     for sample_idx, result in enumerate(results_for_seed.inference_results):
-      sample_dir = os.path.join(output_dir, f'seed-{seed}_sample-{sample_idx}')
-      os.makedirs(sample_dir, exist_ok=True)
+      sample_dir = output_dir / f'seed-{seed}_sample-{sample_idx}'
+      sample_dir.mkdir(parents=True, exist_ok=True)
       post_processing.write_output(
           inference_result=result,
           output_dir=sample_dir,
@@ -640,8 +657,8 @@ def write_outputs(
         max_ranking_result = result
 
     if embeddings := results_for_seed.embeddings:
-      embeddings_dir = os.path.join(output_dir, f'seed-{seed}_embeddings')
-      os.makedirs(embeddings_dir, exist_ok=True)
+      embeddings_dir = output_dir / f'seed-{seed}_embeddings'
+      embeddings_dir.mkdir(parents=True, exist_ok=True)
       post_processing.write_embeddings(
           embeddings=embeddings,
           output_dir=embeddings_dir,
@@ -649,48 +666,49 @@ def write_outputs(
       )
 
     if (distogram := results_for_seed.distogram) is not None:
-      distogram_dir = os.path.join(output_dir, f'seed-{seed}_distogram')
-      os.makedirs(distogram_dir, exist_ok=True)
-      distogram_path = os.path.join(
-          distogram_dir, f'{job_name}_seed-{seed}_distogram.npz'
-      )
-      with open(distogram_path, 'wb') as f:
-        np.savez_compressed(f, distogram=distogram.astype(np.float16))
+      distogram_dir = output_dir / f'seed-{seed}_distogram'
+      distogram_dir.mkdir(parents=True, exist_ok=True)
+      distogram_path = distogram_dir / f'{job_name}_seed-{seed}_distogram.npz'
+      with io.BytesIO() as bio:
+        np.savez_compressed(bio, distogram=distogram.astype(np.float16))
+        distogram_path.write_bytes(bio.getvalue())
 
   if max_ranking_result is not None:  # True iff ranking_scores non-empty.
     post_processing.write_output(
         inference_result=max_ranking_result,
         output_dir=output_dir,
         # The output terms of use are the same for all seeds/samples.
-        terms_of_use=output_terms,
+        terms_of_use=output_terms if save_terms_of_use else None,
         name=job_name,
         compress=compress_large_output_files,
     )
     # Save csv of ranking scores with seeds and sample indices, to allow easier
     # comparison of ranking scores across different runs.
-    with open(
-        os.path.join(output_dir, f'{job_name}_ranking_scores.csv'), 'wt'
-    ) as f:
+    ranking_scores_csv_path = output_dir / f'{job_name}_ranking_scores.csv'
+    with ranking_scores_csv_path.open('w') as f:
       writer = csv.writer(f)
       writer.writerow(['seed', 'sample', 'ranking_score'])
       writer.writerows(ranking_scores)
 
 
-def replace_db_dir(path_with_db_dir: str, db_dirs: Sequence[str]) -> str:
+def replace_db_dir(
+    path_with_db_dir: epath.PathLike, db_dirs: Sequence[str]
+) -> str:
   """Replaces the DB_DIR placeholder in a path with the given DB_DIR."""
+  path_with_db_dir = os.fspath(path_with_db_dir)
   template = string.Template(path_with_db_dir)
   if 'DB_DIR' in template.get_identifiers():
     for db_dir in db_dirs:
       path = template.substitute(DB_DIR=db_dir)
-      if os.path.exists(path):
+      if epath.Path(path).exists():
         return path
     raise FileNotFoundError(
         f'{path_with_db_dir} with ${{DB_DIR}} not found in any of {db_dirs}.'
     )
   if (sharded_paths := shards.get_sharded_paths(path_with_db_dir)) is not None:
-    db_exists = all(os.path.exists(p) for p in sharded_paths)
+    db_exists = all(epath.Path(p).exists() for p in sharded_paths)
   else:
-    db_exists = os.path.exists(path_with_db_dir)
+    db_exists = epath.Path(path_with_db_dir).exists()
   if not db_exists:
     raise FileNotFoundError(f'{path_with_db_dir} does not exist.')
   return path_with_db_dir
@@ -702,7 +720,7 @@ def process_fold_input(
     data_pipeline_config: pipeline.DataPipelineConfig | None,
     *,
     model_runner: None,
-    output_dir: os.PathLike[str] | str,
+    output_dir: epath.PathLike,
     buckets: Sequence[int] | None = None,
     ref_max_modified_date: datetime.date | None = None,
     conformer_max_iterations: int | None = None,
@@ -710,6 +728,7 @@ def process_fold_input(
     fix_standalone_glycans: bool = False,
     force_output_dir: bool = False,
     compress_large_output_files: bool = False,
+    save_terms_of_use: bool = True,
 ) -> folding_input.Input:
   ...
 
@@ -720,7 +739,7 @@ def process_fold_input(
     data_pipeline_config: pipeline.DataPipelineConfig | None,
     *,
     model_runner: ModelRunner,
-    output_dir: os.PathLike[str] | str,
+    output_dir: epath.PathLike,
     buckets: Sequence[int] | None = None,
     ref_max_modified_date: datetime.date | None = None,
     conformer_max_iterations: int | None = None,
@@ -728,6 +747,7 @@ def process_fold_input(
     fix_standalone_glycans: bool = False,
     force_output_dir: bool = False,
     compress_large_output_files: bool = False,
+    save_terms_of_use: bool = True,
 ) -> Sequence[ResultsForSeed]:
   ...
 
@@ -737,7 +757,7 @@ def process_fold_input(
     data_pipeline_config: pipeline.DataPipelineConfig | None,
     *,
     model_runner: ModelRunner | None,
-    output_dir: os.PathLike[str] | str,
+    output_dir: epath.PathLike,
     buckets: Sequence[int] | None = None,
     ref_max_modified_date: datetime.date | None = None,
     conformer_max_iterations: int | None = None,
@@ -745,6 +765,7 @@ def process_fold_input(
     fix_standalone_glycans: bool = False,
     force_output_dir: bool = False,
     compress_large_output_files: bool = False,
+    save_terms_of_use: bool = True,
 ) -> folding_input.Input | Sequence[ResultsForSeed]:
   """Runs data pipeline and/or inference on a single fold input.
 
@@ -782,6 +803,7 @@ def process_fold_input(
       output directory instead if the existing one is non-empty.
     compress_large_output_files: If True, compress large output files (mmCIF and
       confidences JSON) using zstandard.
+    save_terms_of_use: If True, write the terms of use to the output directory.
 
   Returns:
     The processed fold input, or the inference results for each seed.
@@ -794,13 +816,11 @@ def process_fold_input(
   if not fold_input.chains:
     raise ValueError('Fold input has no chains.')
 
-  if (
-      not force_output_dir
-      and os.path.exists(output_dir)
-      and os.listdir(output_dir)
-  ):
+  output_dir = epath.Path(output_dir)
+  if not force_output_dir and output_dir.exists() and any(output_dir.iterdir()):
     new_output_dir = (
-        f'{output_dir}_{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}'
+        output_dir.parent
+        / f'{output_dir.name}_{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}'
     )
     print(
         f'Output will be written in {new_output_dir} since {output_dir} is'
@@ -840,6 +860,7 @@ def process_fold_input(
         output_dir=output_dir,
         job_name=fold_input.sanitised_name(),
         compress_large_output_files=compress_large_output_files,
+        save_terms_of_use=save_terms_of_use,
     )
     output = all_inference_results
 
@@ -865,13 +886,9 @@ def main(_):
     )
 
   if _INPUT_DIR.value is not None:
-    fold_inputs = folding_input.load_fold_inputs_from_dir(
-        pathlib.Path(_INPUT_DIR.value)
-    )
+    fold_inputs = folding_input.load_fold_inputs_from_dir(_INPUT_DIR.value)
   elif _JSON_PATH.value is not None:
-    fold_inputs = folding_input.load_fold_inputs_from_path(
-        pathlib.Path(_JSON_PATH.value)
-    )
+    fold_inputs = folding_input.load_fold_inputs_from_path(_JSON_PATH.value)
   else:
     raise AssertionError(
         'Exactly one of --json_path or --input_dir must be specified.'
@@ -882,7 +899,7 @@ def main(_):
 
   # Make sure we can create the output directory before running anything.
   try:
-    os.makedirs(_OUTPUT_DIR.value, exist_ok=True)
+    _OUTPUT_DIR.value.mkdir(parents=True, exist_ok=True)
   except OSError as e:
     print(f'Failed to create output directory {_OUTPUT_DIR.value}: {e}')
     raise
@@ -932,11 +949,11 @@ def main(_):
   if _RUN_DATA_PIPELINE.value:
     expand_path = lambda x: replace_db_dir(x, DB_DIR.value)
     data_pipeline_config = pipeline.DataPipelineConfig(
-        jackhmmer_binary_path=_JACKHMMER_BINARY_PATH.value,
-        nhmmer_binary_path=_NHMMER_BINARY_PATH.value,
-        hmmalign_binary_path=_HMMALIGN_BINARY_PATH.value,
-        hmmsearch_binary_path=_HMMSEARCH_BINARY_PATH.value,
-        hmmbuild_binary_path=_HMMBUILD_BINARY_PATH.value,
+        jackhmmer_binary_path=_JACKHMMER_BINARY_PATH.value,  # pyrefly: ignore[bad-argument-type]
+        nhmmer_binary_path=_NHMMER_BINARY_PATH.value,  # pyrefly: ignore[bad-argument-type]
+        hmmalign_binary_path=_HMMALIGN_BINARY_PATH.value,  # pyrefly: ignore[bad-argument-type]
+        hmmsearch_binary_path=_HMMSEARCH_BINARY_PATH.value,  # pyrefly: ignore[bad-argument-type]
+        hmmbuild_binary_path=_HMMBUILD_BINARY_PATH.value,  # pyrefly: ignore[bad-argument-type]
         small_bfd_database_path=expand_path(_SMALL_BFD_DATABASE_PATH.value),
         small_bfd_z_value=_SMALL_BFD_Z_VALUE.value,
         mgnify_database_path=expand_path(_MGNIFY_DATABASE_PATH.value),
@@ -984,7 +1001,7 @@ def main(_):
             return_distogram=_SAVE_DISTOGRAM.value,
         ),
         device=devices[_GPU_DEVICE.value],
-        model_dir=pathlib.Path(MODEL_DIR.value),
+        model_dir=MODEL_DIR.value,
     )
     # Check we can load the model parameters before launching anything.
     print('Checking that model parameters can be loaded...')
@@ -1001,7 +1018,7 @@ def main(_):
         fold_input=fold_input,
         data_pipeline_config=data_pipeline_config,
         model_runner=model_runner,
-        output_dir=os.path.join(_OUTPUT_DIR.value, fold_input.sanitised_name()),
+        output_dir=_OUTPUT_DIR.value / fold_input.sanitised_name(),
         buckets=tuple(int(bucket) for bucket in _BUCKETS.value),
         ref_max_modified_date=max_template_date,
         conformer_max_iterations=_CONFORMER_MAX_ITERATIONS.value,
@@ -1009,6 +1026,7 @@ def main(_):
         fix_standalone_glycans=_FIX_STANDALONE_GLYCANS.value,
         force_output_dir=_FORCE_OUTPUT_DIR.value,
         compress_large_output_files=_COMPRESS_LARGE_OUTPUT_FILES.value,
+        save_terms_of_use=_SAVE_TERMS_OF_USE.value,
     )
     num_fold_inputs += 1
 
