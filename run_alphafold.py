@@ -324,6 +324,14 @@ _GPU_DEVICE = flags.DEFINE_integer(
     ' pre-filtered by the environment (e.g. by using CUDA_VISIBLE_DEVICES),'
     ' this flag refers to the GPU index after the filtering has been done.',
 )
+_USE_CPU_ONLY = flags.DEFINE_bool(
+    'use_cpu_only',
+    False,
+    'If True, use CPU only for inference. This is much slower than using a GPU,'
+    ' but can be useful for testing or running on systems without a GPU'
+    ' supported by JAX. If you set this flag, you must also set'
+    ' --flash_attention_implementation=xla.',
+)
 _BUCKETS = flags.DEFINE_list(
     'buckets',
     # pyformat: disable
@@ -914,31 +922,40 @@ def main(_):
 
   if _RUN_INFERENCE.value:
     # Fail early on incompatible devices, but only if we're running inference.
-    gpu_devices = jax.local_devices(backend='gpu')
-    if gpu_devices:
-      compute_capability = float(
-          gpu_devices[_GPU_DEVICE.value].compute_capability
-      )
-      if compute_capability < 6.0:
+    if _USE_CPU_ONLY.value:
+      if _FLASH_ATTENTION_IMPLEMENTATION.value != 'xla':
         raise ValueError(
-            'AlphaFold 3 requires at least GPU compute capability 6.0 (see'
-            ' https://developer.nvidia.com/cuda-gpus).'
+            'For CPU-only inference, the --flash_attention_implementation must'
+            ' be set to "xla".'
         )
-      elif 7.0 <= compute_capability < 8.0:
-        xla_flags = os.environ.get('XLA_FLAGS')
-        required_flag = '--xla_disable_hlo_passes=custom-kernel-fusion-rewriter'
-        if not xla_flags or required_flag not in xla_flags:
+    else:
+      gpu_devices = jax.local_devices(backend='gpu')
+      if gpu_devices:
+        compute_capability = float(
+            gpu_devices[_GPU_DEVICE.value].compute_capability
+        )
+        if compute_capability < 6.0:
           raise ValueError(
-              'For devices with GPU compute capability 7.x (see'
-              ' https://developer.nvidia.com/cuda-gpus) the ENV XLA_FLAGS must'
-              f' include "{required_flag}".'
+              'AlphaFold 3 requires at least GPU compute capability 6.0 (see'
+              ' https://developer.nvidia.com/cuda-gpus).'
           )
-        if _FLASH_ATTENTION_IMPLEMENTATION.value != 'xla':
-          raise ValueError(
-              'For devices with GPU compute capability 7.x (see'
-              ' https://developer.nvidia.com/cuda-gpus) the'
-              ' --flash_attention_implementation must be set to "xla".'
+        elif 7.0 <= compute_capability < 8.0:
+          xla_flags = os.environ.get('XLA_FLAGS')
+          required_flag = (
+              '--xla_disable_hlo_passes=custom-kernel-fusion-rewriter'
           )
+          if not xla_flags or required_flag not in xla_flags:
+            raise ValueError(
+                'For devices with GPU compute capability 7.x (see'
+                ' https://developer.nvidia.com/cuda-gpus) the ENV XLA_FLAGS'
+                f' must include "{required_flag}".'
+            )
+          if _FLASH_ATTENTION_IMPLEMENTATION.value != 'xla':
+            raise ValueError(
+                'For devices with GPU compute capability 7.x (see'
+                ' https://developer.nvidia.com/cuda-gpus) the'
+                ' --flash_attention_implementation must be set to "xla".'
+            )
 
   notice = textwrap.wrap(
       'Running AlphaFold 3. Please note that standard AlphaFold 3 model'
@@ -990,11 +1007,17 @@ def main(_):
     data_pipeline_config = None
 
   if _RUN_INFERENCE.value:
-    devices = jax.local_devices(backend='gpu')
-    print(
-        f'Found local devices: {devices}, using device {_GPU_DEVICE.value}:'
-        f' {devices[_GPU_DEVICE.value]}'
-    )
+    if _USE_CPU_ONLY.value:
+      devices = jax.local_devices(backend='cpu')
+      device = devices[0]
+      print(f'Found local CPU devices: {devices}, using device 0: {device}')
+    else:
+      devices = jax.local_devices(backend='gpu')
+      print(
+          f'Found local GPU devices: {devices}, using device '
+          f'{_GPU_DEVICE.value}: {devices[_GPU_DEVICE.value]}'
+      )
+      device = devices[_GPU_DEVICE.value]
 
     print('Building model from scratch...')
     model_runner = ModelRunner(
@@ -1008,7 +1031,7 @@ def main(_):
             return_embeddings=_SAVE_EMBEDDINGS.value,
             return_distogram=_SAVE_DISTOGRAM.value,
         ),
-        device=devices[_GPU_DEVICE.value],
+        device=device,
         model_dir=MODEL_DIR.value,
     )
     # Check we can load the model parameters before launching anything.
