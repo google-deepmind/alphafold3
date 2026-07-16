@@ -231,11 +231,20 @@ _SEQRES_DATABASE_PATH = flags.DEFINE_string(
     'PDB sequence database path, used for template search.',
 )
 
+
+def _num_cpus_for_msa_tools() -> int:
+  try:
+    # Unfortunately, os.process_cpu_count() is only available in Python 3.13+.
+    num_cpus = len(os.sched_getaffinity(0))
+  except AttributeError:
+    num_cpus = os.cpu_count()  # MacOS doesn't have os.sched_getaffinity().
+  return min(num_cpus if num_cpus is not None else 8, 8)
+
+
 # Number of CPUs to use for MSA tools.
 _JACKHMMER_N_CPU = flags.DEFINE_integer(
     'jackhmmer_n_cpu',
-    # Unfortunately, os.process_cpu_count() is only available in Python 3.13+.
-    min(len(os.sched_getaffinity(0)), 8),
+    _num_cpus_for_msa_tools(),
     'Number of CPUs to use for Jackhmmer. Defaults to min(cpu_count, 8). Going'
     ' above 8 CPUs provides very little additional speedup.',
     lower_bound=0,
@@ -250,8 +259,7 @@ _JACKHMMER_MAX_PARALLEL_SHARDS = flags.DEFINE_integer(
 )
 _NHMMER_N_CPU = flags.DEFINE_integer(
     'nhmmer_n_cpu',
-    # Unfortunately, os.process_cpu_count() is only available in Python 3.13+.
-    min(len(os.sched_getaffinity(0)), 8),
+    _num_cpus_for_msa_tools(),
     'Number of CPUs to use for Nhmmer. Defaults to min(cpu_count, 8). Going'
     ' above 8 CPUs provides very little additional speedup.',
     lower_bound=0,
