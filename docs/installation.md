@@ -481,3 +481,58 @@ singularity exec \
      --db_dir=/root/public_databases_fallback \
      --output_dir=/root/af_output
 ```
+
+## Running AlphaFold 3 without a GPU (CPU-only)
+
+It is possible to run AlphaFold 3 on a computer without a GPU. Note though that
+this is not an officially supported mode (we don't perform rigorous numerical
+accuracy testing for this mode). This mode can be useful for utilizing machines
+without a GPU if you don't mind the longer folding times (roughly 100x slower
+than on a GPU).
+
+### Direct installation without Docker on Linux or Mac OS
+
+Since JAX doesn't support running natively on Mac GPU as of 2026, you have to
+resort to running AlphaFold 3 in the slow CPU-only mode even though it has a GPU
+(`jax-metal` is unfinished as of July 2026).
+
+1.  Download all required databases and AlphaFold 3 weights (see above).
+2.  Install the [HMMER Suite](http://hmmer.org/). See
+    http://hmmer.org/documentation.html for installation instructions.
+3.  Install [uv](https://docs.astral.sh/uv/). See
+    https://docs.astral.sh/uv/getting-started/installation/ for installation
+    instructions.
+4.  Clone the AlphaFold 3 GitHub repository
+
+    ```sh
+    git clone https://github.com/google-deepmind/alphafold3.git
+    ```
+
+5.  Navigate in the `alphafold3` directory and run the following commands to
+    install AlphaFold 3:
+
+    ```sh
+    cd alphafold3
+    uv venv --python 3.12
+    source .venv/bin/activate
+    uv sync
+    uv run build_data
+    ```
+
+6.  Check the installation by running the AlphaFold 3 data test:
+
+    ```sh
+    uv run python run_alphafold_data_test.py
+    ```
+
+7.  You can now run AlphaFold 3. The flags that need to be set for CPU-only
+    inference are `--use_cpu_only` and `--flash_attention_implementation="xla"`:
+
+    ```sh
+    uv run run_alphafold.py \
+      --json_path="..." \
+      --output_dir="..." \
+      --model_dir="..."
+      --use_cpu_only \
+      --flash_attention_implementation="xla" \
+    ```

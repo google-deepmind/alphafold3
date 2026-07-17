@@ -19,7 +19,7 @@ dependencies = [
     "dm-haiku==0.0.16",
     "etils[epath]",
     "jax==0.9.1",
-    "jax[cuda12]==0.9.1",
+    "jax[cuda12]==0.9.1; sys_platform != 'darwin'",
     "numpy",
     "rdkit==2025.9.4",
     "tokamax==0.0.11",
@@ -43,6 +43,7 @@ package = true
 environments = [
     "sys_platform == 'linux' and platform_machine == 'x86_64'",
     "sys_platform == 'linux' and platform_machine == 'aarch64'",
+    "sys_platform == 'darwin' and platform_machine == 'arm64'",
 ]
 
 [tool.scikit-build]
