@@ -40,6 +40,7 @@ from alphafold3.constants import chemical_components
 from alphafold3.data import featurisation
 from alphafold3.data import pipeline
 from alphafold3.model.atom_layout import atom_layout
+from alphafold3.model.pipeline import pipeline as model_pipeline
 import jax
 import numpy as np
 
@@ -239,6 +240,35 @@ class DataPipelineTest(parameterized.TestCase):
           )
       )
     self.compare_golden(result_path)
+
+  def test_featurisation_reuses_seed_independent_features(self):
+    """Test that seed-independent features are reused for the same input."""
+    test_input = json.loads(self._test_input_json)
+    test_input['modelSeeds'] = [1234, 5678]
+    fold_input = folding_input.Input.from_json(json.dumps(test_input))
+    data_pipeline = pipeline.DataPipeline(self._data_pipeline_config)
+    full_fold_input = data_pipeline.process(fold_input)
+
+    cached_helper = getattr(model_pipeline, '_process_structure_seed_independent')
+    self.assertIsNotNone(cached_helper)
+    cached_helper.cache_clear()
+
+    featurised_examples = featurisation.featurise_input(
+        full_fold_input,
+        ccd=chemical_components.Ccd(),
+        buckets=None,
+    )
+
+    self.assertLen(featurised_examples, 2)
+    cache_info = cached_helper.cache_info()
+    self.assertEqual(cache_info.misses, 1)
+    self.assertEqual(cache_info.hits, 1)
+    self.assertFalse(
+        np.array_equal(
+            featurised_examples[0]['ref_pos'],
+            featurised_examples[1]['ref_pos'],
+        )
+    )
 
   def test_write_input_json(self):
     fold_input = folding_input.Input.from_json(self._test_input_json)
