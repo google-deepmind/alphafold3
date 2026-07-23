@@ -2,11 +2,11 @@
 
 # AlphaFold 3
 
-This package provides an implementation of the inference pipeline of AlphaFold
-
-1.  See below for how to access the model parameters. You may only use AlphaFold
-    3 model parameters if received directly from Google. Use is subject to these
-    [terms of use](https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md).
+This package provides an implementation of the inference pipeline of
+AlphaFold 3. See below for how to access the model parameters. You may only use
+AlphaFold 3 model parameters if received directly from Google. Use is subject to
+these
+[terms of use](https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md).
 
 Any publication that discloses findings arising from using this source code, the
 model parameters or outputs produced by those should [cite](#citing-this-work)
