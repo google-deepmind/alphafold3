@@ -20,6 +20,8 @@ dependencies = [
     "etils[epath]",
     "jax==0.10.2",
     "jax[cuda12]==0.10.2; sys_platform != 'darwin'",
+    # Apple Silicon (Metal/MPS) inference backend.
+    "jax-mps==0.10.9; sys_platform == 'darwin' and platform_machine == 'arm64'",
     "numpy",
     "rdkit==2025.9.4",
     "tokamax==0.0.12",

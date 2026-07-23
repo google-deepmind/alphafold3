@@ -492,6 +492,13 @@ Since JAX doesn't support running natively on Mac GPU as of 2026, you have to
 resort to running AlphaFold 3 in the slow CPU-only mode even though it has a GPU
 (`jax-metal` is unfinished as of July 2026).
 
+> **Experimental Apple Silicon GPU (Metal / MPS) inference.** As an alternative
+> to CPU-only mode, AlphaFold 3 inference can run on the Apple Silicon GPU with
+> `--jax_backend=mps` via the community `jax-mps` Metal plugin. This is an
+> unofficial, experimental feasibility path (not numerically certified), but it
+> is substantially faster than CPU for small and medium structures. See
+> [installation_apple_silicon_gpu.md](installation_apple_silicon_gpu.md).
+
 1.  Download all required databases and AlphaFold 3 weights (see above).
 2.  Install the [HMMER Suite](http://hmmer.org/). See
     http://hmmer.org/documentation.html for installation instructions.
