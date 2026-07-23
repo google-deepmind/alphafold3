@@ -521,14 +521,14 @@ resort to running AlphaFold 3 in the slow CPU-only mode even though it has a GPU
     uv run python run_alphafold_data_test.py
     ```
 
-7.  You can now run AlphaFold 3. The flags that need to be set for CPU-only
-    inference are `--use_cpu_only` and `--flash_attention_implementation="xla"`:
+7.  You can now run AlphaFold 3. Make sure to set flags `--jax_backend="cpu"`
+    and `--flash_attention_implementation="xla"`:
 
     ```sh
     uv run run_alphafold.py \
       --json_path="..." \
       --output_dir="..." \
       --model_dir="..."
-      --use_cpu_only \
+      --jax_backend="cpu" \
       --flash_attention_implementation="xla" \
     ```

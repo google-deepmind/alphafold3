@@ -32,6 +32,7 @@ from collections.abc import Callable, Sequence
 import csv
 import dataclasses
 import datetime
+import enum
 import functools
 import io
 import os
@@ -66,6 +67,13 @@ import tokamax
 _HOME_DIR = epath.Path('~').expanduser()
 _DEFAULT_MODEL_DIR = _HOME_DIR / 'models'
 _DEFAULT_DB_DIR = _HOME_DIR / 'public_databases'
+
+
+@enum.unique
+class JaxBackend(enum.StrEnum):
+  CPU = enum.auto()
+  GPU = enum.auto()
+
 
 # Input and output paths.
 _JSON_PATH = epath.DEFINE_path(
@@ -324,13 +332,17 @@ _GPU_DEVICE = flags.DEFINE_integer(
     ' pre-filtered by the environment (e.g. by using CUDA_VISIBLE_DEVICES),'
     ' this flag refers to the GPU index after the filtering has been done.',
 )
-_USE_CPU_ONLY = flags.DEFINE_bool(
-    'use_cpu_only',
-    False,
-    'If True, use CPU only for inference. This is much slower than using a GPU,'
-    ' but can be useful for testing or running on systems without a GPU'
-    ' supported by JAX. If you set this flag, you must also set'
-    ' --flash_attention_implementation=xla.',
+_JAX_BACKEND = flags.DEFINE_enum_class(
+    'jax_backend',
+    default=JaxBackend.GPU,
+    enum_class=JaxBackend,
+    help=(
+        'JAX backend to use. "gpu" uses a GPU for inference. "cpu" uses a CPU'
+        ' only for inference. This is much slower than using a GPU, but can be'
+        ' useful for testing or running on systems without a GPU supported by'
+        ' JAX. If you set this flag to "cpu", you must also set'
+        ' --flash_attention_implementation=xla.'
+    ),
 )
 _BUCKETS = flags.DEFINE_list(
     'buckets',
@@ -922,13 +934,13 @@ def main(_):
 
   if _RUN_INFERENCE.value:
     # Fail early on incompatible devices, but only if we're running inference.
-    if _USE_CPU_ONLY.value:
+    if _JAX_BACKEND.value == JaxBackend.CPU:
       if _FLASH_ATTENTION_IMPLEMENTATION.value != 'xla':
         raise ValueError(
             'For CPU-only inference, the --flash_attention_implementation must'
             ' be set to "xla".'
         )
-    else:
+    elif _JAX_BACKEND.value == JaxBackend.GPU:
       gpu_devices = jax.local_devices(backend='gpu')
       if gpu_devices:
         compute_capability = float(
@@ -956,6 +968,8 @@ def main(_):
                 ' https://developer.nvidia.com/cuda-gpus) the'
                 ' --flash_attention_implementation must be set to "xla".'
             )
+    else:
+      raise ValueError(f'Unsupported JAX backend: {_JAX_BACKEND.value}')
 
   notice = textwrap.wrap(
       'Running AlphaFold 3. Please note that standard AlphaFold 3 model'
@@ -1007,17 +1021,18 @@ def main(_):
     data_pipeline_config = None
 
   if _RUN_INFERENCE.value:
-    if _USE_CPU_ONLY.value:
-      devices = jax.local_devices(backend='cpu')
+    devices = jax.local_devices(backend=_JAX_BACKEND.value)
+    if _JAX_BACKEND.value == JaxBackend.CPU:
       device = devices[0]
       print(f'Found local CPU devices: {devices}, using device 0: {device}')
-    else:
-      devices = jax.local_devices(backend='gpu')
+    elif _JAX_BACKEND.value == JaxBackend.GPU:
       print(
           f'Found local GPU devices: {devices}, using device '
           f'{_GPU_DEVICE.value}: {devices[_GPU_DEVICE.value]}'
       )
       device = devices[_GPU_DEVICE.value]
+    else:
+      raise ValueError(f'Unsupported JAX backend: {_JAX_BACKEND.value}')
 
     print('Building model from scratch...')
     model_runner = ModelRunner(
