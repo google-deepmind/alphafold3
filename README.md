@@ -26,12 +26,9 @@ If you have any questions, please contact the AlphaFold team at
 
 ## Obtaining Model Parameters
 
-This repository contains all necessary code for AlphaFold 3 inference. To
-request access to the AlphaFold 3 model parameters, please complete
-[this form](https://forms.gle/svvpY4u2jsHEwWYS6). Access will be granted at
-Google DeepMind’s sole discretion. We will aim to respond to requests within 2–3
-business days. You may only use AlphaFold 3 model parameters if received
-directly from Google. Use is subject to these
+This repository contains all necessary code for AlphaFold 3 inference. You can
+download the AlphaFold 3 model parameters from
+https://storage.googleapis.com/alphafold3/af3.bin.zst. Use is subject to these
 [terms of use](https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md).
 
 ## Installation and Running Your First Prediction

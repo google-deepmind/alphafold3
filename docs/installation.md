@@ -264,17 +264,13 @@ You can use theses two scripts:
 
 ## Obtaining Model Parameters
 
-To request access to the AlphaFold 3 model parameters, please complete
-[this form](https://forms.gle/svvpY4u2jsHEwWYS6). Access will be granted at
-Google DeepMind’s sole discretion. We will aim to respond to requests within 2–3
-business days. You may only use AlphaFold 3 model parameters if received
-directly from Google. Use is subject to these
+You can download the AlphaFold 3 model parameters from
+https://storage.googleapis.com/alphafold3/af3.bin.zst. Use is subject to these
 [terms of use](https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md).
 
-Once access has been granted, download the model parameters to a directory of
-your choosing, referred to as `<MODEL_PARAMETERS_DIR>` in the following
-instructions. As with the databases, this should *not* be a subdirectory in the
-AlphaFold 3 repository directory.
+Download the model parameters to a directory of your choosing, referred to as
+`<MODEL_PARAMETERS_DIR>` in the following instructions. As with the databases,
+this should *not* be a subdirectory in the AlphaFold 3 repository directory.
 
 ## Building the Docker Container That Will Run AlphaFold 3
 
