@@ -73,6 +73,7 @@ _DEFAULT_DB_DIR = _HOME_DIR / 'public_databases'
 class JaxBackend(enum.StrEnum):
   CPU = enum.auto()
   GPU = enum.auto()
+  MPS = enum.auto()
 
 
 # Input and output paths.
@@ -341,6 +342,8 @@ _JAX_BACKEND = flags.DEFINE_enum_class(
         ' only for inference. This is much slower than using a GPU, but can be'
         ' useful for testing or running on systems without a GPU supported by'
         ' JAX. If you set this flag to "cpu", you must also set'
+        ' --flash_attention_implementation=xla. "mps" selects the experimental'
+        ' Apple Silicon (Metal) backend and also requires'
         ' --flash_attention_implementation=xla.'
     ),
 )
@@ -940,6 +943,12 @@ def main(_):
             'For CPU-only inference, the --flash_attention_implementation must'
             ' be set to "xla".'
         )
+    elif _JAX_BACKEND.value == JaxBackend.MPS:
+      if _FLASH_ATTENTION_IMPLEMENTATION.value != 'xla':
+        raise ValueError(
+            'For Apple Silicon (MPS) inference, the'
+            ' --flash_attention_implementation must be set to "xla".'
+        )
     elif _JAX_BACKEND.value == JaxBackend.GPU:
       gpu_devices = jax.local_devices(backend='gpu')
       if gpu_devices:
@@ -1028,6 +1037,12 @@ def main(_):
     elif _JAX_BACKEND.value == JaxBackend.GPU:
       print(
           f'Found local GPU devices: {devices}, using device '
+          f'{_GPU_DEVICE.value}: {devices[_GPU_DEVICE.value]}'
+      )
+      device = devices[_GPU_DEVICE.value]
+    elif _JAX_BACKEND.value == JaxBackend.MPS:
+      print(
+          f'Found local MPS devices: {devices}, using device '
           f'{_GPU_DEVICE.value}: {devices[_GPU_DEVICE.value]}'
       )
       device = devices[_GPU_DEVICE.value]
