@@ -32,6 +32,7 @@ from collections.abc import Callable, Sequence
 import csv
 import dataclasses
 import datetime
+import enum
 import functools
 import io
 import os
@@ -66,6 +67,13 @@ import tokamax
 _HOME_DIR = epath.Path('~').expanduser()
 _DEFAULT_MODEL_DIR = _HOME_DIR / 'models'
 _DEFAULT_DB_DIR = _HOME_DIR / 'public_databases'
+
+
+@enum.unique
+class JaxBackend(enum.StrEnum):
+  CPU = enum.auto()
+  GPU = enum.auto()
+
 
 # Input and output paths.
 _JSON_PATH = epath.DEFINE_path(
@@ -231,11 +239,20 @@ _SEQRES_DATABASE_PATH = flags.DEFINE_string(
     'PDB sequence database path, used for template search.',
 )
 
+
+def _num_cpus_for_msa_tools() -> int:
+  try:
+    # Unfortunately, os.process_cpu_count() is only available in Python 3.13+.
+    num_cpus = len(os.sched_getaffinity(0))
+  except AttributeError:
+    num_cpus = os.cpu_count()  # MacOS doesn't have os.sched_getaffinity().
+  return min(num_cpus if num_cpus is not None else 8, 8)
+
+
 # Number of CPUs to use for MSA tools.
 _JACKHMMER_N_CPU = flags.DEFINE_integer(
     'jackhmmer_n_cpu',
-    # Unfortunately, os.process_cpu_count() is only available in Python 3.13+.
-    min(len(os.sched_getaffinity(0)), 8),
+    _num_cpus_for_msa_tools(),
     'Number of CPUs to use for Jackhmmer. Defaults to min(cpu_count, 8). Going'
     ' above 8 CPUs provides very little additional speedup.',
     lower_bound=0,
@@ -250,8 +267,7 @@ _JACKHMMER_MAX_PARALLEL_SHARDS = flags.DEFINE_integer(
 )
 _NHMMER_N_CPU = flags.DEFINE_integer(
     'nhmmer_n_cpu',
-    # Unfortunately, os.process_cpu_count() is only available in Python 3.13+.
-    min(len(os.sched_getaffinity(0)), 8),
+    _num_cpus_for_msa_tools(),
     'Number of CPUs to use for Nhmmer. Defaults to min(cpu_count, 8). Going'
     ' above 8 CPUs provides very little additional speedup.',
     lower_bound=0,
@@ -315,6 +331,18 @@ _GPU_DEVICE = flags.DEFINE_integer(
     ' systems to pin each run to a specific GPU. Note that if GPUs are already'
     ' pre-filtered by the environment (e.g. by using CUDA_VISIBLE_DEVICES),'
     ' this flag refers to the GPU index after the filtering has been done.',
+)
+_JAX_BACKEND = flags.DEFINE_enum_class(
+    'jax_backend',
+    default=JaxBackend.GPU,
+    enum_class=JaxBackend,
+    help=(
+        'JAX backend to use. "gpu" uses a GPU for inference. "cpu" uses a CPU'
+        ' only for inference. This is much slower than using a GPU, but can be'
+        ' useful for testing or running on systems without a GPU supported by'
+        ' JAX. If you set this flag to "cpu", you must also set'
+        ' --flash_attention_implementation=xla.'
+    ),
 )
 _BUCKETS = flags.DEFINE_list(
     'buckets',
@@ -906,31 +934,42 @@ def main(_):
 
   if _RUN_INFERENCE.value:
     # Fail early on incompatible devices, but only if we're running inference.
-    gpu_devices = jax.local_devices(backend='gpu')
-    if gpu_devices:
-      compute_capability = float(
-          gpu_devices[_GPU_DEVICE.value].compute_capability
-      )
-      if compute_capability < 6.0:
+    if _JAX_BACKEND.value == JaxBackend.CPU:
+      if _FLASH_ATTENTION_IMPLEMENTATION.value != 'xla':
         raise ValueError(
-            'AlphaFold 3 requires at least GPU compute capability 6.0 (see'
-            ' https://developer.nvidia.com/cuda-gpus).'
+            'For CPU-only inference, the --flash_attention_implementation must'
+            ' be set to "xla".'
         )
-      elif 7.0 <= compute_capability < 8.0:
-        xla_flags = os.environ.get('XLA_FLAGS')
-        required_flag = '--xla_disable_hlo_passes=custom-kernel-fusion-rewriter'
-        if not xla_flags or required_flag not in xla_flags:
+    elif _JAX_BACKEND.value == JaxBackend.GPU:
+      gpu_devices = jax.local_devices(backend='gpu')
+      if gpu_devices:
+        compute_capability = float(
+            gpu_devices[_GPU_DEVICE.value].compute_capability
+        )
+        if compute_capability < 6.0:
           raise ValueError(
-              'For devices with GPU compute capability 7.x (see'
-              ' https://developer.nvidia.com/cuda-gpus) the ENV XLA_FLAGS must'
-              f' include "{required_flag}".'
+              'AlphaFold 3 requires at least GPU compute capability 6.0 (see'
+              ' https://developer.nvidia.com/cuda-gpus).'
           )
-        if _FLASH_ATTENTION_IMPLEMENTATION.value != 'xla':
-          raise ValueError(
-              'For devices with GPU compute capability 7.x (see'
-              ' https://developer.nvidia.com/cuda-gpus) the'
-              ' --flash_attention_implementation must be set to "xla".'
+        elif 7.0 <= compute_capability < 8.0:
+          xla_flags = os.environ.get('XLA_FLAGS')
+          required_flag = (
+              '--xla_disable_hlo_passes=custom-kernel-fusion-rewriter'
           )
+          if not xla_flags or required_flag not in xla_flags:
+            raise ValueError(
+                'For devices with GPU compute capability 7.x (see'
+                ' https://developer.nvidia.com/cuda-gpus) the ENV XLA_FLAGS'
+                f' must include "{required_flag}".'
+            )
+          if _FLASH_ATTENTION_IMPLEMENTATION.value != 'xla':
+            raise ValueError(
+                'For devices with GPU compute capability 7.x (see'
+                ' https://developer.nvidia.com/cuda-gpus) the'
+                ' --flash_attention_implementation must be set to "xla".'
+            )
+    else:
+      raise ValueError(f'Unsupported JAX backend: {_JAX_BACKEND.value}')
 
   notice = textwrap.wrap(
       'Running AlphaFold 3. Please note that standard AlphaFold 3 model'
@@ -982,11 +1021,18 @@ def main(_):
     data_pipeline_config = None
 
   if _RUN_INFERENCE.value:
-    devices = jax.local_devices(backend='gpu')
-    print(
-        f'Found local devices: {devices}, using device {_GPU_DEVICE.value}:'
-        f' {devices[_GPU_DEVICE.value]}'
-    )
+    devices = jax.local_devices(backend=_JAX_BACKEND.value)
+    if _JAX_BACKEND.value == JaxBackend.CPU:
+      device = devices[0]
+      print(f'Found local CPU devices: {devices}, using device 0: {device}')
+    elif _JAX_BACKEND.value == JaxBackend.GPU:
+      print(
+          f'Found local GPU devices: {devices}, using device '
+          f'{_GPU_DEVICE.value}: {devices[_GPU_DEVICE.value]}'
+      )
+      device = devices[_GPU_DEVICE.value]
+    else:
+      raise ValueError(f'Unsupported JAX backend: {_JAX_BACKEND.value}')
 
     print('Building model from scratch...')
     model_runner = ModelRunner(
@@ -1000,7 +1046,7 @@ def main(_):
             return_embeddings=_SAVE_EMBEDDINGS.value,
             return_distogram=_SAVE_DISTOGRAM.value,
         ),
-        device=devices[_GPU_DEVICE.value],
+        device=device,
         model_dir=MODEL_DIR.value,
     )
     # Check we can load the model parameters before launching anything.
