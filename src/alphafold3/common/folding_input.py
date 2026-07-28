@@ -109,6 +109,8 @@ class Template:
       query_to_template_map: A mapping from query residue index to template
         residue index.
     """
+    if not isinstance(mmcif, str) or not mmcif:
+      raise ValueError('Template mmcif must be a non-empty string.')
     self._mmcif = mmcif
     # Needed to make the Template class hashable.
     self._query_to_template = tuple(query_to_template_map.items())
@@ -381,13 +383,22 @@ class ProteinChain:
         mmcif_path = raw_template.get('mmcifPath', None)
         if mmcif and mmcif_path:
           raise ValueError('Only one of mmcif/mmcifPath can be set.')
+        if not mmcif and not mmcif_path:
+          raise ValueError(
+              'Template must set exactly one of "mmcif" or "mmcifPath".'
+          )
         if mmcif and len(mmcif) < 256 and epath.Path(mmcif).exists():
           raise ValueError('Set the template path using the "mmcifPath" field.')
         if mmcif_path:
           mmcif = _read_file(path=mmcif_path, json_path=json_path)
-        query_to_template_map = dict(
-            zip(raw_template['queryIndices'], raw_template['templateIndices'])
-        )
+        query_indices = raw_template['queryIndices']
+        template_indices = raw_template['templateIndices']
+        if len(query_indices) != len(template_indices):
+          raise ValueError(
+              'queryIndices and templateIndices must have the same length,'
+              f' got {len(query_indices)} and {len(template_indices)}.'
+          )
+        query_to_template_map = dict(zip(query_indices, template_indices))
         templates.append(
             Template(mmcif=mmcif, query_to_template_map=query_to_template_map)
         )
@@ -656,9 +667,11 @@ class RnaChain:
     """Fill missing MSA fields with default values."""
     return RnaChain(  # pyrefly: ignore[bad-return]
         id=self.id,
-        sequence=self.sequence,
-        modifications=self.modifications,
-        description=self.description,
+        # Use the raw sequence, not the CCD-remapped `.sequence` property,
+        # which replaces unknown/modified bases with 'N'.
+        sequence=self._sequence,
+        modifications=self._modifications,
+        description=self._description,
         unpaired_msa=self._unpaired_msa or '',
     )
 
@@ -719,6 +732,10 @@ class DnaChain:
   def description(self) -> str | None:
     return self._description
 
+  @property
+  def modifications(self) -> Sequence[tuple[str, int]]:
+    return self._modifications
+
   def __len__(self) -> int:
     return len(self._sequence)
 
@@ -736,9 +753,6 @@ class DnaChain:
     return hash(
         (self._id, self._sequence, self._modifications, self._description)
     )
-
-  def modifications(self) -> Sequence[tuple[str, int]]:
-    return self._modifications
 
   def hash_without_id(self) -> int:
     """Returns a hash ignoring the ID - useful for deduplication."""
@@ -829,7 +843,12 @@ class Ligand:
     if (self.ccd_ids is None) == (self.smiles is None):
       raise ValueError('Ligand must have one of CCD ID or SMILES set.')
 
+    if self.ccd_ids is not None and not self.ccd_ids:
+      raise ValueError('Ligand ccd_ids must be a non-empty sequence.')
+
     if self.smiles is not None:
+      if not self.smiles:
+        raise ValueError('Ligand SMILES must be a non-empty string.')
       mol = rd_chem.MolFromSmiles(self.smiles)
       if not mol:
         raise ValueError(f'Unable to make RDKit Mol from SMILES: {self.smiles}')
@@ -884,15 +903,20 @@ class Ligand:
             'CCD codes must be a list of strings, got '
             f'{type(ccd_codes).__name__} instead: {ccd_codes}'
         )
+      if not ccd_codes:
+        raise ValueError('Ligand ccdCodes must be a non-empty list.')
       return cls(
           id=seq_id or json_dict['id'],
           ccd_ids=ccd_codes,
           description=json_dict.get('description', None),
       )
     elif 'smiles' in json_dict:
+      smiles = json_dict['smiles']
+      if not smiles:
+        raise ValueError('Ligand smiles must be a non-empty string.')
       return cls(
           id=seq_id or json_dict['id'],
-          smiles=json_dict['smiles'],
+          smiles=smiles,
           description=json_dict.get('description', None),
       )
     else:
@@ -1552,10 +1576,20 @@ def load_fold_inputs_from_dir(input_dir: epath.PathLike) -> Iterator[Input]:
 
   Yields:
     The fold inputs from all JSON files in the input directory.
+
+  Raises:
+    ValueError: If the directory contains no JSON files.
   """
   input_dir = epath.Path(input_dir)
-  for file_path in sorted(input_dir.glob('*.json')):
-    if not file_path.is_file():
-      continue
-
+  json_files = [
+      file_path
+      for file_path in sorted(input_dir.glob('*.json'))
+      if file_path.is_file()
+  ]
+  if not json_files:
+    raise ValueError(
+        f'No JSON files found in input directory: {input_dir}. Provide at'
+        ' least one *.json fold input, or use --json_path for a single file.'
+    )
+  for file_path in json_files:
     yield from load_fold_inputs_from_path(file_path)
