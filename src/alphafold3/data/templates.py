@@ -986,6 +986,7 @@ def run_hmmsearch_with_a3m(
       filter_f2=hmmsearch_config.filter_f2,
       filter_f3=hmmsearch_config.filter_f3,
       filter_max=hmmsearch_config.filter_max,
+      n_cpu=hmmsearch_config.n_cpu,
   )
   # STO enables us to annotate query non-gap columns as reference columns.
   sto = parsers.convert_a3m_to_stockholm(a3m, max_a3m_query_sequences)  # pyrefly: ignore[bad-argument-type]

@@ -255,7 +255,7 @@ _JACKHMMER_N_CPU = flags.DEFINE_integer(
     _num_cpus_for_msa_tools(),
     'Number of CPUs to use for Jackhmmer. Defaults to min(cpu_count, 8). Going'
     ' above 8 CPUs provides very little additional speedup.',
-    lower_bound=0,
+    lower_bound=1,
 )
 _JACKHMMER_MAX_PARALLEL_SHARDS = flags.DEFINE_integer(
     'jackhmmer_max_parallel_shards',
@@ -270,7 +270,7 @@ _NHMMER_N_CPU = flags.DEFINE_integer(
     _num_cpus_for_msa_tools(),
     'Number of CPUs to use for Nhmmer. Defaults to min(cpu_count, 8). Going'
     ' above 8 CPUs provides very little additional speedup.',
-    lower_bound=0,
+    lower_bound=1,
 )
 _NHMMER_MAX_PARALLEL_SHARDS = flags.DEFINE_integer(
     'nhmmer_max_parallel_shards',
@@ -278,6 +278,13 @@ _NHMMER_MAX_PARALLEL_SHARDS = flags.DEFINE_integer(
     'Maximum number of shards to search against in parallel. If unset, one'
     ' Nhmmer instance will be run per shard. Only applicable if the'
     ' database is sharded.',
+    lower_bound=1,
+)
+_HMMSEARCH_N_CPU = flags.DEFINE_integer(
+    'hmmsearch_n_cpu',
+    _num_cpus_for_msa_tools(),
+    'Number of CPUs to use for Hmmsearch during template search. Defaults to'
+    ' min(cpu_count, 8).',
     lower_bound=1,
 )
 
@@ -914,9 +921,18 @@ def main(_):
     )
 
   if _INPUT_DIR.value is not None:
-    fold_inputs = folding_input.load_fold_inputs_from_dir(_INPUT_DIR.value)
+    fold_inputs = list(
+        folding_input.load_fold_inputs_from_dir(_INPUT_DIR.value)
+    )
+    if not fold_inputs:
+      raise ValueError(
+          f'No fold inputs found in --input_dir={_INPUT_DIR.value}. Provide at'
+          ' least one *.json file, or use --json_path for a single input.'
+      )
   elif _JSON_PATH.value is not None:
-    fold_inputs = folding_input.load_fold_inputs_from_path(_JSON_PATH.value)
+    fold_inputs = list(
+        folding_input.load_fold_inputs_from_path(_JSON_PATH.value)
+    )
   else:
     raise AssertionError(
         'Exactly one of --json_path or --input_dir must be specified.'
@@ -942,32 +958,43 @@ def main(_):
         )
     elif _JAX_BACKEND.value == JaxBackend.GPU:
       gpu_devices = jax.local_devices(backend='gpu')
-      if gpu_devices:
-        compute_capability = float(
-            gpu_devices[_GPU_DEVICE.value].compute_capability
+      if not gpu_devices:
+        raise ValueError(
+            'No GPU devices found for --jax_backend=gpu. Use --jax_backend=cpu'
+            ' for CPU inference, or ensure a CUDA GPU is visible to the'
+            ' process.'
         )
-        if compute_capability < 6.0:
+      if not 0 <= _GPU_DEVICE.value < len(gpu_devices):
+        raise ValueError(
+            f'--gpu_device={_GPU_DEVICE.value} is out of range; found'
+            f' {len(gpu_devices)} GPU device(s) with indices'
+            f' 0..{len(gpu_devices) - 1}.'
+        )
+      compute_capability = float(
+          gpu_devices[_GPU_DEVICE.value].compute_capability
+      )
+      if compute_capability < 6.0:
+        raise ValueError(
+            'AlphaFold 3 requires at least GPU compute capability 6.0 (see'
+            ' https://developer.nvidia.com/cuda-gpus).'
+        )
+      elif 7.0 <= compute_capability < 8.0:
+        xla_flags = os.environ.get('XLA_FLAGS')
+        required_flag = (
+            '--xla_disable_hlo_passes=custom-kernel-fusion-rewriter'
+        )
+        if not xla_flags or required_flag not in xla_flags:
           raise ValueError(
-              'AlphaFold 3 requires at least GPU compute capability 6.0 (see'
-              ' https://developer.nvidia.com/cuda-gpus).'
+              'For devices with GPU compute capability 7.x (see'
+              ' https://developer.nvidia.com/cuda-gpus) the ENV XLA_FLAGS'
+              f' must include "{required_flag}".'
           )
-        elif 7.0 <= compute_capability < 8.0:
-          xla_flags = os.environ.get('XLA_FLAGS')
-          required_flag = (
-              '--xla_disable_hlo_passes=custom-kernel-fusion-rewriter'
+        if _FLASH_ATTENTION_IMPLEMENTATION.value != 'xla':
+          raise ValueError(
+              'For devices with GPU compute capability 7.x (see'
+              ' https://developer.nvidia.com/cuda-gpus) the'
+              ' --flash_attention_implementation must be set to "xla".'
           )
-          if not xla_flags or required_flag not in xla_flags:
-            raise ValueError(
-                'For devices with GPU compute capability 7.x (see'
-                ' https://developer.nvidia.com/cuda-gpus) the ENV XLA_FLAGS'
-                f' must include "{required_flag}".'
-            )
-          if _FLASH_ATTENTION_IMPLEMENTATION.value != 'xla':
-            raise ValueError(
-                'For devices with GPU compute capability 7.x (see'
-                ' https://developer.nvidia.com/cuda-gpus) the'
-                ' --flash_attention_implementation must be set to "xla".'
-            )
     else:
       raise ValueError(f'Unsupported JAX backend: {_JAX_BACKEND.value}')
 
@@ -986,6 +1013,19 @@ def main(_):
 
   max_template_date = datetime.date.fromisoformat(_MAX_TEMPLATE_DATE.value)
   if _RUN_DATA_PIPELINE.value:
+    binary_flags = (
+        ('Jackhmmer', _JACKHMMER_BINARY_PATH.value, 'jackhmmer_binary_path'),
+        ('Nhmmer', _NHMMER_BINARY_PATH.value, 'nhmmer_binary_path'),
+        ('Hmmalign', _HMMALIGN_BINARY_PATH.value, 'hmmalign_binary_path'),
+        ('Hmmsearch', _HMMSEARCH_BINARY_PATH.value, 'hmmsearch_binary_path'),
+        ('Hmmbuild', _HMMBUILD_BINARY_PATH.value, 'hmmbuild_binary_path'),
+    )
+    for binary_name, binary_path, flag_name in binary_flags:
+      if not binary_path:
+        raise ValueError(
+            f'{binary_name} binary not found on PATH. Install HMMER tools or'
+            f' set --{flag_name} to an absolute path.'
+        )
     expand_path = lambda x: replace_db_dir(x, DB_DIR.value)
     data_pipeline_config = pipeline.DataPipelineConfig(
         jackhmmer_binary_path=_JACKHMMER_BINARY_PATH.value,  # pyrefly: ignore[bad-argument-type]
@@ -1015,6 +1055,7 @@ def main(_):
         jackhmmer_max_parallel_shards=_JACKHMMER_MAX_PARALLEL_SHARDS.value,
         nhmmer_n_cpu=_NHMMER_N_CPU.value,
         nhmmer_max_parallel_shards=_NHMMER_MAX_PARALLEL_SHARDS.value,
+        hmmsearch_n_cpu=_HMMSEARCH_N_CPU.value,
         max_template_date=max_template_date,
     )
   else:

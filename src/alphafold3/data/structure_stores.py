@@ -42,6 +42,8 @@ class StructureStore:
       structures: Path of the directory where the mmCIF files are or a Mapping
         from target name to mmCIF string.
     """
+    self._closed = False
+    self._structure_tar_fileobj = None
     if isinstance(structures, Mapping):
       self._structure_mapping = structures
       self._structure_path = None
@@ -51,8 +53,9 @@ class StructureStore:
       self._structure_mapping = None
       structures = epath.Path(structures)
       if structures.suffix == '.tar':
+        self._structure_tar_fileobj = structures.open('rb')
         self._structure_tar = tarfile.open(
-            fileobj=structures.open('rb'),
+            fileobj=self._structure_tar_fileobj,
             mode='r',
         )
         self._structure_path = None
@@ -60,6 +63,32 @@ class StructureStore:
       else:
         self._structure_path = structures
         self._structure_tar = None
+
+  def close(self) -> None:
+    """Closes any open archive handles held by the store."""
+    if self._closed:
+      return
+    if self._structure_tar is not None:
+      self._structure_tar.close()
+      self._structure_tar = None
+    if self._structure_tar_fileobj is not None:
+      self._structure_tar_fileobj.close()
+      self._structure_tar_fileobj = None
+    self._closed = True
+
+  def __enter__(self) -> 'StructureStore':
+    return self
+
+  def __exit__(self, exc_type, exc_value, traceback) -> None:
+    del exc_type, exc_value, traceback
+    self.close()
+
+  def __del__(self) -> None:
+    try:
+      self.close()
+    except Exception:  # pylint: disable=broad-exception-caught
+      # Destructors must not raise.
+      pass
 
   @functools.cached_property
   def _tar_members(self) -> Mapping[str, tarfile.TarInfo]:
@@ -80,6 +109,9 @@ class StructureStore:
     Raises:
       NotFoundError: If the target is not found.
     """
+    if self._closed:
+      raise IOError('StructureStore has been closed.')
+
     if self._structure_mapping is not None:
       try:
         return self._structure_mapping[target_name]

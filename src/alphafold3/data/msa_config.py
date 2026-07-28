@@ -146,6 +146,7 @@ class HmmsearchConfig:
   filter_f2: float | None = None
   filter_f3: float | None = None
   filter_max: bool = False
+  n_cpu: int = 8
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True, slots=True)

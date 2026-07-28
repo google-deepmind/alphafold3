@@ -35,6 +35,14 @@ from alphafold3.data import templates as templates_lib
 from etils import epath
 
 
+# Cache to avoid re-opening the same PDB structure store for every sequence.
+@functools.cache
+def _get_structure_store(
+    pdb_database_path: epath.PathLike,
+) -> structure_stores.StructureStore:
+  return structure_stores.StructureStore(pdb_database_path)
+
+
 # Cache to avoid re-running template search for the same sequence in homomers.
 @functools.cache
 def _get_protein_templates(
@@ -45,6 +53,7 @@ def _get_protein_templates(
     pdb_database_path: epath.PathLike,
 ) -> templates_lib.Templates:
   """Searches for templates for a single protein chain."""
+  structure_store = _get_structure_store(pdb_database_path)
   if run_template_search:
     templates_start_time = time.time()
     logging.info('Getting protein templates for sequence %s', sequence)
@@ -56,7 +65,7 @@ def _get_protein_templates(
         hmmsearch_config=templates_config.template_tool_config.hmmsearch_config,
         max_a3m_query_sequences=None,
         chain_poly_type=mmcif_names.PROTEIN_CHAIN,
-        structure_store=structure_stores.StructureStore(pdb_database_path),
+        structure_store=structure_store,
         filter_config=templates_config.filter_config,
     )
     logging.info(
@@ -71,7 +80,7 @@ def _get_protein_templates(
         query_sequence=sequence,
         hits=[],
         max_template_date=templates_config.filter_config.max_template_date,
-        structure_store=structure_stores.StructureStore(pdb_database_path),
+        structure_store=structure_store,
     )
   return protein_templates
 
@@ -260,6 +269,7 @@ class DataPipelineConfig:
     nhmmer_max_parallel_shards: Maximum number of shards to search against in
       parallel. If None, one Nhmmer instance will be run per shard. Only
       applicable if the database is sharded.
+    hmmsearch_n_cpu: Number of CPUs to use for Hmmsearch during template search.
     max_template_date: The latest date of templates to use.
   """
 
@@ -295,6 +305,7 @@ class DataPipelineConfig:
   jackhmmer_max_parallel_shards: int | None = None
   nhmmer_n_cpu: int = 8
   nhmmer_max_parallel_shards: int | None = None
+  hmmsearch_n_cpu: int = 8
 
   max_template_date: datetime.date
 
@@ -451,6 +462,7 @@ class DataPipeline:
                 dom_e=100,
                 incdom_e=100,
                 alphabet='amino',
+                n_cpu=data_pipeline_config.hmmsearch_n_cpu,
             ),
         ),
         filter_config=msa_config.TemplateFilterConfig(

@@ -46,6 +46,7 @@ class Hmmsearch(object):
       dom_e: float | None = None,
       incdom_e: float | None = None,
       filter_max: bool = False,
+      n_cpu: int = 8,
   ):
     """Initializes the Python hmmsearch wrapper.
 
@@ -64,11 +65,15 @@ class Hmmsearch(object):
       incdom_e: Domain e-value criteria for inclusion of domains in MSA/next
         round.
       filter_max: Remove all filters, will ignore all filter_f* settings.
+      n_cpu: Number of CPUs to give hmmsearch.
 
     Raises:
       RuntimeError: If hmmsearch binary not found within the path.
     """
+    if n_cpu < 1:
+      raise ValueError(f'n_cpu must be >= 1, got {n_cpu}.')
     self._binary_path = binary_path
+    self._n_cpu = n_cpu
     self._hmmbuild_runner = hmmbuild.Hmmbuild(
         alphabet=alphabet, binary_path=hmmbuild_binary_path
     )
@@ -114,7 +119,7 @@ class Hmmsearch(object):
       cmd = [
           self._binary_path,
           '--noali',  # Don't include the alignment in stdout.
-          *('--cpu', '8'),
+          *('--cpu', str(self._n_cpu)),
       ]
       # If adding flags, we have to do so before the output and input:
       if self._flags:

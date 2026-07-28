@@ -156,30 +156,34 @@ class Jackhmmer(msa_tool.MsaTool):
       )
 
       global_temp_dir = tempfile.mkdtemp()
+      try:
 
-      def _query_shard_fn(
-          shard_path: str,
-      ) -> tuple[msa_tool.MsaToolResult, float]:
-        t_start = time.time()
-        result = self._query_db_shard(
-            target_sequence=target_sequence,
-            db_shard_path=shard_path,
-            get_tblout=True,  # Tblout contains e-values needed for merging.
-            global_temp_dir=global_temp_dir,
+        def _query_shard_fn(
+            shard_path: str,
+        ) -> tuple[msa_tool.MsaToolResult, float]:
+          t_start = time.time()
+          result = self._query_db_shard(
+              target_sequence=target_sequence,
+              db_shard_path=shard_path,
+              get_tblout=True,  # Tblout contains e-values needed for merging.
+              global_temp_dir=global_temp_dir,
+          )
+          return result, time.time() - t_start
+
+        with futures.ThreadPoolExecutor(max_workers=self._max_threads) as ex:
+          tool_outputs, timings = zip(
+              *ex.map(_query_shard_fn, self._shard_paths)
+          )
+
+        logging.info(
+            'Finished query for %d shards, shard timings (seconds): %s',
+            len(tool_outputs),
+            ', '.join(f'{t:.1f}' for t in timings),
         )
-        return result, time.time() - t_start
 
-      with futures.ThreadPoolExecutor(max_workers=self._max_threads) as ex:
-        tool_outputs, timings = zip(*ex.map(_query_shard_fn, self._shard_paths))
-
-      logging.info(
-          'Finished query for %d shards, shard timings (seconds): %s',
-          len(tool_outputs),
-          ', '.join(f'{t:.1f}' for t in timings),
-      )
-
-      shutil.rmtree(global_temp_dir, ignore_errors=True)
-      return _merge_jackhmmer_results(tool_outputs, self._max_sequences)
+        return _merge_jackhmmer_results(tool_outputs, self._max_sequences)
+      finally:
+        shutil.rmtree(global_temp_dir, ignore_errors=True)
 
     else:
       # Non-sharded case, run the query against the whole database.
