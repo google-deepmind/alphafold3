@@ -386,7 +386,12 @@ class ProteinChain:
         if mmcif_path:
           mmcif = _read_file(path=mmcif_path, json_path=json_path)
         query_to_template_map = dict(
-            zip(raw_template['queryIndices'], raw_template['templateIndices'])
+            zip(
+                raw_template['queryIndices'],
+                # AlphaFold 3 <= 3.0.3 wrote null here for an empty map.
+                raw_template['templateIndices'] or [],
+                strict=True,
+            )
         )
         templates.append(
             Template(mmcif=mmcif, query_to_template_map=query_to_template_map)
