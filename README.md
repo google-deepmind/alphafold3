@@ -93,6 +93,11 @@ See the [output documentation](docs/output.md).
 
 See the [performance documentation](docs/performance.md).
 
+## FAQ
+
+See the [FAQ](docs/faq.md), which covers questions such as whether two runs with
+the same input and settings produce the same result.
+
 ## Known Issues
 
 Known issues are documented in the
