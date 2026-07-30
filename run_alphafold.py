@@ -349,8 +349,8 @@ _JAX_BACKEND = flags.DEFINE_enum_class(
 _BUCKETS = flags.DEFINE_list(
     'buckets',
     # pyformat: disable
-    ['256', '512', '768', '1024', '1280', '1536', '2048', '2560', '3072',
-     '3584', '4096', '4608', '5120'],
+    ['64', '96', '128', '192', '256', '384', '512', '768', '1024', '1280',
+     '1536', '2048', '2560', '3072', '3584', '4096', '4608', '5120'],
     # pyformat: enable
     'Strictly increasing order of token sizes for which to cache compilations.'
     ' For any input with more tokens than the largest bucket size, a new bucket'

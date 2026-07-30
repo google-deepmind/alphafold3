@@ -291,6 +291,12 @@ sufficient to achieve the desired compilation behaviour. The provided example
 with multiple buckets illustrates a more general solution suitable for diverse
 input sizes.
 
+The same trade-off applies at the small end. The trunk cost grows faster than
+linearly in the padded token count, so an input of 100 tokens padded to a
+smallest bucket of 256 does several times the work it needs to. A bucket only
+triggers a compilation when an input actually falls into it, so bucket sizes
+below 256 cost nothing for workloads that never use them.
+
 ## Additional Flags
 
 ### Compilation Time Workaround with XLA Flags
