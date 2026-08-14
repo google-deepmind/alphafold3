@@ -249,12 +249,33 @@ _NHMMER_N_CPU = flags.DEFINE_integer(
     ' above 8 CPUs provides very little additional speedup.',
     lower_bound=0,
 )
+_HMMSEARCH_N_CPU = flags.DEFINE_integer(
+    'hmmsearch_n_cpu',
+    # Unfortunately, os.process_cpu_count() is only available in Python 3.13+.
+    min(len(os.sched_getaffinity(0)), 8),
+    'Number of CPUs to use for Hmmsearch. Defaults to min(cpu_count, 8). Going'
+    ' above 8 CPUs provides very little additional speedup.',
+    lower_bound=0,
+)
 _NHMMER_MAX_PARALLEL_SHARDS = flags.DEFINE_integer(
     'nhmmer_max_parallel_shards',
     None,
     'Maximum number of shards to search against in parallel. If unset, one'
     ' Nhmmer instance will be run per shard. Only applicable if the'
     ' database is sharded.',
+    lower_bound=1,
+)
+_JACKHMMER_N_WORKERS = flags.DEFINE_integer(
+    'jackhmmer_n_workers',
+    4,
+    'Maximum number of Jackhmmer database searches to run concurrently.',
+    lower_bound=1,
+)
+
+_NHMMER_N_WORKERS = flags.DEFINE_integer(
+    'nhmmer_n_workers',
+    3,
+    'Maximum number of Nhmmer database searches to run concurrently.',
     lower_bound=1,
 )
 
@@ -935,9 +956,12 @@ def main(_):
         pdb_database_path=expand_path(_PDB_DATABASE_PATH.value),
         seqres_database_path=expand_path(_SEQRES_DATABASE_PATH.value),
         jackhmmer_n_cpu=_JACKHMMER_N_CPU.value,
+        jackhmmer_n_workers=_JACKHMMER_N_WORKERS.value,
         jackhmmer_max_parallel_shards=_JACKHMMER_MAX_PARALLEL_SHARDS.value,
         nhmmer_n_cpu=_NHMMER_N_CPU.value,
+        nhmmer_n_workers=_NHMMER_N_WORKERS.value,
         nhmmer_max_parallel_shards=_NHMMER_MAX_PARALLEL_SHARDS.value,
+        hmmsearch_n_cpu=_HMMSEARCH_N_CPU.value,
         max_template_date=max_template_date,
     )
   else:
