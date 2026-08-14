@@ -28,6 +28,7 @@ class Hmmsearch(object):
       binary_path: str,
       hmmbuild_binary_path: str,
       database_path: str,
+      n_cpu: int = 8,
       alphabet: str = 'amino',
       filter_f1: float | None = None,
       filter_f2: float | None = None,
@@ -45,6 +46,7 @@ class Hmmsearch(object):
       hmmbuild_binary_path: The path to the hmmbuild executable. Used to build
         an hmm from an input a3m.
       database_path: The path to the hmmsearch database (FASTA format).
+      n_cpu: The number of CPUs to give Hmmsearch.
       alphabet: Chain type e.g. amino, rna, dna.
       filter_f1: MSV and biased composition pre-filter, set to >1.0 to turn off.
       filter_f2: Viterbi pre-filter, set to >1.0 to turn off.
@@ -64,6 +66,7 @@ class Hmmsearch(object):
         alphabet=alphabet, binary_path=hmmbuild_binary_path
     )
     self._database_path = database_path
+    self._n_cpu = n_cpu
     flags = []
     if filter_max:
       flags.append('--max')
@@ -105,7 +108,7 @@ class Hmmsearch(object):
       cmd = [
           self._binary_path,
           '--noali',  # Don't include the alignment in stdout.
-          *('--cpu', '8'),
+          *('--cpu', str(self._n_cpu)),
       ]
       # If adding flags, we have to do so before the output and input:
       if self._flags:

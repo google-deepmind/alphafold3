@@ -249,6 +249,14 @@ _NHMMER_N_CPU = flags.DEFINE_integer(
     ' above 8 CPUs provides very little additional speedup.',
     lower_bound=0,
 )
+_HMMSEARCH_N_CPU = flags.DEFINE_integer(
+    'hmmsearch_n_cpu',
+    # Unfortunately, os.process_cpu_count() is only available in Python 3.13+.
+    min(len(os.sched_getaffinity(0)), 8),
+    'Number of CPUs to use for Hmmsearch. Defaults to min(cpu_count, 8). Going'
+    ' above 8 CPUs provides very little additional speedup.',
+    lower_bound=0,
+)
 _NHMMER_MAX_PARALLEL_SHARDS = flags.DEFINE_integer(
     'nhmmer_max_parallel_shards',
     None,
@@ -953,6 +961,7 @@ def main(_):
         nhmmer_n_cpu=_NHMMER_N_CPU.value,
         nhmmer_n_workers=_NHMMER_N_WORKERS.value,
         nhmmer_max_parallel_shards=_NHMMER_MAX_PARALLEL_SHARDS.value,
+        hmmsearch_n_cpu=_HMMSEARCH_N_CPU.value,
         max_template_date=max_template_date,
     )
   else:

@@ -133,6 +133,7 @@ class HmmsearchConfig:
   dom_e: float
   incdom_e: float
   alphabet: str = 'amino'
+  n_cpu: int = 8
   filter_f1: float | None = None
   filter_f2: float | None = None
   filter_f3: float | None = None
