@@ -1,0 +1,29 @@
+{
+  "name": "TetR_dimer_tetO_DNA",
+  "sequences": [
+    {
+      "protein": {
+        "id": ["A", "B"],
+        "sequence": "MARLNRESVIDAALELLNETGIDGLTTRKLAQKLGIEQPTLYWHVKNKRALLDALAVEILARHHDYSLPAAGESWQSFLRNNAMSFRRALLRYRDGAKVHLGTRPDEKQYDTVETQLRFMTENGFSLRDGLYAISAVSHFTLGAVLEQQEHTAALTDRPAAPDENLPPLLREALQIMDSDDGEQAFLHGLESLIRGFEVQLTALLQIVGGDKLIIPFC",
+        "description": "Tetracycline repressor protein class D, E. coli (UniProt P0ACT4, 218 aa)"
+      }
+    },
+    {
+      "dna": {
+        "id": "C",
+        "sequence": "TACTCTATCATTGATAGAGT",
+        "description": "tetO2 operator, forward strand (19 bp palindromic core + 1 bp flank, 20 nt)"
+      }
+    },
+    {
+      "dna": {
+        "id": "D",
+        "sequence": "ACTCTATCAATGATAGAGTA",
+        "description": "tetO2 operator, reverse complement strand (20 nt)"
+      }
+    }
+  ],
+  "modelSeeds": [42],
+  "dialect": "alphafold3",
+  "version": 4
+}

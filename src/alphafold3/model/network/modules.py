@@ -1,7 +1,16 @@
 # Copyright 2024 DeepMind Technologies Limited
 #
-# AlphaFold 3 source code is licensed under CC BY-NC-SA 4.0. To view a copy of
-# this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
+# AlphaFold 3 source code is licensed under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # To request access to the AlphaFold 3 model parameters, follow the process set
 # out at https://github.com/google-deepmind/alphafold3. You may only use these
@@ -231,7 +240,7 @@ class GridSelfAttention(hk.Module):
 
     act = mapping.inference_subbatch(
         self._attention,
-        chunk_size,
+        chunk_size,  # pyrefly: ignore[bad-argument-type]
         batched_args=[act, pair_mask],
         nonbatched_args=[nonbatched_bias],
     )
@@ -393,10 +402,8 @@ class OuterProductMean(hk.Module):
       # Make sure that the 'b' dimension is the most minor batch like dimension
       # so it will be treated as the real batch by XLA (both during the forward
       # and the backward pass)
-      left_act = jnp.transpose(left_act, [0, 2, 1])
-      act = jnp.einsum('acb,ade->dceb', left_act, right_act)
-      act = jnp.einsum('dceb,cef->dbf', act, output_w) + output_b
-      return jnp.transpose(act, [1, 0, 2])
+      out = jnp.einsum('abc,ade,cef->bdf', left_act, right_act, output_w)
+      return out + output_b
 
     act = mapping.inference_subbatch(
         compute_chunk,
@@ -512,9 +519,9 @@ class PairFormerIteration(hk.Module):
 
       pair_logits = jnp.transpose(pair_logits, [2, 0, 1])
 
-      single_act += diffusion_transformer.self_attention(
-          single_act,
-          seq_mask,
+      single_act += diffusion_transformer.self_attention(  # pyrefly: ignore[unsupported-operation]
+          single_act,  # pyrefly: ignore[bad-argument-type]
+          seq_mask,  # pyrefly: ignore[bad-argument-type]
           pair_logits=pair_logits,
           config=self.config.single_attention,
           global_config=self.global_config,

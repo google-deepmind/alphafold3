@@ -16,14 +16,22 @@ readme = "README.md"
 license = {file = "LICENSE"}
 dependencies = [
     "absl-py>=2.3.1",
-    "dm-haiku==0.0.16",
-    "jax==0.9.1",
-    "jax[cuda12]==0.9.1",
+    "dm-haiku==0.0.17",
+    "etils[epath]",
+    "jax==0.10.2",
+    "jax[cuda12]==0.10.2; sys_platform != 'darwin'",
+    "jax-mps==0.10.9; sys_platform == 'darwin' and platform_machine == 'arm64'",
     "numpy",
     "rdkit==2025.9.4",
-    "tokamax==0.0.11",
+    "tokamax==0.0.12",
     "tqdm",
     "zstandard",
+]
+
+[project.optional-dependencies]
+gcsfs = [
+  # Use `uv sync --extra gcsfs` to enable GCS paths for inputs and outputs
+  "gcsfs",
 ]
 
 [dependency-groups]
@@ -36,6 +44,7 @@ package = true
 environments = [
     "sys_platform == 'linux' and platform_machine == 'x86_64'",
     "sys_platform == 'linux' and platform_machine == 'aarch64'",
+    "sys_platform == 'darwin' and platform_machine == 'arm64'",
 ]
 
 [tool.scikit-build]
@@ -54,7 +63,7 @@ sdist.include = [
 metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
 
 [tool.setuptools_scm]
-fallback_version = "3.0.2"
+fallback_version = "3.0.4"
 
 [tool.cibuildwheel]
 build = "cp3*-manylinux_x86_64"

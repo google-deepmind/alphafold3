@@ -66,8 +66,7 @@ Conforme usado nestes Termos:
 
 "**AlphaFold 3**" significa: (a) o código-fonte do AlphaFold 3 disponível
 [neste link](https://github.com/google-deepmind/alphafold3/) e licenciado nos
-termos da licença Creative Commons Attribution-NonCommercial-Sharealike 4.0
-International (CC-BY-NC-SA 4.0), bem como qualquer código-fonte derivado, e (b)
+termos da licença Apache 2.0, bem como qualquer código-fonte derivado, e (b)
 Parâmetros do modelo.
 
 "**Recursos do AlphaFold 3**" significam as Saídas e os Parâmetros do modelo.

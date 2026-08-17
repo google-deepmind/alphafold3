@@ -1,0 +1,20 @@
+{
+  "name": "modified_RNA_hairpin",
+  "sequences": [
+    {
+      "rna": {
+        "id": "A",
+        "sequence": "GGCCCGAUAGCUCAGUCGGUAGAGC",
+        "modifications": [
+          {"modificationType": "PSU", "basePosition": 13},
+          {"modificationType": "5MC", "basePosition": 18},
+          {"modificationType": "OMG", "basePosition": 4}
+        ],
+        "description": "Modified tRNA-like fragment (25 nt): pseudouridine (PSU) at 13, 5-methylcytidine (5MC) at 18, 2'-O-methylguanosine (OMG) at 4"
+      }
+    }
+  ],
+  "modelSeeds": [42],
+  "dialect": "alphafold3",
+  "version": 4
+}

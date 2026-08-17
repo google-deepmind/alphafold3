@@ -67,9 +67,8 @@ Sebagaimana digunakan dalam Persyaratan ini:
 
 "**AlphaFold 3**" adalah: (a) kode sumber AlphaFold 3 yang disediakan
 [di sini](https://github.com/google-deepmind/alphafold3/) dan yang dilisensikan
-berdasarkan persyaratan lisensi Creative Commons
-Attribution-NonCommercial-Sharealike 4.0 International (CC-BY-NC-SA 4.0) dan
-kode sumber turunan apa pun, serta (b) Parameter Model.
+berdasarkan persyaratan lisensi Apache 2.0 dan kode sumber turunan apa pun,
+serta (b) Parameter Model.
 
 "**Aset AlphaFold 3**" adalah Parameter dan output Model.
 

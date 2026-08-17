@@ -9,6 +9,10 @@ AlphaFold 3 will write its outputs in a directory called `My_first_fold_TEST`
 append a timestamp to the directory name to avoid overwriting existing data
 unless `--force_output_dir` is passed.
 
+The output directory can also be a Google Cloud Storage path (`gs://`) if the
+`gcsfs` dependency is installed (see the
+[installation instructions](installation.md#optional-enable-google-cloud-storage-path-support)).
+
 The following structure is used within the output directory:
 
 *   Sub-directories with results for each sample and seed. There will be
@@ -188,6 +192,8 @@ Summary outputs:
     Can be used for ranking a specific chain, when you care about where the
     chain binds to the rest of the complex and you do not know which other
     chains you expect it to interact with. This is often the case with ligands.
+*   `chain_ids:` A \[num_chains\] array with chain IDs in the same order as all
+    of the other chain-level arrays to make the JSON more self-contained.
 
 Full array outputs:
 

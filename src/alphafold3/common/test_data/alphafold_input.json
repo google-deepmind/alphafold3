@@ -1,0 +1,128 @@
+{
+  "name": "Test Fold Job Number One",
+  "modelSeeds": [10, 42],
+  "sequences": [
+    {
+      "protein": {
+        "id": "A",
+        "sequence": "PREACHINGS",
+        "modifications": [
+          {
+            "ptmType": "HY3",
+            "ptmPosition": 1
+          },
+          {
+            "ptmType": "P1L",
+            "ptmPosition": 5
+          }
+        ],
+        "unpairedMsa": ">query\nPREACHINGS\n>unpaired seq 1\nPREA--INGS",
+        "pairedMsa": ">query\nPREACHINGS\n>paired seq 1\n--EACHINGS"
+      }
+    },
+    {
+      "protein": {
+        "id": "AA",
+        "sequence": "REACHER",
+        "templates": [
+          {
+            "mmcif": "data_test\n#\n_entry.id test\n#\nloop_\n_chem_comp.formula\n_chem_comp.formula_weight\n_chem_comp.id\n_chem_comp.mon_nstd_flag\n_chem_comp.name\n_chem_comp.pdbx_synonyms\n_chem_comp.type\n\"C6 H15 N4 O2\"  175.209 ARG y ARGININE        ? \"L-PEPTIDE LINKING\" \n\"C4 H8 N2 O3\"   132.118 ASN y ASPARAGINE      ? \"L-PEPTIDE LINKING\" \n\"C4 H7 N O4\"    133.103 ASP y \"ASPARTIC ACID\" ? \"L-PEPTIDE LINKING\" \n\"C5 H9 N O4\"    147.129 GLU y \"GLUTAMIC ACID\" ? \"L-PEPTIDE LINKING\" \n\"C6 H13 N O2\"   131.173 ILE y ISOLEUCINE      ? \"L-PEPTIDE LINKING\" \n\"C5 H11 N O2 S\" 149.211 MET y METHIONINE      ? \"L-PEPTIDE LINKING\" \n\"C5 H9 N O2\"    115.130 PRO y PROLINE         ? \"L-PEPTIDE LINKING\" \n#\n_entity.id               1\n_entity.pdbx_description .\n_entity.type             polymer\n#\n_entity_poly.entity_id      1\n_entity_poly.pdbx_strand_id A\n_entity_poly.type           polypeptide(L)\n#\nloop_\n_entity_poly_seq.entity_id\n_entity_poly_seq.hetero\n_entity_poly_seq.mon_id\n_entity_poly_seq.num\n1 n ASP 1  \n1 n GLU 2  \n1 n GLU 3  \n1 n PRO 4  \n1 n MET 5  \n1 n ILE 6  \n1 n ASN 7  \n1 n ASP 8  \n1 n GLU 9  \n1 n ARG 10 \n#\n_pdbx_audit_revision_history.revision_date 2000-01-01\n#\n_pdbx_database_status.recvd_initial_deposition_date 2000-01-01\n#\nloop_\n_pdbx_poly_seq_scheme.asym_id\n_pdbx_poly_seq_scheme.auth_seq_num\n_pdbx_poly_seq_scheme.entity_id\n_pdbx_poly_seq_scheme.hetero\n_pdbx_poly_seq_scheme.mon_id\n_pdbx_poly_seq_scheme.pdb_ins_code\n_pdbx_poly_seq_scheme.pdb_seq_num\n_pdbx_poly_seq_scheme.pdb_strand_id\n_pdbx_poly_seq_scheme.seq_id\nA 1  1 n ASP . 1  A 1  \nA 2  1 n GLU . 2  A 2  \nA 3  1 n GLU . 3  A 3  \nA 4  1 n PRO . 4  A 4  \nA 5  1 n MET . 5  A 5  \nA 6  1 n ILE . 6  A 6  \nA 7  1 n ASN . 7  A 7  \nA 8  1 n ASP . 8  A 8  \nA 9  1 n GLU . 9  A 9  \nA 10 1 n ARG . 10 A 10 \n#\n_software.classification other\n_software.name           \"DeepMind Structure Class\"\n_software.pdbx_ordinal   1\n_software.version        2.0.0\n#\n_struct_asym.entity_id 1\n_struct_asym.id        A\n#\nloop_\n_atom_site.group_PDB\n_atom_site.id\n_atom_site.type_symbol\n_atom_site.label_atom_id\n_atom_site.label_alt_id\n_atom_site.label_comp_id\n_atom_site.label_asym_id\n_atom_site.label_entity_id\n_atom_site.label_seq_id\n_atom_site.pdbx_PDB_ins_code\n_atom_site.Cartn_x\n_atom_site.Cartn_y\n_atom_site.Cartn_z\n_atom_site.occupancy\n_atom_site.B_iso_or_equiv\n_atom_site.auth_seq_id\n_atom_site.auth_asym_id\n_atom_site.pdbx_PDB_model_num\nATOM 1  C CA . ASP A 1 1  ? 0.000 0.000 0.000 1.00 0.00 1  A 1 \nATOM 2  C CA . GLU A 1 2  ? 0.000 0.000 0.000 1.00 0.00 2  A 1 \nATOM 3  C CA . GLU A 1 3  ? 0.000 0.000 0.000 1.00 0.00 3  A 1 \nATOM 4  C CA . PRO A 1 4  ? 0.000 0.000 0.000 1.00 0.00 4  A 1 \nATOM 5  C CA . MET A 1 5  ? 0.000 0.000 0.000 1.00 0.00 5  A 1 \nATOM 6  C CA . ILE A 1 6  ? 0.000 0.000 0.000 1.00 0.00 6  A 1 \nATOM 7  C CA . ASN A 1 7  ? 0.000 0.000 0.000 1.00 0.00 7  A 1 \nATOM 8  C CA . ASP A 1 8  ? 0.000 0.000 0.000 1.00 0.00 8  A 1 \nATOM 9  C CA . GLU A 1 9  ? 0.000 0.000 0.000 1.00 0.00 9  A 1 \nATOM 10 C CA . ARG A 1 10 ? 0.000 0.000 0.000 1.00 0.00 10 A 1 \n#\n",
+            "queryIndices": [0, 1, 2, 4, 5, 6],
+            "templateIndices": [0, 1, 2, 3, 4, 8]
+          }
+        ]
+      }
+    },
+    {
+      "dna": {
+        "id": "C",
+        "sequence": "GATTACA",
+        "modifications": [
+          {
+            "modificationType": "6OG",
+            "basePosition": 1
+          },
+          {
+            "modificationType": "6MA",
+            "basePosition": 2
+          }
+        ]
+      }
+    },
+    {
+      "dna": {
+        "id": "D",
+        "sequence": "TGTAATC"
+      }
+    },
+    {
+      "rna": {
+        "id": "E",
+        "sequence": "GUAC",
+        "modifications": [
+          {
+            "modificationType": "2MG",
+            "basePosition": 1
+          },
+          {
+            "modificationType": "5MC",
+            "basePosition": 4
+          }
+        ],
+        "unpairedMsa": ">query\nGUAC\n>unpaired seq 1\nGUACaa"
+      }
+    },
+    {
+      "ligand": {
+        "id": "F",
+        "ccdCodes": ["ATP"]
+      }
+    },
+    {
+      "ligand": {
+        "id": ["G", "H"],
+        "ccdCodes": ["HEM"]
+      }
+    },
+    {
+      "ligand": {
+        "id": ["I", "II"],
+        "ccdCodes": ["MG"]
+      }
+    },
+    {
+      "ligand": {
+        "id": "J",
+        "ccdCodes": ["NAG", "FUC"]
+      }
+    },
+    {
+      "ligand": {
+        "id": ["JJ", "X", "Y"],
+        "ccdCodes": ["NA"]
+      }
+    },
+    {
+      "ligand": {
+        "id": "Z",
+        "smiles": "c1nc(c2c(n1)n(cn2)[C@H]3[C@@H]([C@@H]([C@H](O3)CO[P@@](=O)(O)O[P@](=O)(O)OP(=O)(O)O)O)O)N"
+      }
+    }
+  ],
+  "bondedAtomPairs": [
+    [
+      ["A", 1, "CA"],
+      ["AA", 1, "CA"]
+    ],
+    [
+      ["A", 1, "CA"],
+      ["G", 1, "CHA"]
+    ],
+    [
+      ["J", 1, "O6"],
+      ["J", 2, "C1"]
+    ]
+  ],
+  "dialect": "alphafold3",
+  "version": 3
+}

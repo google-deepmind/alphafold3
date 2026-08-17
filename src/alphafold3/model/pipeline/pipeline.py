@@ -1,7 +1,16 @@
 # Copyright 2024 DeepMind Technologies Limited
 #
-# AlphaFold 3 source code is licensed under CC BY-NC-SA 4.0. To view a copy of
-# this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
+# AlphaFold 3 source code is licensed under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # To request access to the AlphaFold 3 model parameters, follow the process set
 # out at https://github.com/google-deepmind/alphafold3. You may only use these
@@ -121,6 +130,12 @@ class WholePdbPipeline:
         unpaired MSA field to keep it exactly as is as deduplication against
         the paired MSA could break the manually crafted pairing between MSA
         sequences.
+      fix_standalone_glycans: AlphaFold 3 model training and evaluation filtered
+        out leaving atoms from glycan ligands even if they were not bonded to
+        anything ("standalone" glycans). Setting this flag to True fixes this
+        undesirable behavior, but moves away from the regime where AlphaFold 3
+        was trained and evaluated. This has only an effect if
+        drop_ligand_leaving_atoms is True.
     """
 
     max_atoms_per_token: int = 24
@@ -141,6 +156,7 @@ class WholePdbPipeline:
     deterministic_frames: bool = True
     conformer_max_iterations: int | None = None
     resolve_msa_overlaps: bool = True
+    fix_standalone_glycans: bool = False
 
   def __init__(self, *, config: Config):
     """Initializes WholePdb data pipeline.
@@ -181,6 +197,7 @@ class WholePdbPipeline:
         covalent_bonds_only=True,
         remove_polymer_polymer_bonds=True,
         remove_bad_bonds=True,
+        fix_standalone_glycans=self._config.fix_standalone_glycans,
     )
 
     # No chains after cleaning.
@@ -209,6 +226,7 @@ class WholePdbPipeline:
             polymer_ligand_bonds=polymer_ligand_bonds,
             ligand_ligand_bonds=ligand_ligand_bonds,
             drop_ligand_leaving_atoms=self._config.drop_ligand_leaving_atoms,
+            fix_standalone_glycans=self._config.fix_standalone_glycans,
         )
     )
 
@@ -290,7 +308,7 @@ class WholePdbPipeline:
     # Create reference structure features
     chemical_components_data = struc_chem_comps.populate_missing_ccd_data(
         ccd=ccd,
-        chemical_components_data=cleaned_struc.chemical_components_data,
+        chemical_components_data=cleaned_struc.chemical_components_data,  # pyrefly: ignore[bad-argument-type]
         populate_pdbx_smiles=True,
     )
 
@@ -304,8 +322,8 @@ class WholePdbPipeline:
         padding_shapes=padding_shapes,
         flat_output_layout=flat_output_layout,
         empty_output_struc=empty_output_struc,
-        polymer_ligand_bonds=polymer_ligand_bonds,
-        ligand_ligand_bonds=ligand_ligand_bonds,
+        polymer_ligand_bonds=polymer_ligand_bonds,  # pyrefly: ignore[bad-argument-type]
+        ligand_ligand_bonds=ligand_ligand_bonds,  # pyrefly: ignore[bad-argument-type]
     )
 
     # Create the PredictedStructureInfo
@@ -348,7 +366,7 @@ class WholePdbPipeline:
             padding_shapes=padding_shapes,
             chemical_components_data=chemical_components_data,
             random_state=random_state,
-            ref_max_modified_date=ref_max_modified_date,
+            ref_max_modified_date=ref_max_modified_date,  # pyrefly: ignore[bad-argument-type]
             conformer_max_iterations=conformer_max_iterations,
             ligand_ligand_bonds=ligand_ligand_bonds,
         )
@@ -363,7 +381,7 @@ class WholePdbPipeline:
           random_state=(
               np.random.RandomState(_DETERMINISTIC_FRAMES_RANDOM_SEED)
           ),
-          ref_max_modified_date=ref_max_modified_date,
+          ref_max_modified_date=ref_max_modified_date,  # pyrefly: ignore[bad-argument-type]
           conformer_max_iterations=None,
           ligand_ligand_bonds=ligand_ligand_bonds,
       )
@@ -395,7 +413,7 @@ class WholePdbPipeline:
         all_tokens=all_tokens,
         all_token_atoms_layout=all_token_atoms_layout,
         ref_structure=(
-            deterministic_ref_structure
+            deterministic_ref_structure  # pyrefly: ignore[bad-argument-type]
             if self._config.deterministic_frames
             else batch_ref_structure
         ),
@@ -438,7 +456,7 @@ class WholePdbPipeline:
         unpaired_msa_by_chain_id[chain.id] = chain.unpaired_msa
       if isinstance(chain, folding_input.ProteinChain):
         paired_msa_by_chain_id[chain.id] = chain.paired_msa
-        templates_by_chain_id[chain.id] = list(chain.templates)
+        templates_by_chain_id[chain.id] = list(chain.templates)  # pyrefly: ignore[bad-argument-type]
 
     batch = self.process_structure(
         struct=struct,

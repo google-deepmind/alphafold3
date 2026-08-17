@@ -1,7 +1,16 @@
 # Copyright 2024 DeepMind Technologies Limited
 #
-# AlphaFold 3 source code is licensed under CC BY-NC-SA 4.0. To view a copy of
-# this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
+# AlphaFold 3 source code is licensed under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # To request access to the AlphaFold 3 model parameters, follow the process set
 # out at https://github.com/google-deepmind/alphafold3. You may only use these
@@ -52,7 +61,7 @@ def _compute_covariance_matrix(
     Covariance Matrix as [..., 3, 3] array.
   """
   weights = jnp.asarray(weights)
-  weights = jnp.broadcast_to(weights, row_values.shape)
+  weights = jnp.broadcast_to(weights, row_values.shape)  # pyrefly: ignore[missing-attribute]
 
   out = []
 
@@ -106,13 +115,13 @@ class Rigid3Array:
   def __matmul__(self, other: Self) -> Self:
     new_rotation = self.rotation @ other.rotation
     new_translation = self.apply_to_point(other.translation)
-    return Rigid3Array(new_rotation, new_translation)
+    return Rigid3Array(new_rotation, new_translation)  # pyrefly: ignore[bad-argument-count, bad-return]
 
   def inverse(self) -> Self:
     """Return Rigid3Array corresponding to inverse transform."""
     inv_rotation = self.rotation.inverse()
     inv_translation = inv_rotation.apply_to_point(-self.translation)
-    return Rigid3Array(inv_rotation, inv_translation)
+    return Rigid3Array(inv_rotation, inv_translation)  # pyrefly: ignore[bad-argument-count, bad-return]
 
   def apply_to_point(self, point: vector.Vec3Array) -> vector.Vec3Array:
     """Apply Rigid3Array transform to point."""
@@ -126,21 +135,21 @@ class Rigid3Array:
   def compose_rotation(self, other_rotation: rotation_matrix.Rot3Array) -> Self:
     rot = self.rotation @ other_rotation
     trans = jax.tree.map(
-        lambda x: jnp.broadcast_to(x, rot.shape), self.translation
+        lambda x: jnp.broadcast_to(x, rot.shape), self.translation  # pyrefly: ignore[missing-attribute]
     )
-    return Rigid3Array(rot, trans)
+    return Rigid3Array(rot, trans)  # pyrefly: ignore[bad-argument-count, bad-return]
 
   @classmethod
   def identity(cls, shape: Any, dtype: jnp.dtype = jnp.float32) -> Self:
     """Return identity Rigid3Array of given shape."""
     return cls(
-        rotation_matrix.Rot3Array.identity(shape, dtype=dtype),
+        rotation_matrix.Rot3Array.identity(shape, dtype=dtype),  # pyrefly: ignore[bad-argument-count]
         vector.Vec3Array.zeros(shape, dtype=dtype),
     )  # pytype: disable=wrong-arg-count  # trace-all-classes
 
   def scale_translation(self, factor: Float) -> Self:
     """Scale translation in Rigid3Array by 'factor'."""
-    return Rigid3Array(self.rotation, self.translation * factor)
+    return Rigid3Array(self.rotation, self.translation * factor)  # pyrefly: ignore[bad-argument-count, bad-return]
 
   def to_array(self):
     rot_array = self.rotation.to_array()
@@ -159,12 +168,12 @@ class Rigid3Array:
     if array.shape[-2:] != (4, 4):
       raise ValueError(f'array.shape({array.shape}) must be [..., 4, 4]')
     rotation = rotation_matrix.Rot3Array(
-        *(array[..., 0, 0], array[..., 0, 1], array[..., 0, 2]),
+        *(array[..., 0, 0], array[..., 0, 1], array[..., 0, 2]),  # pyrefly: ignore[bad-argument-count]
         *(array[..., 1, 0], array[..., 1, 1], array[..., 1, 2]),
         *(array[..., 2, 0], array[..., 2, 1], array[..., 2, 2]),
     )
     translation = vector.Vec3Array(
-        array[..., 0, 3], array[..., 1, 3], array[..., 2, 3]
+        array[..., 0, 3], array[..., 1, 3], array[..., 2, 3]  # pyrefly: ignore[bad-argument-count]
     )
     return cls(rotation, translation)  # pytype: disable=wrong-arg-count  # trace-all-classes
 
@@ -194,7 +203,7 @@ class Rigid3Array:
       weights = 1.0
 
     def compute_center(value):
-      return utils.weighted_mean(value=value, weights=weights, axis=-1)
+      return utils.weighted_mean(value=value, weights=weights, axis=-1)  # pyrefly: ignore[bad-argument-type]
 
     points_to_center = jax.tree.map(compute_center, points_to)
     points_from_center = jax.tree.map(compute_center, points_from)
@@ -203,7 +212,7 @@ class Rigid3Array:
     cov_mat = _compute_covariance_matrix(
         centered_points_to,
         centered_points_from,
-        weights=weights,
+        weights=weights,  # pyrefly: ignore[bad-argument-type]
         epsilon=epsilon,
     )
     rots = rotation_matrix.Rot3Array.from_svd(

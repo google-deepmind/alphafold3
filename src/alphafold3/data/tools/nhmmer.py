@@ -1,7 +1,16 @@
 # Copyright 2024 DeepMind Technologies Limited
 #
-# AlphaFold 3 source code is licensed under CC BY-NC-SA 4.0. To view a copy of
-# this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
+# AlphaFold 3 source code is licensed under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # To request access to the AlphaFold 3 model parameters, follow the process set
 # out at https://github.com/google-deepmind/alphafold3. You may only use these
@@ -15,7 +24,6 @@ from concurrent import futures
 import heapq
 import os
 import pathlib
-import shutil
 import tempfile
 import time
 from typing import Final
@@ -54,7 +62,7 @@ class Nhmmer(msa_tool.MsaTool):
 
     NOTE: The MSA obtained by running against sharded dbs won't be always
     exactly the same as the MSA obtained by running against an unsharded db.
-    This is because of Jackhmmer deduplication logic, which won't spot duplicate
+    This is because of Nhmmer deduplication logic, which won't spot duplicate
     hits across multiple shards. Usually this means that the sharded search
     finds more hits (likely bounded by the number of shards), but this should
     not pose an issue given how the results are used downstream. The problem is
@@ -147,31 +155,31 @@ class Nhmmer(msa_tool.MsaTool):
           else f'{target_sequence[:16]}... (len {len(target_sequence)})',
       )
 
-      global_temp_dir = tempfile.mkdtemp()
+      with tempfile.TemporaryDirectory() as global_temp_dir:
 
-      def _query_shard_fn(
-          shard_path: str,
-      ) -> tuple[msa_tool.MsaToolResult, float]:
-        t_start = time.time()
-        # Get tblout as it contains e-values we need for merging sequences.
-        result = self._query_db_shard(
-            target_sequence=target_sequence,
-            db_shard_path=shard_path,
-            get_tblout=True,  # Tblout contains e-values needed for merging.
-            global_temp_dir=global_temp_dir,
-        )
-        return result, time.time() - t_start
+        def _query_shard_fn(
+            shard_path: str,
+        ) -> tuple[msa_tool.MsaToolResult, float]:
+          t_start = time.time()
+          # Get tblout as it contains e-values we need for merging sequences.
+          result = self._query_db_shard(
+              target_sequence=target_sequence,
+              db_shard_path=shard_path,
+              get_tblout=True,  # Tblout contains e-values needed for merging.
+              global_temp_dir=global_temp_dir,
+          )
+          return result, time.time() - t_start
 
-      with futures.ThreadPoolExecutor(max_workers=self._max_threads) as ex:
-        tool_outputs, timings = zip(*ex.map(_query_shard_fn, self._shard_paths))
+        with futures.ThreadPoolExecutor(max_workers=self._max_threads) as ex:
+          tool_outputs, timings = zip(
+              *ex.map(_query_shard_fn, self._shard_paths)
+          )
 
       logging.info(
           'Finished query for %d shards, shard timings (seconds): %s',
           len(tool_outputs),
           ', '.join(f'{t:.1f}' for t in timings),
       )
-
-      shutil.rmtree(global_temp_dir, ignore_errors=True)
       return _merge_nhmmer_results(tool_outputs, self._max_sequences)
 
     else:

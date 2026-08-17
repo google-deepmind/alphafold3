@@ -64,11 +64,10 @@ Google LLC y sus afiliadas.
 
 Según su uso en estas Condiciones:
 
-"**AlphaFold 3**" significa: (a) el código fuente de AlphaFold 3 disponible
-[aquí](https://github.com/google-deepmind/alphafold3/) y con licencia en virtud
-de las condiciones de la Atribución/Reconocimiento-NoComercial-CompartirIgual
-4.0 Internacional (CC-BY-NC-SA 4.0) de Creative Commons, y cualquier código
-fuente derivado, y (b) los Parámetros del Modelo.
+Por "**AlphaFold 3**" se entiende: (a) el código fuente de AlphaFold 3 puesto a
+disposición [aquí](https://github.com/google-deepmind/alphafold3/) y licenciado
+bajo los términos de la licencia Apache 2.0, así como cualquier código fuente
+derivado; y (b) los Parámetros del Modelo.
 
 "**Recursos de AlphaFold 3**" hace referencia a los Resultados y los Parámetros
 del Modelo.

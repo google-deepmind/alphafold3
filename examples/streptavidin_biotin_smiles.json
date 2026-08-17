@@ -1,0 +1,22 @@
+{
+  "name": "streptavidin_biotin_smiles",
+  "sequences": [
+    {
+      "protein": {
+        "id": "A",
+        "sequence": "EAGITGTWYNQLGSTFIVTAGADGALTGTYESAVGNAESRYVLTGRYDSAPATDGSGTALGWTVAWKNNYRNAHSATTWSGQYVGGAEARINTQWLLTSGTTEANAWKSTLVGHDTFTKVKPSAAS",
+        "description": "Core streptavidin, S. avidinii (UniProt P22629, residues 38-163, 126 aa)"
+      }
+    },
+    {
+      "ligand": {
+        "id": "B",
+        "smiles": "OC(=O)CCCC[C@@H]1SC[C@@H]2NC(=O)N[C@H]12",
+        "description": "D-Biotin (vitamin B7), specified by SMILES"
+      }
+    }
+  ],
+  "modelSeeds": [42],
+  "dialect": "alphafold3",
+  "version": 4
+}

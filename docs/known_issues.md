@@ -60,3 +60,23 @@ the genetic search.
 In general, we recommend experimenting with MSA if you are seeing a prediction
 with low predicted confidence. Typically adding more *relevant* sequences in the
 MSA will increase AlphaFold prediction accuracy and model confidence scores.
+
+### Gated Linear Unit Tokamax `NotImplementedError`
+
+When running AlphaFold 3 in certain configurations (e.g. on Mac OS with the MPS
+backend), you might see errors like this:
+
+```
+NotImplementedError: Not supported on gpu.
+Failed to run implementation
+Traceback (most recent call last):
+File "tokamax/_src/ops/gated_linear_unit/api.py", line 114, in gated_linear_unit
+  return fn(x, weights, activation=activation, precision=precision)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "tokamax/_src/ops/op.py", line 197, in __call__
+  raise NotImplementedError(f"Not supported on {device.device_kind}.")
+NotImplementedError: Not supported on gpu.
+```
+
+Tokamax will the chose another implementation and run the prediction
+successfully, so these are safe to ignore.

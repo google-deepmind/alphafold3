@@ -62,9 +62,8 @@ As used in these Terms:
 
 "**AlphaFold 3**" means: (a) the AlphaFold 3 source code made available
 [here](https://github.com/google-deepmind/alphafold3/) and licensed under the
-terms of the Creative Commons Attribution-NonCommercial-Sharealike 4.0
-International (CC-BY-NC-SA 4.0) license and any derivative source code, and (b)
-Model Parameters.
+terms of the Apache 2.0 license and any derivative source code, and (b) Model
+Parameters.
 
 "**AlphaFold 3 Assets**" means the Model Parameters and Output.
 

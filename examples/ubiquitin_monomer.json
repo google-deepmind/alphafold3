@@ -1,0 +1,15 @@
+{
+  "name": "ubiquitin_monomer",
+  "sequences": [
+    {
+      "protein": {
+        "id": "A",
+        "sequence": "MQIFVKTLTGKTITLEVEPSDTIENVKAKIQDKEGIPPDQQRLIFAGKQLEDGRTLSDYNIQKESTLHLVLRLRGG",
+        "description": "Human ubiquitin, 76 residues (UniProt P0CG48)"
+      }
+    }
+  ],
+  "modelSeeds": [42],
+  "dialect": "alphafold3",
+  "version": 4
+}

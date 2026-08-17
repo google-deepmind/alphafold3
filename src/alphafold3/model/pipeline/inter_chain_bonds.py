@@ -1,7 +1,16 @@
 # Copyright 2024 DeepMind Technologies Limited
 #
-# AlphaFold 3 source code is licensed under CC BY-NC-SA 4.0. To view a copy of
-# this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
+# AlphaFold 3 source code is licensed under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # To request access to the AlphaFold 3 model parameters, follow the process set
 # out at https://github.com/google-deepmind/alphafold3. You may only use these
@@ -86,10 +95,10 @@ def get_polymer_ligand_and_ligand_ligand_bonds(
       allow_multiple_bonds_per_atom=allow_multiple_bonds_per_atom,
   )
   ligand_ligand_bonds_mask = np.isin(
-      all_bonds.chain_type, list(mmcif_names.LIGAND_CHAIN_TYPES)
+      all_bonds.chain_type, list(mmcif_names.LIGAND_CHAIN_TYPES)  # pyrefly: ignore[bad-argument-type]
   )
   polymer_ligand_bonds_mask = np.isin(
-      all_bonds.chain_type, list(mmcif_names.POLYMER_CHAIN_TYPES)
+      all_bonds.chain_type, list(mmcif_names.POLYMER_CHAIN_TYPES)  # pyrefly: ignore[bad-argument-type]
   )
   polymer_ligand_bonds_mask = np.logical_and(
       ligand_ligand_bonds_mask.any(axis=1),
@@ -255,29 +264,29 @@ def get_bond_layout(
       np.logical_and(
           np.isin(
               from_atoms.chain_type,
-              allowed_chain_types1,
+              allowed_chain_types1,  # pyrefly: ignore[bad-argument-type]
           ),
           np.isin(
               dest_atoms.chain_type,
-              allowed_chain_types2,
+              allowed_chain_types2,  # pyrefly: ignore[bad-argument-type]
           ),
       ),
       np.logical_and(
           np.isin(
               from_atoms.chain_type,
-              allowed_chain_types2,
+              allowed_chain_types2,  # pyrefly: ignore[bad-argument-type]
           ),
           np.isin(
               dest_atoms.chain_type,
-              allowed_chain_types1,
+              allowed_chain_types1,  # pyrefly: ignore[bad-argument-type]
           ),
       ),
   )
   if allowed_res_names:
     # Res type
     res_mask = np.logical_or(
-        np.isin(from_atoms.res_name, allowed_res_names),
-        np.isin(dest_atoms.res_name, allowed_res_names),
+        np.isin(from_atoms.res_name, allowed_res_names),  # pyrefly: ignore[bad-argument-type]
+        np.isin(dest_atoms.res_name, allowed_res_names),  # pyrefly: ignore[bad-argument-type]
     )
     # All mask
     all_mask = np.logical_and(chain_mask, res_mask)

@@ -1,7 +1,16 @@
 # Copyright 2024 DeepMind Technologies Limited
 #
-# AlphaFold 3 source code is licensed under CC BY-NC-SA 4.0. To view a copy of
-# this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
+# AlphaFold 3 source code is licensed under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # To request access to the AlphaFold 3 model parameters, follow the process set
 # out at https://github.com/google-deepmind/alphafold3. You may only use these
@@ -297,9 +306,9 @@ class ResArrays:
 class Structure(table.Database):
   """Structure class for representing and processing molecular structures."""
 
-  tables: ClassVar[Collection[str]] = TABLE_FIELDS
+  tables: ClassVar[Collection[str]] = TABLE_FIELDS  # pyrefly: ignore[bad-override]
 
-  foreign_keys: ClassVar[Mapping[str, Collection[tuple[str, str]]]] = {
+  foreign_keys: ClassVar[Mapping[str, Collection[tuple[str, str]]]] = {  # pyrefly: ignore[bad-override]
       'residues': (('chain_key', 'chains'),),
       'atoms': (('chain_key', 'chains'), ('res_key', 'residues')),
       'bonds': (('from_atom_key', 'atoms'), ('dest_atom_key', 'atoms')),
@@ -1091,7 +1100,7 @@ class Structure(table.Database):
     }
     res_indices = [
         residue_index
-        for res_id in _iter_residues(other)
+        for res_id in _iter_residues(other)  # pyrefly: ignore[bad-argument-type]
         if (residue_index := residue_index_map.get(res_id)) is not None
     ]
 
@@ -1129,7 +1138,7 @@ class Structure(table.Database):
         bonds=updated_tables.bonds,
     )
 
-  def copy_and_update(
+  def copy_and_update(  # pyrefly: ignore[bad-override]
       self,
       *,
       name: str | _UnsetType = _UNSET,
@@ -1177,7 +1186,7 @@ class Structure(table.Database):
     def select(field, default):
       return field if field != _UNSET else default
 
-    return Structure(
+    return Structure(  # pyrefly: ignore[bad-return]
         name=select(name, self.name),
         release_date=select(release_date, self.release_date),
         resolution=select(resolution, self.resolution),
@@ -1243,7 +1252,7 @@ class Structure(table.Database):
     else:
       constructor_kwargs = {field: self[field] for field in _UPDATEABLE_FIELDS}
       constructor_kwargs.update(changes)
-    return Structure(skip_validation=skip_validation, **constructor_kwargs)
+    return Structure(skip_validation=skip_validation, **constructor_kwargs)  # pyrefly: ignore[bad-return]
 
   def copy_and_update_coords(self, coords: np.ndarray) -> Self:
     """Performs a shallow copy but with coordinates updated."""
@@ -1346,7 +1355,7 @@ class Structure(table.Database):
     bioassembly_data = select(bioassembly_data, self.bioassembly_data)
     chem_data = select(chemical_components_data, self.chemical_components_data)
 
-    return Structure(
+    return Structure(  # pyrefly: ignore[bad-return]
         name=name,
         release_date=release_date,
         resolution=resolution,
@@ -1553,10 +1562,10 @@ class Structure(table.Database):
     # Get boolean masks for each table. These are None if none of the filter
     # parameters affect the table in question.
     chain_mask = self._chains.make_filter_mask(
-        **chain_predicates, apply_per_element=apply_per_element
+        **chain_predicates, apply_per_element=apply_per_element  # pyrefly: ignore[bad-argument-type]
     )
     res_mask = self._residues.make_filter_mask(
-        **res_predicates, apply_per_element=apply_per_element
+        **res_predicates, apply_per_element=apply_per_element  # pyrefly: ignore[bad-argument-type]
     )
     atom_mask = self._atoms.make_filter_mask(
         mask, **atom_predicates, apply_per_element=apply_per_element
@@ -1598,8 +1607,8 @@ class Structure(table.Database):
         )
         filtered_chains = self._chains[nonempty_chain_mask]
         updated_tables = self._cascade_delete(
-            chains=filtered_chains,
-            residues=filtered_residues,
+            chains=filtered_chains,  # pyrefly: ignore[bad-argument-type]
+            residues=filtered_residues,  # pyrefly: ignore[bad-argument-type]
             atoms=filtered_atoms,
         )
       case CascadeDelete.CHAINS:
@@ -2303,7 +2312,7 @@ class Structure(table.Database):
           'Coordinate field tensor must have 2 dimensions: '
           f'(num_states, num_atoms), got {self._atoms.ndim}.'
       )
-    return concat(self.unstack(axis=0))
+    return concat(self.unstack(axis=0))  # pyrefly: ignore[bad-return]
 
   def merge_chains(
       self,
@@ -2601,7 +2610,7 @@ class Structure(table.Database):
       ValueError: If any two previously distinct polymer chains do not have
         unique names anymore after the rename.
     """
-    mapped_chains = self._chains.copy_and_remap(auth_asym_id=new_id_by_old_id)
+    mapped_chains = self._chains.copy_and_remap(auth_asym_id=new_id_by_old_id)  # pyrefly: ignore[bad-argument-type]
     mapped_polymer_ids = mapped_chains.filter(
         type=mmcif_names.POLYMER_CHAIN_TYPES
     ).auth_asym_id
@@ -2695,7 +2704,7 @@ class Structure(table.Database):
       for res_name in res_name_map:
         if res_name not in res_name_set:
           raise ValueError(f'"{res_name}" not found in this structure.')
-    new_residues = self._residues.copy_and_remap(name=res_name_map)
+    new_residues = self._residues.copy_and_remap(name=res_name_map)  # pyrefly: ignore[bad-argument-type]
 
     if self._chemical_components_data is not None:
       chem_comp = {
@@ -2839,7 +2848,7 @@ class Structure(table.Database):
         transform.apply_to_coords(base_struc.coords)
     )
     transformed_chains = base_struc.chains_table.copy_and_remap(
-        id=transform.chain_id_rename_map
+        id=transform.chain_id_rename_map  # pyrefly: ignore[bad-argument-type]
     )
     # Set the transformed author chain ID to match the label chain ID.
     transformed_chains = transformed_chains.copy_and_update(
@@ -2898,7 +2907,7 @@ class Structure(table.Database):
 
     # Copy over all scalar fields (e.g. name, release date, etc.) other than
     # bioassembly_data because it relates only to the pre-transformed structure.
-    return concatenated.copy_and_update_globals(
+    return concatenated.copy_and_update_globals(  # pyrefly: ignore[bad-return]
         name=self.name,
         release_date=self.release_date,
         resolution=self.resolution,
@@ -2913,7 +2922,7 @@ class Structure(table.Database):
     raw_mmcif['_entry.id'] = [self._name]
 
     if self._release_date is not None:
-      date = [datetime.datetime.strftime(self._release_date, '%Y-%m-%d')]
+      date = [datetime.datetime.strftime(self._release_date, '%Y-%m-%d')]  # pyrefly: ignore[bad-argument-type]
       raw_mmcif['_pdbx_audit_revision_history.revision_date'] = date
       raw_mmcif['_pdbx_database_status.recvd_initial_deposition_date'] = date
 
@@ -2925,11 +2934,11 @@ class Structure(table.Database):
         raw_mmcif['_exptl.method'].append(method)
 
     if self._bioassembly_data is not None:
-      raw_mmcif.update(self._bioassembly_data.to_mmcif_dict())
+      raw_mmcif.update(self._bioassembly_data.to_mmcif_dict())  # pyrefly: ignore[no-matching-overload]
 
     # Populate chemical components data for all residues of this Structure.
     if self._chemical_components_data:
-      raw_mmcif.update(self._chemical_components_data.to_mmcif_dict())
+      raw_mmcif.update(self._chemical_components_data.to_mmcif_dict())  # pyrefly: ignore[no-matching-overload]
 
     # Add _software table to store version number used to generate mmCIF.
     # Only required data items are used (+ _software.version).

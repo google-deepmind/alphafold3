@@ -1,7 +1,16 @@
 # Copyright 2024 DeepMind Technologies Limited
 #
-# AlphaFold 3 source code is licensed under CC BY-NC-SA 4.0. To view a copy of
-# this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
+# AlphaFold 3 source code is licensed under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # To request access to the AlphaFold 3 model parameters, follow the process set
 # out at https://github.com/google-deepmind/alphafold3. You may only use these
@@ -85,7 +94,7 @@ class LayerNorm(hk.LayerNorm):
     if self.upcast and is_16bit:
       x = x.astype(jnp.float32)
 
-    param_axis = self.param_axis[0] if self.param_axis else -1
+    param_axis = self.param_axis[0] if self.param_axis else -1  # pyrefly: ignore[bad-index]
     param_shape = (x.shape[param_axis],)
 
     param_broadcast_shape = [1] * x.ndim
@@ -147,7 +156,7 @@ def haiku_linear_get_params(
   if isinstance(num_output, numbers.Integral):
     output_shape = (num_output,)
   else:
-    output_shape = tuple(num_output)
+    output_shape = tuple(num_output)  # pyrefly: ignore[bad-argument-type]
 
   if num_input_dims > 0:
     in_shape = inputs.shape[-num_input_dims:]
@@ -231,7 +240,7 @@ class Linear(hk.Module):
     if isinstance(num_output, numbers.Integral):
       self.output_shape = (num_output,)
     else:
-      self.output_shape = tuple(num_output)
+      self.output_shape = tuple(num_output)  # pyrefly: ignore[bad-argument-type]
     self.initializer = initializer
     self.use_bias = use_bias
     self.bias_init = bias_init

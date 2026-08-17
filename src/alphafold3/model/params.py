@@ -1,7 +1,16 @@
 # Copyright 2024 DeepMind Technologies Limited
 #
-# AlphaFold 3 source code is licensed under CC BY-NC-SA 4.0. To view a copy of
-# this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
+# AlphaFold 3 source code is licensed under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # To request access to the AlphaFold 3 model parameters, follow the process set
 # out at https://github.com/google-deepmind/alphafold3. You may only use these
@@ -12,16 +21,16 @@
 
 import bisect
 import collections
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 import contextlib
 import io
 import os
-import pathlib
 import re
 import struct
 import sys
 from typing import IO
 
+from etils import epath
 import haiku as hk
 import jax.numpy as jnp
 import numpy as np
@@ -34,8 +43,8 @@ class RecordError(Exception):
 
 def encode_record(scope: str, name: str, arr: np.ndarray) -> bytes:
   """Encodes a single haiku param as bytes, preserving non-numpy dtypes."""
-  scope = scope.encode('utf-8')
-  name = name.encode('utf-8')
+  scope = scope.encode('utf-8')  # pyrefly: ignore[bad-assignment]
+  name = name.encode('utf-8')  # pyrefly: ignore[bad-assignment]
   shape = arr.shape
   dtype = str(arr.dtype).encode('utf-8')
   arr = np.ascontiguousarray(arr)
@@ -46,7 +55,7 @@ def encode_record(scope: str, name: str, arr: np.ndarray) -> bytes:
       '<5i', len(scope), len(name), len(dtype), len(shape), len(arr_buffer)
   )
   return header + b''.join(
-      (scope, name, dtype, struct.pack(f'{len(shape)}i', *shape), arr_buffer)
+      (scope, name, dtype, struct.pack(f'{len(shape)}i', *shape), arr_buffer)  # pyrefly: ignore[bad-argument-type]
   )
 
 
@@ -86,11 +95,11 @@ def read_records(stream: IO[bytes]) -> Iterator[tuple[str, str, np.ndarray]]:
 class _MultiFileIO(io.RawIOBase):
   """A file-like object that presents a concatenated view of multiple files."""
 
-  def __init__(self, files: list[pathlib.Path]):
-    self._files = files
+  def __init__(self, files: Sequence[epath.PathLike]):
+    self._files = [epath.Path(file) for file in files]
     self._stack = contextlib.ExitStack()
     self._handles = [
-        self._stack.enter_context(file.open('rb')) for file in files
+        self._stack.enter_context(file.open('rb')) for file in self._files
     ]
     self._sizes = []
     for handle in self._handles:
@@ -136,12 +145,20 @@ class _MultiFileIO(io.RawIOBase):
     self._abspos = pos
     self._relpos = self._abs_to_rel(pos)
 
-  def readinto(self, b: bytearray | memoryview) -> int:
+  def readinto(self, b: bytearray | memoryview) -> int:  # pyrefly: ignore[bad-override]
     result = 0
     mem = memoryview(b)
     while mem:
-      self._handles[self._relpos[0]].seek(self._relpos[1])
-      count = self._handles[self._relpos[0]].readinto(mem)
+      file_handle = self._handles[self._relpos[0]]
+      file_handle.seek(self._relpos[1])
+      if hasattr(file_handle, 'readinto'):
+        count = file_handle.readinto(mem)  # pyrefly: ignore[missing-attribute]
+      else:
+        # Workaround for file providers that do not support readinto.
+        data = file_handle.read(len(mem))
+        count = len(data)
+        mem[:count] = data
+
       result += count
       self._abspos += count
       self._relpos = self._abs_to_rel(self._abspos)
@@ -152,7 +169,7 @@ class _MultiFileIO(io.RawIOBase):
 
 
 @contextlib.contextmanager
-def open_for_reading(model_files: list[pathlib.Path], is_compressed: bool):
+def open_for_reading(model_files: list[epath.PathLike], is_compressed: bool):
   with contextlib.closing(_MultiFileIO(model_files)) as f:
     if is_compressed:
       buffered = io.BufferedReader(f)
@@ -162,8 +179,8 @@ def open_for_reading(model_files: list[pathlib.Path], is_compressed: bool):
 
 
 def _match_model(
-    paths: list[pathlib.Path], pattern: re.Pattern[str]
-) -> dict[str, list[pathlib.Path]]:
+    paths: list[epath.Path], pattern: re.Pattern[str]
+) -> dict[str, list[epath.Path]]:
   """Match files in a directory with a pattern, and group by model name."""
   models = collections.defaultdict(list)
   for path in paths:
@@ -174,10 +191,14 @@ def _match_model(
 
 
 def select_model_files(
-    model_dir: pathlib.Path, model_name: str | None = None
-) -> tuple[list[pathlib.Path], bool]:
+    model_dir: epath.PathLike, model_name: str | None = None
+) -> tuple[list[epath.Path], bool]:
   """Select the model files from a model directory."""
-  files = [file for file in model_dir.iterdir() if file.is_file()]
+  model_dir = epath.Path(model_dir)
+  if model_dir.exists():
+    files = [file for file in model_dir.iterdir() if file.is_file()]
+  else:
+    files = []
 
   for pattern, is_compressed in (
       (r'(?P<model_name>.*)\.[0-9]+\.bin\.zst$', True),
@@ -200,11 +221,11 @@ def select_model_files(
   raise FileNotFoundError(f'No models matched in {model_dir}')
 
 
-def get_model_haiku_params(model_dir: pathlib.Path) -> hk.Params:
+def get_model_haiku_params(model_dir: epath.PathLike) -> hk.Params:
   """Get the Haiku parameters from a model name."""
   params: dict[str, dict[str, jnp.Array]] = {}
   model_files, is_compressed = select_model_files(model_dir)
-  with open_for_reading(model_files, is_compressed) as stream:
+  with open_for_reading(model_files, is_compressed) as stream:  # pyrefly: ignore[bad-argument-type]
     for scope, name, arr in read_records(stream):
       params.setdefault(scope, {})[name] = jnp.array(arr)
   if not params:

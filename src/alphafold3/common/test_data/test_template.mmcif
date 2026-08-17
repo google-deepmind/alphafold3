@@ -1,0 +1,107 @@
+data_test
+#
+_entry.id test
+#
+loop_
+_chem_comp.formula
+_chem_comp.formula_weight
+_chem_comp.id
+_chem_comp.mon_nstd_flag
+_chem_comp.name
+_chem_comp.pdbx_synonyms
+_chem_comp.type
+"C6 H15 N4 O2"  175.209 ARG y ARGININE        ? "L-PEPTIDE LINKING" 
+"C4 H8 N2 O3"   132.118 ASN y ASPARAGINE      ? "L-PEPTIDE LINKING" 
+"C4 H7 N O4"    133.103 ASP y "ASPARTIC ACID" ? "L-PEPTIDE LINKING" 
+"C5 H9 N O4"    147.129 GLU y "GLUTAMIC ACID" ? "L-PEPTIDE LINKING" 
+"C6 H13 N O2"   131.173 ILE y ISOLEUCINE      ? "L-PEPTIDE LINKING" 
+"C5 H11 N O2 S" 149.211 MET y METHIONINE      ? "L-PEPTIDE LINKING" 
+"C5 H9 N O2"    115.130 PRO y PROLINE         ? "L-PEPTIDE LINKING" 
+#
+_entity.id               1
+_entity.pdbx_description .
+_entity.type             polymer
+#
+_entity_poly.entity_id      1
+_entity_poly.pdbx_strand_id A
+_entity_poly.type           polypeptide(L)
+#
+loop_
+_entity_poly_seq.entity_id
+_entity_poly_seq.hetero
+_entity_poly_seq.mon_id
+_entity_poly_seq.num
+1 n ASP 1  
+1 n GLU 2  
+1 n GLU 3  
+1 n PRO 4  
+1 n MET 5  
+1 n ILE 6  
+1 n ASN 7  
+1 n ASP 8  
+1 n GLU 9  
+1 n ARG 10 
+#
+_pdbx_audit_revision_history.revision_date 2000-01-01
+#
+_pdbx_database_status.recvd_initial_deposition_date 2000-01-01
+#
+loop_
+_pdbx_poly_seq_scheme.asym_id
+_pdbx_poly_seq_scheme.auth_seq_num
+_pdbx_poly_seq_scheme.entity_id
+_pdbx_poly_seq_scheme.hetero
+_pdbx_poly_seq_scheme.mon_id
+_pdbx_poly_seq_scheme.pdb_ins_code
+_pdbx_poly_seq_scheme.pdb_seq_num
+_pdbx_poly_seq_scheme.pdb_strand_id
+_pdbx_poly_seq_scheme.seq_id
+A 1  1 n ASP . 1  A 1  
+A 2  1 n GLU . 2  A 2  
+A 3  1 n GLU . 3  A 3  
+A 4  1 n PRO . 4  A 4  
+A 5  1 n MET . 5  A 5  
+A 6  1 n ILE . 6  A 6  
+A 7  1 n ASN . 7  A 7  
+A 8  1 n ASP . 8  A 8  
+A 9  1 n GLU . 9  A 9  
+A 10 1 n ARG . 10 A 10 
+#
+_software.classification other
+_software.name           "DeepMind Structure Class"
+_software.pdbx_ordinal   1
+_software.version        2.0.0
+#
+_struct_asym.entity_id 1
+_struct_asym.id        A
+#
+loop_
+_atom_site.group_PDB
+_atom_site.id
+_atom_site.type_symbol
+_atom_site.label_atom_id
+_atom_site.label_alt_id
+_atom_site.label_comp_id
+_atom_site.label_asym_id
+_atom_site.label_entity_id
+_atom_site.label_seq_id
+_atom_site.pdbx_PDB_ins_code
+_atom_site.Cartn_x
+_atom_site.Cartn_y
+_atom_site.Cartn_z
+_atom_site.occupancy
+_atom_site.B_iso_or_equiv
+_atom_site.auth_seq_id
+_atom_site.auth_asym_id
+_atom_site.pdbx_PDB_model_num
+ATOM 1  C CA . ASP A 1 1  ? 0.000 0.000 0.000 1.00 0.00 1  A 1 
+ATOM 2  C CA . GLU A 1 2  ? 0.000 0.000 0.000 1.00 0.00 2  A 1 
+ATOM 3  C CA . GLU A 1 3  ? 0.000 0.000 0.000 1.00 0.00 3  A 1 
+ATOM 4  C CA . PRO A 1 4  ? 0.000 0.000 0.000 1.00 0.00 4  A 1 
+ATOM 5  C CA . MET A 1 5  ? 0.000 0.000 0.000 1.00 0.00 5  A 1 
+ATOM 6  C CA . ILE A 1 6  ? 0.000 0.000 0.000 1.00 0.00 6  A 1 
+ATOM 7  C CA . ASN A 1 7  ? 0.000 0.000 0.000 1.00 0.00 7  A 1 
+ATOM 8  C CA . ASP A 1 8  ? 0.000 0.000 0.000 1.00 0.00 8  A 1 
+ATOM 9  C CA . GLU A 1 9  ? 0.000 0.000 0.000 1.00 0.00 9  A 1 
+ATOM 10 C CA . ARG A 1 10 ? 0.000 0.000 0.000 1.00 0.00 10 A 1 
+#

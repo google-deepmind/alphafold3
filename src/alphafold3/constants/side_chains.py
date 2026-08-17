@@ -1,7 +1,16 @@
 # Copyright 2024 DeepMind Technologies Limited
 #
-# AlphaFold 3 source code is licensed under CC BY-NC-SA 4.0. To view a copy of
-# this license, visit https://creativecommons.org/licenses/by-nc-sa/4.0/
+# AlphaFold 3 source code is licensed under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # To request access to the AlphaFold 3 model parameters, follow the process set
 # out at https://github.com/google-deepmind/alphafold3. You may only use these
@@ -62,18 +71,18 @@ CHI_ANGLES_ATOMS: Mapping[str, Sequence[tuple[str, ...]]] = {
     'VAL': [('N', 'CA', 'CB', 'CG1')],
 }
 
-CHI_GROUPS_FOR_ATOM = {}
+_CHI_GROUPS_FOR_ATOM: dict[tuple[str, str], list[tuple[int, int]]] = {}
 for res_name, chi_angle_atoms_for_res in CHI_ANGLES_ATOMS.items():
   for chi_group_i, chi_group in enumerate(chi_angle_atoms_for_res):
     for atom_i, atom in enumerate(chi_group):
-      CHI_GROUPS_FOR_ATOM.setdefault((res_name, atom), []).append(
+      _CHI_GROUPS_FOR_ATOM.setdefault((res_name, atom), []).append(
           (chi_group_i, atom_i)
       )
 
 # Mapping from (residue_name, atom_name) pairs to the atom's chi group index
 # and atom index within that group.
 CHI_GROUPS_FOR_ATOM: Mapping[tuple[str, str], Sequence[tuple[int, int]]] = (
-    CHI_GROUPS_FOR_ATOM
+    _CHI_GROUPS_FOR_ATOM
 )
 
 MAX_NUM_CHI_ANGLES: int = 4

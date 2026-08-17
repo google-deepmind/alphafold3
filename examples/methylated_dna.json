@@ -1,0 +1,34 @@
+{
+  "name": "methylated_CpG_dsDNA",
+  "sequences": [
+    {
+      "dna": {
+        "id": "A",
+        "sequence": "AGATCGATCGATCGATCGAT",
+        "modifications": [
+          {"modificationType": "5CM", "basePosition": 5},
+          {"modificationType": "5CM", "basePosition": 9},
+          {"modificationType": "5CM", "basePosition": 13},
+          {"modificationType": "5CM", "basePosition": 17}
+        ],
+        "description": "Forward strand (20 nt) with 5-methylcytosine (5CM) at CpG sites (positions 5, 9, 13, 17)"
+      }
+    },
+    {
+      "dna": {
+        "id": "B",
+        "sequence": "ATCGATCGATCGATCGATCT",
+        "modifications": [
+          {"modificationType": "5CM", "basePosition": 3},
+          {"modificationType": "5CM", "basePosition": 7},
+          {"modificationType": "5CM", "basePosition": 11},
+          {"modificationType": "5CM", "basePosition": 15}
+        ],
+        "description": "Reverse complement strand (20 nt) with 5-methylcytosine (5CM) at CpG sites (positions 3, 7, 11, 15)"
+      }
+    }
+  ],
+  "modelSeeds": [42],
+  "dialect": "alphafold3",
+  "version": 4
+}

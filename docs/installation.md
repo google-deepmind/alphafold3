@@ -17,8 +17,8 @@ should aid others with different setups. If you are installing locally outside
 of a Docker container, please ensure CUDA, cuDNN, and JAX are correctly
 installed; the
 [JAX installation documentation](https://jax.readthedocs.io/en/latest/installation.html#nvidia-gpu)
-is a useful reference for this case. Please note that the Docker container
-requires that the host machine has CUDA 12.6 installed.
+is a useful reference for this case. Note that the Docker container requires
+that the host machine has CUDA 12.6 installed.
 
 The instructions provided below describe how to:
 
@@ -264,17 +264,13 @@ You can use theses two scripts:
 
 ## Obtaining Model Parameters
 
-To request access to the AlphaFold 3 model parameters, please complete
-[this form](https://forms.gle/svvpY4u2jsHEwWYS6). Access will be granted at
-Google DeepMind’s sole discretion. We will aim to respond to requests within 2–3
-business days. You may only use AlphaFold 3 model parameters if received
-directly from Google. Use is subject to these
+You can download the AlphaFold 3 model parameters from
+https://storage.googleapis.com/alphafold3/af3.bin.zst. Use is subject to these
 [terms of use](https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md).
 
-Once access has been granted, download the model parameters to a directory of
-your choosing, referred to as `<MODEL_PARAMETERS_DIR>` in the following
-instructions. As with the databases, this should *not* be a subdirectory in the
-AlphaFold 3 repository directory.
+Download the model parameters to a directory of your choosing, referred to as
+`<MODEL_PARAMETERS_DIR>` in the following instructions. As with the databases,
+this should *not* be a subdirectory in the AlphaFold 3 repository directory.
 
 ## Building the Docker Container That Will Run AlphaFold 3
 
@@ -368,6 +364,33 @@ docker run alphafold3 python run_alphafold.py --help
 
 for more information.
 
+:ledger: **Optional: Enable Google cloud storage path support**
+
+AlphaFold 3 supports reading and writing specific files directly from Google
+Cloud Storage (`gs://` paths). Since GCS is an optional feature, the required
+`gcsfs` dependency is not installed by default. To enable GCS support when
+building the Docker container, pass the `UV_EXTRAS` build argument when running
+`docker build`:
+
+```sh
+docker build --build-arg UV_EXTRAS="--extra gcsfs" -t alphafold3 -f docker/Dockerfile .
+```
+
+The following command-line flags support `gs://` paths:
+
+-   `--input_dir`
+-   `--json_path`
+-   `--output_dir`
+-   `--model_dir`
+-   `--pdb_database_path`
+-   In the JSON input file, fields with names ending in `Path` (e.g.
+    `pairedMsaPath`) can be provided as Google Cloud Storage paths, if enabled.
+
+:warning: All other database paths (e.g., `--db_dir`,
+`--small_bfd_database_path`, etc.) and binary paths (e.g.,
+`--jackhmmer_binary_path`) do **not** support `gs://` paths and must be local
+file paths.
+
 ## Running Using Singularity Instead of Docker
 
 You may prefer to run AlphaFold 3 within Singularity. You'll still need to
@@ -454,3 +477,68 @@ singularity exec \
      --db_dir=/root/public_databases_fallback \
      --output_dir=/root/af_output
 ```
+
+## Running AlphaFold 3 without a GPU (CPU-only)
+
+It is possible to run AlphaFold 3 on a computer without a GPU. Note though that
+this is not an officially supported mode (we don't perform rigorous numerical
+accuracy testing for this mode). This mode can be useful for utilizing machines
+without a GPU if you don't mind the longer folding times (roughly 100x slower
+than on a GPU).
+
+### Direct installation without Docker on Linux or Mac OS
+
+Since JAX doesn't support running natively on Mac GPU as of 2026, you have to
+resort to running AlphaFold 3 in the slow CPU-only mode even though it has a GPU
+(`jax-metal` is unfinished as of July 2026).
+
+1.  Download all required databases and AlphaFold 3 weights (see above).
+2.  Install the [HMMER Suite](http://hmmer.org/). See
+    http://hmmer.org/documentation.html for installation instructions.
+3.  Install [uv](https://docs.astral.sh/uv/). See
+    https://docs.astral.sh/uv/getting-started/installation/ for installation
+    instructions.
+4.  Clone the AlphaFold 3 GitHub repository
+
+    ```sh
+    git clone https://github.com/google-deepmind/alphafold3.git
+    ```
+
+5.  Navigate in the `alphafold3` directory and run the following commands to
+    install AlphaFold 3:
+
+    ```sh
+    cd alphafold3
+    uv venv --python 3.12
+    source .venv/bin/activate
+    uv sync
+    uv run build_data
+    ```
+
+6.  Check the installation by running the AlphaFold 3 data test:
+
+    ```sh
+    uv run python run_alphafold_data_test.py
+    ```
+
+7.  You can now run AlphaFold 3. If you are running on a Linux CPU-only machine,
+    make sure to set flags `--jax_backend="cpu"` and
+    `--flash_attention_implementation="xla"`. If you are running on Mac OS with
+    Apple Silicon, you can set `--jax_backend="mps"` instead and get roughly 3x
+    better inference performance by using the built-in GPU:
+
+    ```sh
+    uv run run_alphafold.py \
+      --json_path="..." \
+      --output_dir="..." \
+      --model_dir="..." \
+      --jax_backend="cpu" \
+      --flash_attention_implementation="xla"
+    ```
+
+#### Running on Mac OS using the Apple Silicon GPU
+
+As an alternative to CPU-only mode, AlphaFold 3 inference can run on the Apple
+Silicon GPU with `--jax_backend="mps"` via the community supported `jax-mps`
+Metal plugin. This is an unofficial and experimental path, but it is roughly 3×
+faster than CPU (possibly more on newer M chips).
