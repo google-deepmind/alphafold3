@@ -177,7 +177,16 @@ def create_paired_features(
     )
     # Sort rows by the product of the original indices in the respective chain
     # MSAS, so as to rank hits that appear higher in the original MSAs higher.
-    rank_metric = np.abs(np.prod(rows.astype(np.float32), axis=1))
+    # The product is computed in the log domain to avoid float32 overflow:
+    # with deep MSAs and many chains the raw product of row indices easily
+    # exceeds the float32 range (~3.4e38), which silently corrupts the
+    # ordering (see https://github.com/google-deepmind/alphafold3/issues/236).
+    # As log is monotonic, summing the logs yields the same ordering as the
+    # product. Padding rows (index -1) contribute log(abs(-1)) = 0, and rows
+    # containing the query (index 0) contribute -inf, so they sort first, both
+    # matching the original product semantics.
+    with np.errstate(divide='ignore'):
+      rank_metric = np.sum(np.log(np.abs(rows).astype(np.float64)), axis=1)
     sorted_rows = rows[np.argsort(rank_metric), :]
     all_rows.append(sorted_rows)
     num_rows_seen += rows.shape[0]
@@ -210,7 +219,7 @@ def create_paired_features(
       feat_value = feat_value[selected_row_indices, :]
       out_chain[all_seq_name] = feat_value
     out_chain['num_alignments_all_seq'] = np.array(
-        out_chain['msa_all_seq'].shape[0]
+        out_chain['msa_all_seq'].shape[0], dtype=np.int32
     )
     paired_chains.append(out_chain)
   return paired_chains
@@ -228,14 +237,14 @@ def deduplicate_unpaired_sequences(
   )
 
   for chain in np_chains:
-    sequence_set = set(
-        hash(s.data.tobytes()) for s in chain['msa_all_seq'].astype(np.int8)
-    )
+    sequence_set = {
+        s.tobytes() for s in chain['msa_all_seq'].astype(np.int8)
+    }
     keep_rows = []
     # Go through unpaired MSA seqs and remove any rows that correspond to the
     # sequences that are already present in the paired MSA.
     for row_num, seq in enumerate(chain['msa'].astype(np.int8)):
-      if hash(seq.data.tobytes()) not in sequence_set:
+      if seq.tobytes() not in sequence_set:
         keep_rows.append(row_num)
     for feature_name in feature_names:
       if feature_name in msa_features:
