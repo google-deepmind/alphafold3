@@ -69,6 +69,30 @@ class StructureStoreTest(absltest.TestCase):
       with self.assertRaises(structure_stores.NotFoundError):
         store.get_mmcif_str('does_not_exist')
 
+  def test_tar_store_rejects_decompression_bomb(self):
+    # A tiny gzip member that expands far beyond the read limit must be
+    # rejected rather than decompressed fully into memory.
+    bomb = gzip.compress(b'0' * 64)
+    buf = io.BytesIO()
+    with tarfile.open(fileobj=buf, mode='w') as tar:
+      info = tarfile.TarInfo('bomb.cif.gz')
+      info.size = len(bomb)
+      tar.addfile(info, io.BytesIO(bomb))
+    buf.seek(0)
+    with tempfile.TemporaryDirectory() as d:
+      tar_path = os.path.join(d, 'store.tar')
+      with open(tar_path, 'wb') as f:
+        f.write(buf.getvalue())
+      old_limit = structure_stores._MAX_MMCIF_READ_SIZE_BYTES
+      structure_stores._MAX_MMCIF_READ_SIZE_BYTES = 16
+      try:
+        store = structure_stores.StructureStore(tar_path)
+        with self.assertRaises(IOError):
+          store.get_mmcif_str('bomb')
+      finally:
+        structure_stores._MAX_MMCIF_READ_SIZE_BYTES = old_limit
+        store.close()
+
 
 if __name__ == '__main__':
   absltest.main()

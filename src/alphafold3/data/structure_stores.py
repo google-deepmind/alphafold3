@@ -22,6 +22,7 @@
 from collections.abc import Mapping, Sequence
 import functools
 import gzip
+import io
 import tarfile
 from typing import Self
 from etils import epath
@@ -35,6 +36,32 @@ class NotFoundError(KeyError):
 # guards against decompression-bomb style archive members causing unbounded
 # memory usage.
 _MAX_MMCIF_READ_SIZE_BYTES = 1 << 30  # 1 GiB
+
+
+def _decompress_bounded(compressed: bytes) -> bytes:
+  """Decompresses gzip data, raising IOError if the output exceeds a limit.
+
+  Args:
+    compressed: Gzip-compressed bytes.
+
+  Returns:
+    The decompressed bytes.
+
+  Raises:
+    IOError: If the decompressed size exceeds `_MAX_MMCIF_READ_SIZE_BYTES` or
+      the data is not valid gzip.
+  """
+  try:
+    with gzip.GzipFile(fileobj=io.BytesIO(compressed)) as gz:
+      out = gz.read(_MAX_MMCIF_READ_SIZE_BYTES + 1)
+  except OSError as e:
+    raise IOError(f'Failed to decompress mmCIF: {e}') from e
+  if len(out) > _MAX_MMCIF_READ_SIZE_BYTES:
+    raise IOError(
+        f'Decompressed mmCIF exceeds size limit of'
+        f' {_MAX_MMCIF_READ_SIZE_BYTES} bytes'
+    )
+  return out
 
 
 class StructureStore:
@@ -117,20 +144,21 @@ class StructureStore:
             f' {_MAX_MMCIF_READ_SIZE_BYTES} bytes'
         )
       if member.name.lower().endswith('.gz'):
-        raw = gzip.decompress(raw)
-        if len(raw) > _MAX_MMCIF_READ_SIZE_BYTES:
-          raise IOError(
-              f'Decompressed mmCIF for {target_name=} exceeds size limit of'
-              f' {_MAX_MMCIF_READ_SIZE_BYTES} bytes'
-          )
+        raw = _decompress_bounded(raw)
       return raw.decode()
 
     filepath = self._structure_path / f'{target_name}.cif'  # pyrefly: ignore[unsupported-operation]
     try:
       return filepath.read_text()
-    except FileNotFoundError as e:
-      raise NotFoundError(f'{target_name=} not found at {filepath=}') from e
-    except OSError as e:
+    except Exception as e:
+      # Unfortunately, we can't predict which error type will be raised from the
+      # underlying storage library (e.g. tensorflow or gcsfs), so this is an
+      # attempt to stay backward compatible with file not found without
+      # obscuring other possible error conditions
+      exc_str = str(e).lower()
+      if 'no such file' in exc_str or 'not found' in exc_str:
+        raise NotFoundError(f'{target_name=} not found at {filepath=}') from e
+
       raise IOError(f'Error reading file {filepath}: {e}') from e
 
   def target_names(self) -> Sequence[str]:
