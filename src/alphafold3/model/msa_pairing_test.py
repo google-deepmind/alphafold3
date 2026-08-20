@@ -54,8 +54,8 @@ class MsaPairingTest(absltest.TestCase):
         dtype=np.int32,
     )
     self.assertSequenceEqual(
-        np.argsort(_rank_metric_log(rows)).tolist(),
-        np.argsort(_rank_metric_int64(rows)).tolist(),
+        np.argsort(_rank_metric_log(rows), kind='stable').tolist(),
+        np.argsort(_rank_metric_int64(rows), kind='stable').tolist(),
     )
 
   def test_query_and_padding_rows_rank_first(self):
