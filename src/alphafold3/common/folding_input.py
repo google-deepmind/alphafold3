@@ -234,6 +234,18 @@ class ProteinChain:
       raise ValueError(
           f'Protein ptms must not contain the "CCD_" prefix, got {ptms}'
       )
+    for template in templates or ():
+      for query_index, template_index in template.query_to_template_map.items():
+        if not 0 <= query_index < len(sequence):
+          raise ValueError(
+              f'Invalid template query index: {query_index}, must be in the'
+              f' range [0, {len(sequence)}) for a sequence of length'
+              f' {len(sequence)}.'
+          )
+        if template_index < 0:
+          raise ValueError(
+              f'Invalid template index: {template_index}, must not be negative.'
+          )
     # Use hashable containers for ptms and templates.
     self._id = id
     self._sequence = sequence
