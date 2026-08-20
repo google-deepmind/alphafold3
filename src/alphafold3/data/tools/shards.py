@@ -82,17 +82,24 @@ def parse_shard_spec(path: str) -> ShardSpec | None:
   # the prefix itself are matched literally rather than as glob patterns.
   shard_pattern = epath.Path(f'{_escape_glob(prefix)}-?????-of-?????{suffix}')
   shard_num_re = re.compile(
-      rf'^{re.escape(prefix)}-(?P<num>\d{{1,5}})-of-\d{{1,5}}{re.escape(suffix)}$'
+      rf'^{re.escape(prefix)}-(?P<index>\d{{1,5}})-of-(?P<total>\d{{1,5}})'
+      rf'{re.escape(suffix)}$'
   )
-  found_num_shards = None
+  # The total shard count is authoritative in the shard file name, so prefer
+  # the total declared by the first shard (`-00000-of-...`) when present, and
+  # fall back to any other shard's declared total otherwise.
+  total_from_first_shard = None
+  total_fallback = None
   for shard_path in shard_pattern.parent.glob(shard_pattern.name):
     match = shard_num_re.match(str(shard_path))
     if not match:
       continue
-    shard_num = int(match['num'])
-    # The number of shards is the highest shard index + 1 among the files
-    # actually present.
-    found_num_shards = max(found_num_shards or 0, shard_num + 1)
+    total = int(match['total'])
+    if match['index'] == '0' or match['index'] == '00000':
+      total_from_first_shard = total
+    elif total_fallback is None:
+      total_fallback = total
+  found_num_shards = total_from_first_shard if total_from_first_shard is not None else total_fallback
   if found_num_shards is None:
     return None
   if found_num_shards > _MAX_NUM_SHARDS:

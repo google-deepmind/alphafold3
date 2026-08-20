@@ -57,6 +57,18 @@ class ShardsTest(absltest.TestCase):
     with tempfile.TemporaryDirectory() as d:
       self.assertIsNone(shards.parse_shard_spec(os.path.join(d, 'nope@*')))
 
+  def test_parse_shard_spec_star_missing_trailing_shards(self):
+    with tempfile.TemporaryDirectory() as d:
+      prefix = os.path.join(d, 'db')
+      # Only the first two of five shards exist on disk; the total count
+      # declared in the shard file names must still be honoured.
+      for i in range(2):
+        with open(f'{prefix}-{i:05d}-of-00005', 'w'):
+          pass
+      spec = shards.parse_shard_spec(f'{prefix}@*')
+      self.assertIsNotNone(spec)
+      self.assertEqual(spec.num_shards, 5)
+
   def test_get_sharded_paths(self):
     paths = shards.get_sharded_paths('/tmp/db@3')
     self.assertEqual(len(paths), 3)
