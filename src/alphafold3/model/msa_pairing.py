@@ -326,5 +326,7 @@ def remove_all_gapped_rows_from_all_seqs(
           # For consistency we do this for all chains even though the
           # gapped rows are based on a selected set asym_ids.
           chain[feat_name] = chain[feat_name][non_gapped_keep_rows]
-    chain['num_alignments_all_seq'] = np.sum(non_gapped_keep_rows)
+    chain['num_alignments_all_seq'] = np.array(
+        np.sum(non_gapped_keep_rows), dtype=np.int32
+    )
   return chains_list
