@@ -22,7 +22,6 @@
 from collections.abc import Mapping, Sequence
 import functools
 import gzip
-import io
 import tarfile
 from typing import Self
 from etils import epath
@@ -119,6 +118,11 @@ class StructureStore:
         )
       if member.name.lower().endswith('.gz'):
         raw = gzip.decompress(raw)
+        if len(raw) > _MAX_MMCIF_READ_SIZE_BYTES:
+          raise IOError(
+              f'Decompressed mmCIF for {target_name=} exceeds size limit of'
+              f' {_MAX_MMCIF_READ_SIZE_BYTES} bytes'
+          )
       return raw.decode()
 
     filepath = self._structure_path / f'{target_name}.cif'  # pyrefly: ignore[unsupported-operation]
@@ -144,7 +148,7 @@ class StructureStore:
 
     No-op for stores backed by a mapping or a directory.
     """
-    if self._structure_tar is not None:
+    if getattr(self, '_structure_tar', None) is not None:
       self._structure_tar.close()
       self._structure_tar = None
 
