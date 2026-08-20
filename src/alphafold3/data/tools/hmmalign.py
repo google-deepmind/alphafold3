@@ -142,10 +142,19 @@ class Hmmalign:
       RuntimeError: If hmmalign fails.
     """
     deletion_table = str.maketrans('', '', '-')
+    uppercase_table = str.maketrans(
+        {c: c.upper() for c in 'abcdefghijklmnopqrstuvwxyz'}
+    )
     sequences_no_gaps_a3m = []
     for seq, desc in parsers.lazy_parse_fasta_string(sequences_a3m):
       sequences_no_gaps_a3m.append(f'>{desc}')
-      sequences_no_gaps_a3m.append(seq.translate(deletion_table))
+      # Remove gaps and uppercase insertions (lowercase residues) so that the
+      # insertion residues are preserved during realignment, as documented in
+      # the docstring. Without this, lowercase residues would be treated as
+      # new inserts relative to the profile.
+      sequences_no_gaps_a3m.append(
+          seq.translate(deletion_table).translate(uppercase_table)
+      )
     sequences_no_gaps_a3m = '\n'.join(sequences_no_gaps_a3m)
 
     aligned_sequences = self.align(sequences_no_gaps_a3m, profile)

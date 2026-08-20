@@ -71,6 +71,7 @@ def run(
     log_stderr: bool = False,
     log_stdout: bool = False,
     max_out_streams_len: int | None = 500_000,
+    timeout: float | None = None,
     **run_kwargs,
 ) -> subprocess.CompletedProcess[Any]:
   """Launches a subprocess, times it, and checks for errors.
@@ -84,13 +85,17 @@ def run(
     log_stdout: Whether to log the stdout of the command.
     max_out_streams_len: Max length of prefix of stdout and stderr included in
       the exception message. Set to `None` to disable truncation.
+    timeout: Optional timeout in seconds. If the process exceeds the timeout it
+      is killed and a `RuntimeError` is raised, so a hung external binary (e.g.
+      a stalled database search) cannot block the whole pipeline forever.
     **run_kwargs: Any other kwargs for `subprocess.run`.
 
   Returns:
     The completed process object.
 
   Raises:
-    RuntimeError: if the process completes with a non-zero return code.
+    RuntimeError: if the process completes with a non-zero return code or times
+      out.
   """
 
   logging.info('Launching subprocess "%s"', ' '.join(cmd))
@@ -103,6 +108,7 @@ def run(
         stderr=subprocess.PIPE,
         stdout=subprocess.PIPE,
         text=True,
+        timeout=timeout,
         **run_kwargs,
     )
   except subprocess.CalledProcessError as e:
@@ -118,6 +124,13 @@ def run(
         f'{cmd_name} failed'
         f'\nstdout:\n{e.stdout[:max_out_streams_len]}\n'
         f'\nstderr:\n{e.stderr[:max_out_streams_len]}'
+    )
+    raise RuntimeError(error_msg) from e
+  except subprocess.TimeoutExpired as e:
+    error_msg = (
+        f'{cmd_name} timed out after {timeout} seconds.'
+        f'\nstdout:\n{e.stdout[:max_out_streams_len] if e.stdout else ""}\n'
+        f'\nstderr:\n{e.stderr[:max_out_streams_len] if e.stderr else ""}'
     )
     raise RuntimeError(error_msg) from e
   end_time = time.time()

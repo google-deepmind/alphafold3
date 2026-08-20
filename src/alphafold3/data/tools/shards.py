@@ -54,6 +54,11 @@ class ShardSpec:
   suffix: str
 
 
+def _escape_glob(path: str) -> str:
+  """Escapes glob metacharacters so a path can be used in a glob pattern."""
+  return re.sub(r'([\[\]*?])', r'[\1]', path)
+
+
 def parse_shard_spec(path: str) -> ShardSpec | None:
   """Returns the shard spec or None if the path is not a shard spec.
 
@@ -72,15 +77,27 @@ def parse_shard_spec(path: str) -> ShardSpec | None:
 
   if shards != '*':
     return ShardSpec(prefix=prefix, num_shards=int(shards), suffix=suffix)
-  shard_slice = slice(len(prefix) + 10, len(prefix) + 15)
-  shard_path = epath.Path(f'{prefix}-00000-of-?????{suffix}')
-  for shard in sorted(shard_path.parent.glob(shard_path.name), reverse=True):
-    try:
-      num_shards = int(str(shard)[shard_slice])
-      return ShardSpec(prefix=prefix, num_shards=num_shards, suffix=suffix)
-    except ValueError:
+
+  # Glob the shard files, escaping the prefix so any `[`/`*`/`?` characters in
+  # the prefix itself are matched literally rather than as glob patterns.
+  shard_pattern = epath.Path(f'{_escape_glob(prefix)}-?????-of-?????{suffix}')
+  shard_num_re = re.compile(
+      rf'^{re.escape(prefix)}-(?P<num>\d{{1,5}})-of-\d{{1,5}}{re.escape(suffix)}$'
+  )
+  found_num_shards = None
+  for shard_path in shard_pattern.parent.glob(shard_pattern.name):
+    match = shard_num_re.match(str(shard_path))
+    if not match:
       continue
-  return None
+    shard_num = int(match['num'])
+    # The number of shards is the highest shard index + 1 among the files
+    # actually present.
+    found_num_shards = max(found_num_shards or 0, shard_num + 1)
+  if found_num_shards is None:
+    return None
+  if found_num_shards > _MAX_NUM_SHARDS:
+    raise ValueError(f'Shard count for {path} exceeds {_MAX_NUM_SHARDS}')
+  return ShardSpec(prefix=prefix, num_shards=found_num_shards, suffix=suffix)
 
 
 def get_sharded_paths(shard_spec: str) -> Sequence[str] | None:

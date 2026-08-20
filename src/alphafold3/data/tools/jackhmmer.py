@@ -218,7 +218,7 @@ class Jackhmmer(msa_tool.MsaTool):
       # currently set very low to make querying Mgnify run in a reasonable
       # amount of time.
       cmd_flags = [
-          *('-o', '/dev/null'),  # Don't pollute stdout with Jackhmmer output.
+          *('-o', os.devnull),  # Don't pollute stdout with Jackhmmer output.
           *('-A', output_sto_path),
           '--noali',
           *('--F1', str(self._filter_f1)),
@@ -300,7 +300,11 @@ def _merge_jackhmmer_results(
   def _merged_a3m_tbl_iter(a3m: str) -> Iterable[tuple[str, str, str, str]]:
     # Don't parse the entire a3m, lazily parse only as many sequences as needed.
     iterator = iter(parsers.lazy_parse_fasta_string(a3m))
-    next(iterator)  # Skip the query which isn't present in tblout.
+    try:
+      next(iterator)  # Skip the query which isn't present in tblout.
+    except StopIteration:
+      # A shard can legitimately return an empty a3m. Nothing to merge.
+      return
     for sequence, description in iterator:
       name = description.partition(' ')[0].partition('/')[0]
       if tbl_info := parsed_tbl.get(name):
@@ -313,8 +317,14 @@ def _merge_jackhmmer_results(
     # present. We want e-value (column 5) and bit score (column 6), so do only 6
     # splits. E-value and bit score are equivalent, but bit score might have
     # higher resolution. Use the name in case of a tie.
-    e_value, bit_score = tbl_info.split(maxsplit=6)[4:6]
-    return float(e_value), -float(bit_score), name
+    try:
+      e_value, bit_score = tbl_info.split(maxsplit=6)[4:6]
+      return float(e_value), -float(bit_score), name
+    except (IndexError, ValueError) as e:
+      # A malformed tbl line must not abort the merge of otherwise valid
+      # shard results. Give it the worst possible e-value so it sorts last.
+      logging.warning('Skipping malformed jackhmmer TBL line: %r', tbl_info)
+      return float('inf'), float('inf'), name
 
   # A3M/TBL is sorted by e-value and name, hence we can merge them efficiently.
   merged_a3m_and_tblout = heapq.merge(

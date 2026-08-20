@@ -215,7 +215,7 @@ class Nhmmer(msa_tool.MsaTool):
       )
 
       cmd_flags = [
-          *('-o', '/dev/null'),  # Don't pollute stdout with nhmmer output.
+          *('-o', os.devnull),  # Don't pollute stdout with nhmmer output.
           '--noali',  # Don't include the alignment in stdout.
           *('--cpu', str(self._n_cpu)),
       ]
@@ -315,6 +315,11 @@ def _merge_nhmmer_results(
     for line in nhmmer_result.tblout.splitlines():
       if not line.startswith('#'):
         line_fields = line.split(maxsplit=15)
+        if len(line_fields) < 14:
+          # Malformed TBL line (e.g. a truncated shard). Skip it rather than
+          # aborting the whole merge and losing all other shard results.
+          logging.warning('Skipping malformed nhmmer TBL line: %r', line)
+          continue
         accession = line_fields[0]
         alignment_from = line_fields[6]
         alignment_to = line_fields[7]
@@ -326,7 +331,11 @@ def _merge_nhmmer_results(
   def _merged_a3m_tbl_iter(a3m: str) -> Iterable[tuple[str, str, str, str]]:
     # Don't parse the entire a3m, lazily parse only as many sequences as needed.
     iterator = iter(parsers.lazy_parse_fasta_string(a3m))
-    next(iterator)  # Skip the query which isn't present in tblout.
+    try:
+      next(iterator)  # Skip the query which isn't present in tblout.
+    except StopIteration:
+      # A shard can legitimately return an empty a3m. Nothing to merge.
+      return
     for sequence, description in iterator:
       name = description.partition(' ')[0]
       if tbl_info := parsed_tbl.get(name):
@@ -338,7 +347,14 @@ def _merge_nhmmer_results(
     # Nucleic tblout has 16 space delimited columns. "-" used if no value
     # present. We want e-value in column 12, so do only 13 splits. Use the name
     # in case of an e-value tie.
-    return float(tbl_info.split(maxsplit=13)[12]), name
+    try:
+      e_value = float(tbl_info.split(maxsplit=13)[12])
+    except (IndexError, ValueError) as e:
+      # A malformed tbl line must not abort the merge of otherwise valid
+      # shard results. Give it the worst possible e-value so it sorts last.
+      logging.warning('Skipping malformed nhmmer TBL line: %r', tbl_info)
+      e_value = float('inf')
+    return e_value, name
 
   # A3M/TBL is sorted by e-value and name, hence we can merge them efficiently.
   merged_a3m_and_tblout = heapq.merge(

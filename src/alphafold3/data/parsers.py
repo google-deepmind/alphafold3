@@ -131,7 +131,12 @@ def convert_stockholm_to_a3m(
     # sequence parts.
     if not line or line.startswith(('#', '//')):
       continue
-    seqname, aligned_seq = line.split(maxsplit=1)
+    split_line = line.split(maxsplit=1)
+    if len(split_line) != 2:
+      # Corrupted tool output; a stray token without a sequence. Skip it
+      # rather than crashing the whole MSA processing.
+      continue
+    seqname, aligned_seq = split_line
     if seqname not in sequences:
       if reached_max_sequences:
         continue
@@ -158,7 +163,10 @@ def convert_stockholm_to_a3m(
       if len(descriptions) == len(sequences):
         break
 
-  assert len(descriptions) <= len(sequences)
+  if len(descriptions) > len(sequences):
+    raise ValueError(
+        'Found more descriptions than sequences in the Stockholm alignment.'
+    )
 
   # Convert sto format to a3m line by line
   a3m_sequences = {}
