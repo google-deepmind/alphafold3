@@ -21,12 +21,21 @@
 
 from collections.abc import Mapping, Sequence
 import functools
+import gzip
+import io
 import tarfile
+from typing import Self
 from etils import epath
 
 
 class NotFoundError(KeyError):
   """Raised when the structure store doesn't contain the requested target."""
+
+
+# Maximum size in bytes of a single mmCIF read from a tar archive. This
+# guards against decompression-bomb style archive members causing unbounded
+# memory usage.
+_MAX_MMCIF_READ_SIZE_BYTES = 1 << 30  # 1 GiB
 
 
 class StructureStore:
@@ -64,12 +73,19 @@ class StructureStore:
   @functools.cached_property
   def _tar_members(self) -> Mapping[str, tarfile.TarInfo]:
     assert self._structure_tar is not None
-    return {
-        path.stem: tarinfo
-        for tarinfo in self._structure_tar.getmembers()
-        if tarinfo.isfile()
-        and (path := epath.Path(tarinfo.path.lower())).suffix == '.cif'
-    }
+    members = {}
+    for tarinfo in self._structure_tar.getmembers():
+      if not tarinfo.isfile():
+        continue
+      path = epath.Path(tarinfo.path.lower())
+      if path.suffix not in ('.cif', '.gz'):
+        continue
+      # Key by the target name (the mmCIF file stem) rather than the full
+      # path, matching the directory-based lookup below. Duplicate stems
+      # (e.g. `a/1abc.cif` and `b/1abc.cif`) keep the first occurrence.
+      key = path.stem if path.suffix == '.cif' else path.with_suffix('').stem
+      members.setdefault(key, tarinfo)
+    return members
 
   def get_mmcif_str(self, target_name: str) -> str:
     """Returns an mmCIF for a given `target_name`.
@@ -89,25 +105,28 @@ class StructureStore:
     if self._structure_tar is not None:
       try:
         member = self._tar_members[target_name]
-        if struct_file := self._structure_tar.extractfile(member):
-          return struct_file.read().decode()
-        else:
-          raise NotFoundError(f'{target_name=} not found')
       except KeyError:
         raise NotFoundError(f'{target_name=} not found') from None
+      struct_file = self._structure_tar.extractfile(member)
+      if struct_file is None:
+        raise NotFoundError(f'{target_name=} not found')
+      with struct_file:
+        raw = struct_file.read(_MAX_MMCIF_READ_SIZE_BYTES + 1)
+      if len(raw) > _MAX_MMCIF_READ_SIZE_BYTES:
+        raise IOError(
+            f'mmCIF for {target_name=} exceeds size limit of'
+            f' {_MAX_MMCIF_READ_SIZE_BYTES} bytes'
+        )
+      if member.name.lower().endswith('.gz'):
+        raw = gzip.decompress(raw)
+      return raw.decode()
 
     filepath = self._structure_path / f'{target_name}.cif'  # pyrefly: ignore[unsupported-operation]
     try:
       return filepath.read_text()
-    except Exception as e:
-      # Unfortunately, we can't predict which error type will be raised from the
-      # underlying storage library (e.g. tensorflow or gcsfs), so this is an
-      # attempt to stay backward compatible with file not found without
-      # obscuring other possible error conditions
-      exc_str = str(e).lower()
-      if 'no such file' in exc_str or 'not found' in exc_str:
-        raise NotFoundError(f'{target_name=} not found at {filepath=}') from e
-
+    except FileNotFoundError as e:
+      raise NotFoundError(f'{target_name=} not found at {filepath=}') from e
+    except OSError as e:
       raise IOError(f'Error reading file {filepath}: {e}') from e
 
   def target_names(self) -> Sequence[str]:
@@ -119,3 +138,21 @@ class StructureStore:
     elif self._structure_path is not None:
       return sorted([path.stem for path in self._structure_path.glob('*.cif')])
     return ()
+
+  def close(self) -> None:
+    """Closes the underlying tar archive, releasing the file handle.
+
+    No-op for stores backed by a mapping or a directory.
+    """
+    if self._structure_tar is not None:
+      self._structure_tar.close()
+      self._structure_tar = None
+
+  def __del__(self) -> None:
+    self.close()
+
+  def __enter__(self) -> Self:
+    return self
+
+  def __exit__(self, *exc_info) -> None:
+    self.close()

@@ -530,32 +530,39 @@ class Templates:
         return  # Hmmsearch could return an empty string if there are no hits.
 
       for hit_seq, hit_desc in parsers.lazy_parse_fasta_string(a3m):
-        pdb_id, auth_chain_id, start, end, full_length = _parse_hit_description(
-            hit_desc
-        )
+        try:
+          pdb_id, auth_chain_id, start, end, full_length = (
+              _parse_hit_description(hit_desc)
+          )
 
-        release_date, sequence, unresolved_res_ids = _parse_hit_metadata(
-            structure_store, pdb_id, auth_chain_id
-        )
-        if unresolved_res_ids is None:
+          release_date, sequence, unresolved_res_ids = _parse_hit_metadata(
+              structure_store, pdb_id, auth_chain_id
+          )
+          if unresolved_res_ids is None:
+            continue
+
+          # seq_unresolved_res_num are 1-based, setting to 0-based indices.
+          unresolved_indices = [i - 1 for i in unresolved_res_ids]
+
+          yield Hit(
+              pdb_id=pdb_id,
+              auth_chain_id=auth_chain_id,
+              hmmsearch_sequence=hit_seq,
+              structure_sequence=sequence,  # pyrefly: ignore[bad-argument-type]
+              query_sequence=query_sequence,
+              unresolved_res_indices=unresolved_indices,
+              start_index=start - 1,  # Raw value is residue number, not index.
+              end_index=end,
+              full_length=full_length,
+              release_date=datetime.date.fromisoformat(release_date),
+              chain_poly_type=chain_poly_type,
+          )
+        except (ValueError, KeyError, IOError, OSError) as e:
+          # A single corrupt or unreadable hit (e.g. a malformed hmmsearch
+          # description or an unreadable mmCIF) should not abort the whole
+          # template search for the query. Skip it and continue with the rest.
+          logging.warning('Skipping template hit %r: %s', hit_desc, e)
           continue
-
-        # seq_unresolved_res_num are 1-based, setting to 0-based indices.
-        unresolved_indices = [i - 1 for i in unresolved_res_ids]
-
-        yield Hit(
-            pdb_id=pdb_id,
-            auth_chain_id=auth_chain_id,
-            hmmsearch_sequence=hit_seq,
-            structure_sequence=sequence,  # pyrefly: ignore[bad-argument-type]
-            query_sequence=query_sequence,
-            unresolved_res_indices=unresolved_indices,
-            start_index=start - 1,  # Raw value is residue number, not index.
-            end_index=end,
-            full_length=full_length,
-            release_date=datetime.date.fromisoformat(release_date),
-            chain_poly_type=chain_poly_type,
-        )
 
     if filter_config is None:
       hits = tuple(hit_generator(a3m))
