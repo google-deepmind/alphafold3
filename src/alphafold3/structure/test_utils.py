@@ -33,10 +33,6 @@ class StructureTestCase(parameterized.TestCase):
 
   def assertAuthorNamingSchemeEqual(self, ans1, ans2):  # pylint: disable=invalid-name
     """Walks naming scheme, making sure all elements are equal."""
-    if ans1 is None or ans2 is None:
-      self.assertIsNone(ans1)
-      self.assertIsNone(ans2)
-      return
     flat_ans1 = dict(tree.flatten_with_path(dataclasses.asdict(ans1)))
     flat_ans2 = dict(tree.flatten_with_path(dataclasses.asdict(ans2)))
     for k, v in flat_ans1.items():
@@ -46,10 +42,6 @@ class StructureTestCase(parameterized.TestCase):
 
   def assertAllResiduesEqual(self, all_res1, all_res2):  # pylint: disable=invalid-name
     """Walks all residues, making sure alll elements are equal."""
-    if all_res1 is None or all_res2 is None:
-      self.assertIsNone(all_res1)
-      self.assertIsNone(all_res2)
-      return
     self.assertSameElements(all_res1.keys(), all_res2.keys())
     for chain_id, chain_res in all_res1.items():
       self.assertSequenceEqual(chain_res, all_res2[chain_id], msg=chain_id)
@@ -97,10 +89,9 @@ class StructureTestCase(parameterized.TestCase):
   def assertBondsEqual(self, bonds1, bonds2, atom_key1, atom_key2):  # pylint: disable=invalid-name
     """Checks whether two Bonds objects are considered equal."""
     # An empty bonds table is functionally equivalent to an empty bonds table.
-    # NB: this can only ever be None in structure v1.
-    if bonds1 is None or not bonds1.size or bonds2 is None or not bonds2.size:
-      self.assertTrue(bonds1 is None or not bonds1.size, msg=f'{bonds1=}')
-      self.assertTrue(bonds2 is None or not bonds2.size, msg=f'{bonds2=}')
+    if not bonds1.size or not bonds2.size:
+      self.assertEqual(bonds1.size, 0, msg=f'{bonds1=}')
+      self.assertEqual(bonds1.size, 0, msg=f'{bonds2=}')
       return
 
     ptnr1_indices1, ptnr2_indices1 = bonds1.get_atom_indices(atom_key1)
