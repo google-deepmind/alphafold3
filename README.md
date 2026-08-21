@@ -21,6 +21,9 @@ AlphaFold 3 is also available at
 [alphafoldserver.com](https://alphafoldserver.com) for non-commercial use,
 though with a more limited set of ligands and covalent modifications.
 
+For commercial use, AlphaFold 3 is available via
+[Gemini Enterprise Agent Platform on Google Cloud](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/open-models/alphafold-3).
+
 If you have any questions, please contact the AlphaFold team at
 [alphafold@google.com](mailto:alphafold@google.com).
 

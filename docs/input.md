@@ -1,5 +1,9 @@
 # AlphaFold 3 Input
 
+This is documentation for the AlphaFold 3 JSON input format. If you are looking
+for documentation of the AlphaFold 3 Google Cloud API, please refer to
+[this API reference](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/open-models/alphafold-3#api-reference).
+
 ## Specifying Input Files
 
 You can provide inputs to `run_alphafold.py` in one of two ways:

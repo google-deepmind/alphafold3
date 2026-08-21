@@ -29,6 +29,11 @@ The instructions provided below describe how to:
 1.  Obtain model parameters.
 1.  Build the AlphaFold 3 Docker container or Singularity image.
 
+Note that while the instructions below show manual virtual machine creation, you
+can alternatively also use
+[AlphaFold 3 on Gemini Enterprise Agent Platform](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/open-models/alphafold-3)
+which makes the deployment easier. This workflow also supports commercial use.
+
 ## Provisioning a Machine
 
 Clean Ubuntu images are available on Google Cloud, AWS, Azure, and other major
