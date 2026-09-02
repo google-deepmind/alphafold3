@@ -70,7 +70,7 @@ class Ccd(Mapping[str, Mapping[str, Sequence[str]]]):
         be used to override specific entries in the CCD if desired.
     """
     self._ccd_pickle_path = ccd_pickle_path or _CCD_PICKLE_FILE
-    self._dict = _load_ccd_pickle_cached(self._ccd_pickle_path)
+    shared_dict = _load_ccd_pickle_cached(self._ccd_pickle_path)
 
     if user_ccd is not None:
       if not user_ccd:
@@ -79,7 +79,13 @@ class Ccd(Mapping[str, Mapping[str, Sequence[str]]]):
           key: value.to_dict()
           for key, value in cif_dict.parse_multi_data_cif(user_ccd).items()
       }
-      self._dict.update(user_ccd_cifs)
+      # Copy before overlaying: the cached dict is shared by every Ccd built
+      # from the same pickle path, so updating it in place would leak this
+      # user CCD into unrelated Ccd instances (and override real CCD codes for
+      # them). Only the top-level dict is copied; the values are shared.
+      self._dict = {**shared_dict, **user_ccd_cifs}
+    else:
+      self._dict = shared_dict
 
   def __getitem__(self, key: object) -> Mapping[str, Sequence[str]]:
     if not isinstance(key, str):
