@@ -20,7 +20,8 @@
 """The main featurizer."""
 
 import bisect
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterator, Mapping, Sequence
+import dataclasses
 import datetime
 import itertools
 
@@ -81,6 +82,18 @@ class TotalNumResOutOfRangeError(Exception):
 
 class MmcifNumChainsError(Exception):
   """Raised if the mmcif file contains too many / too few chains."""
+
+
+@dataclasses.dataclass
+class _SeedInvariantFeatures:
+  """Internal reuse state for one input and one pipeline configuration.
+
+  MSA arrays are copied for every seed so yielded batches cannot mutate the
+  private reusable state.
+  Instances must never outlive or be shared between featurisation requests.
+  """
+
+  msa: features.MSA | None = None
 
 
 class WholePdbPipeline:
@@ -175,6 +188,8 @@ class WholePdbPipeline:
       paired_msa_by_chain_id: Mapping[str, str],
       templates_by_chain_id: Mapping[str, Sequence[folding_input.Template]],
       random_seed: int | None = None,
+      *,
+      _reusable: _SeedInvariantFeatures | None = None,
   ) -> feat_batch.Batch:
     """Computes features for a structure and associated MSAs/templates."""
     if random_seed is None:
@@ -336,16 +351,26 @@ class WholePdbPipeline:
     )
 
     # Create MSA features
-    batch_msa = features.MSA.compute_features(
-        all_tokens=all_tokens,
-        standard_token_idxs=standard_token_idxs,
-        padding_shapes=padding_shapes,
-        unpaired_msa_by_chain_id=unpaired_msa_by_chain_id,
-        paired_msa_by_chain_id=paired_msa_by_chain_id,
-        logging_name=logging_name,
-        max_paired_sequence_per_species=self._config.max_paired_sequence_per_species,
-        resolve_msa_overlaps=self._config.resolve_msa_overlaps,
-    )
+    if _reusable is not None and _reusable.msa is not None:
+      batch_msa = _reusable.msa
+    else:
+      batch_msa = features.MSA.compute_features(
+          all_tokens=all_tokens,
+          standard_token_idxs=standard_token_idxs,
+          padding_shapes=padding_shapes,
+          unpaired_msa_by_chain_id=unpaired_msa_by_chain_id,
+          paired_msa_by_chain_id=paired_msa_by_chain_id,
+          logging_name=logging_name,
+          max_paired_sequence_per_species=self._config.max_paired_sequence_per_species,
+          resolve_msa_overlaps=self._config.resolve_msa_overlaps,
+      )
+      if _reusable is not None:
+        _reusable.msa = batch_msa
+    if _reusable is not None:
+      batch_msa = features.MSA.from_data_dict({
+          key: value.copy(order='K')
+          for key, value in batch_msa.as_data_dict().items()
+      })
 
     # Create template features
     batch_templates = features.Templates.compute_features(
@@ -443,6 +468,8 @@ class WholePdbPipeline:
       random_state: np.random.RandomState,
       ccd: chemical_components.Ccd,
       random_seed: int | None = None,
+      *,
+      _reusable: _SeedInvariantFeatures | None = None,
   ) -> features.BatchDict:
     """Takes requests from in_queue, adds (key, serialized ex) to out_queue."""
     struct = fold_input.to_structure(ccd=ccd)
@@ -466,6 +493,7 @@ class WholePdbPipeline:
         paired_msa_by_chain_id=paired_msa_by_chain_id,
         templates_by_chain_id=templates_by_chain_id,
         random_seed=random_seed,
+        _reusable=_reusable,
     )
     np_example = batch.as_data_dict()
 
@@ -480,3 +508,22 @@ class WholePdbPipeline:
             f' random_seed={random_seed} contains NaNs. NaN feature: {name}'
         )
     return np_example
+
+  def _process_items(
+      self,
+      *,
+      fold_input: folding_input.Input,
+      ccd: chemical_components.Ccd,
+  ) -> Iterator[features.BatchDict]:
+    """Processes all seeds with reuse scoped to this input only."""
+    reusable = (
+        _SeedInvariantFeatures() if len(fold_input.rng_seeds) > 1 else None
+    )
+    for random_seed in fold_input.rng_seeds:
+      yield self.process_item(
+          fold_input=fold_input,
+          random_state=np.random.RandomState(random_seed),
+          ccd=ccd,
+          random_seed=random_seed,
+          _reusable=reusable,
+      )
