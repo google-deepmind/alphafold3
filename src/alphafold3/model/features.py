@@ -1550,6 +1550,8 @@ def get_reference(
     conformer_max_iterations: int | None,
     *,
     _skip_conformer_generation: bool = False,
+    _ccd_mols: dict[str, Chem.Mol] | None = None,
+    _atom_name_chars: dict[str, np.ndarray] | None = None,
 ) -> tuple[dict[str, Any], Any, Any]:
   """Reference structure for residue from CCD or SMILES.
 
@@ -1568,6 +1570,9 @@ def get_reference(
       to run for RDKit conformer search.
     _skip_conformer_generation: For unused polymer frame coordinates only.
       Retains the conformer seed draw and augmentation RNG progression.
+    _ccd_mols: Private cache for one reference call with one CCD. Conformer
+      generation copies these molecules; failures are not cached.
+    _atom_name_chars: Private encodings copied into the reference output arrays.
 
   Returns:
     Mapping from atom names to features, from_atoms, dest_atoms.
@@ -1577,10 +1582,15 @@ def get_reference(
 
   mol = None
   if ccd_cif:
-    try:
-      mol = rdkit_utils.mol_from_ccd_cif(ccd_cif, remove_hydrogens=False)
-    except rdkit_utils.MolFromMmcifError:
-      logging.warning('Failed to construct mol from ccd_cif for: %s', res_name)
+    if _ccd_mols is not None:
+      mol = _ccd_mols.get(res_name)
+    if mol is None:
+      try:
+        mol = rdkit_utils.mol_from_ccd_cif(ccd_cif, remove_hydrogens=False)
+      except rdkit_utils.MolFromMmcifError:
+        logging.warning('Failed to construct mol from ccd_cif for: %s', res_name)
+      if mol is not None and _ccd_mols is not None:
+        _ccd_mols[res_name] = mol
   else:  # No CCD entry, use SMILES from chemical components data.
     if not (
         chemical_components_data.chem_comp
@@ -1662,8 +1672,14 @@ def get_reference(
     features[atom_name] = {}
     idx = atom_names.index(atom_name)
     charge = 0 if charges[idx] == '?' else int(charges[idx])
-    atom_name_chars = np.array([ord(c) - 32 for c in atom_name], dtype=int)
-    atom_name_chars = _pad_to(atom_name_chars, (4,))
+    atom_name_chars = (
+        _atom_name_chars.get(atom_name) if _atom_name_chars is not None else None
+    )
+    if atom_name_chars is None:
+      atom_name_chars = np.array([ord(c) - 32 for c in atom_name], dtype=int)
+      atom_name_chars = _pad_to(atom_name_chars, (4,))
+      if _atom_name_chars is not None:
+        _atom_name_chars[atom_name] = atom_name_chars
     features[atom_name]['positions'] = pos[idx]
     features[atom_name]['mask'] = 1
     features[atom_name]['element'] = elements[idx]
@@ -1725,6 +1741,12 @@ class RefStructure:
     chain_ids_all = []
     res_ids_all = []
 
+    # Conformer generation copies each Mol, and the output arrays copy each
+    # atom-name encoding. Keep this read-only metadata within one reference
+    # call; seeded conformations remain distinct for every residue.
+    ccd_mols_cache = {}
+    atom_name_chars_cache = {}
+
     # Cache reference conformations for each residue.
     conformations = {}
     ref_space_uids = {}
@@ -1754,6 +1776,8 @@ class RefStructure:
                       in mmcif_names.NUCLEIC_ACID_CHAIN_TYPES
                   )
               ),
+              _ccd_mols=ccd_mols_cache,
+              _atom_name_chars=atom_name_chars_cache,
           )
           conformations[(chain_id, res_id)] = conf
 

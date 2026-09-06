@@ -173,6 +173,71 @@ class ReuseTest(parameterized.TestCase):
       list(p._process_items(fold_input=inp, ccd=ccd))
     self.assertLen(audited, 1)
 
+  @parameterized.parameters(False, True)
+  def test_chemical_metadata_scope_and_failed_parses(self, fail_mol):
+    data = json.loads(self.make_input(False, [1, 2]).to_json())
+    data['sequences'] = [{'protein': {
+        'id': chain_id, 'sequence': 'A' * 32,
+        'unpairedMsa': '', 'pairedMsa': '', 'templates': [],
+    }} for chain_id in ('A', 'B')]
+    inp = folding_input.Input.from_json(json.dumps(data))
+    ccd = chemical_components.Ccd()
+    p = pipeline.WholePdbPipeline(config=pipeline.WholePdbPipeline.Config())
+    get_reference = features.get_reference
+    make_mol = rdkit_utils.mol_from_ccd_cif
+    make_conformer = rdkit_utils.get_random_conformer
+    counts = {'mols': 0, 'conformers': 0}
+    in_reference = False
+    use_cache = False
+    traces = []
+
+    def molecule(*args, **kwargs):
+      if in_reference:
+        counts['mols'] += 1
+        if fail_mol:
+          raise rdkit_utils.MolFromMmcifError
+      return make_mol(*args, **kwargs)
+
+    def conformer(*args, **kwargs):
+      counts['conformers'] += 1
+      before = kwargs['mol'].ToBinary()
+      result = make_conformer(*args, **kwargs)
+      self.assertEqual(kwargs['mol'].ToBinary(), before)
+      return result
+
+    def reference(*args, **kwargs):
+      nonlocal in_reference
+      if not use_cache:
+        kwargs = {**kwargs, '_ccd_mols': None, '_atom_name_chars': None}
+      in_reference = True
+      try:
+        before = kwargs['random_state'].get_state()
+        result = get_reference(*args, **kwargs)
+        traces.append((before, kwargs['random_state'].get_state()))
+        return result
+      finally:
+        in_reference = False
+
+    with (
+        mock.patch.object(features, 'get_reference', side_effect=reference),
+        mock.patch.object(rdkit_utils, 'mol_from_ccd_cif', molecule),
+        mock.patch.object(rdkit_utils, 'get_random_conformer',
+                          side_effect=conformer),
+    ):
+      expected = list(p._process_items(fold_input=inp, ccd=ccd))
+      expected_traces = traces[:]
+      traces.clear()
+      counts.update(mols=0, conformers=0)
+      use_cache = True
+      actual = list(p._process_items(fold_input=inp, ccd=ccd))
+    self.assertExact(traces, expected_traces)
+    for key in features.RefStructure.from_data_dict(actual[0]).as_data_dict():
+      self.assertFalse(np.shares_memory(actual[0][key], actual[1][key]))
+    self.assertExact(actual, expected)
+    # Two chains, 32 alanines each, two seeded references. One successful
+    # molecule per reference proves both reuse and absence of cross-call state.
+    self.assertEqual(counts['mols'], 128 if fail_mol else 2)
+    self.assertEqual(counts['conformers'], 0 if fail_mol else 128)
 
   def test_nan_validation_preserved(self):
     inp = self.make_input(False, [1, 2])
@@ -282,6 +347,99 @@ class ReuseTest(parameterized.TestCase):
     with self.assertRaisesRegex(ValueError, 'missing'):
       featurisation.featurise_input(inp, chemical_components.Ccd(), buckets=None)
 
+  @parameterized.product(
+      example=('ubiquitin_monomer', 'barnase_barstar',
+               'streptavidin_biotin_smiles', 'rnaseb_glycosylated',
+               'modified_rna', 'erk2_phosphorylated'),
+      frames=(False, True),
+  )
+  def test_upstream_examples(self, example, frames):
+    root = pathlib.Path(__file__).resolve().parents[4]
+    data = json.loads((root / 'examples' / f'{example}.json').read_text())
+    # These host-only fixtures bypass searches explicitly. Populated MSA and
+    # template inputs are covered separately above and below.
+    for entry in data['sequences']:
+      if 'protein' in entry:
+        for key, empty in (('unpairedMsa', ''), ('pairedMsa', ''), ('templates', [])):
+          if entry['protein'].get(key) is None:
+            entry['protein'][key] = empty
+      elif 'rna' in entry and entry['rna'].get('unpairedMsa') is None:
+        entry['rna']['unpairedMsa'] = ''
+    inp = folding_input.Input.from_json(json.dumps(data))
+    inp = dataclasses.replace(inp, rng_seeds=[1, 2])
+    ccd = chemical_components.Ccd()
+    p = pipeline.WholePdbPipeline(config=pipeline.WholePdbPipeline.Config(
+        deterministic_frames=frames,
+    ))
+    expected = [p.process_item(inp, np.random.RandomState(s), ccd, s)
+                for s in inp.rng_seeds]
+    self.assertExact(list(p._process_items(fold_input=inp, ccd=ccd)), expected)
+
+  @parameterized.parameters(False, True)
+  def test_msa_with_template(self, frames):
+    data = json.loads(self.make_input(False, [1, 2]).to_json())
+    path = (pathlib.Path(folding_input.__file__).parent
+            / 'test_data' / 'test_template.mmcif')
+    data['sequences'][0]['protein']['templates'] = [{
+        'mmcif': path.read_text(), 'queryIndices': [0, 1, 2],
+        'templateIndices': [0, 1, 2],
+    }]
+    inp = folding_input.Input.from_json(json.dumps(data))
+    ccd = chemical_components.Ccd()
+    p = pipeline.WholePdbPipeline(config=pipeline.WholePdbPipeline.Config(
+        deterministic_frames=frames))
+    expected = [p.process_item(inp, np.random.RandomState(s), ccd, s)
+                for s in inp.rng_seeds]
+    actual = list(p._process_items(fold_input=inp, ccd=ccd))
+    self.assertExact(actual, expected)
+    self.assertTrue(np.any(actual[0]['template_atom_mask']))
+
+  @parameterized.parameters(False, True)
+  def test_interleaved_ligands_and_conformer_failure(self, fail):
+    data = json.loads(self.make_input(False, [1, 2]).to_json())
+    protein = data['sequences'][0]
+    protein['protein']['id'] = 'B'
+    data['sequences'] = [
+        {'ligand': {'id': 'A', 'smiles': 'CCO'}}, protein,
+        {'ligand': {'id': 'C', 'smiles': 'c1ccccc1'}},
+    ]
+    inp = folding_input.Input.from_json(json.dumps(data))
+    ccd = chemical_components.Ccd()
+    original = features.RefStructure.compute_features
+    conformer = rdkit_utils.get_random_conformer
+    observed = []
+
+    def reference(*args, **kwargs):
+      rng = np.random.RandomState()
+      rng.set_state(kwargs['random_state'].get_state())
+      expected = original(*args, **{
+          **kwargs, 'random_state': rng, '_for_frames': False})
+      actual = original(*args, **kwargs)
+      self.assertExact(kwargs['random_state'].get_state(), rng.get_state())
+      if kwargs.get('_for_frames'):
+        layout = kwargs['all_token_atoms_layout']
+        nonpolymer = ~np.isin(layout.chain_type, list(
+            mmcif_names.PEPTIDE_CHAIN_TYPES | mmcif_names.NUCLEIC_ACID_CHAIN_TYPES))
+        for key, value in actual[0].as_data_dict().items():
+          np.testing.assert_array_equal(
+              value[:layout.shape[0]][nonpolymer],
+              expected[0].as_data_dict()[key][:layout.shape[0]][nonpolymer])
+      else:
+        self.assertExact(actual, expected)
+      observed.append(True)
+      return actual
+
+    with (
+        mock.patch.object(features.RefStructure, 'compute_features',
+                          side_effect=reference),
+        mock.patch.object(rdkit_utils, 'get_random_conformer',
+                          side_effect=(lambda **kwargs: None) if fail else conformer),
+    ):
+      for frames in (False, True):
+        p = pipeline.WholePdbPipeline(config=pipeline.WholePdbPipeline.Config(
+            deterministic_frames=frames))
+        list(p._process_items(fold_input=inp, ccd=ccd))
+    self.assertNotEmpty(observed)
 
 
 if __name__ == '__main__':
