@@ -9,6 +9,7 @@ from absl.testing import absltest
 from absl.testing import parameterized
 from alphafold3.common import folding_input
 from alphafold3.constants import chemical_components
+from alphafold3.constants import mmcif_names
 from alphafold3.data import featurisation
 from alphafold3.data.tools import rdkit_utils
 from alphafold3.model import msa_pairing
@@ -127,6 +128,50 @@ class ReuseTest(parameterized.TestCase):
       list(p._process_items(fold_input=inp, ccd=ccd))
     self.assertLen(audited, 1)
 
+  def test_frame_only_rng_and_nonpolymer_reference(self):
+    inp = self.make_input(True, [1, 2])
+    ccd = chemical_components.Ccd()
+    p = pipeline.WholePdbPipeline(config=pipeline.WholePdbPipeline.Config())
+    compute = features.RefStructure.compute_features
+    audited = []
+
+    def checked(*args, **kwargs):
+      if not kwargs.get('_for_frames'):
+        return compute(*args, **kwargs)
+      rng = np.random.RandomState()
+      rng.set_state(kwargs['random_state'].get_state())
+      with mock.patch.object(
+          rdkit_utils, 'get_random_conformer',
+          wraps=rdkit_utils.get_random_conformer,
+      ) as conformers:
+        expected = compute(*args, **{
+            **kwargs, 'random_state': rng, '_for_frames': False,
+        })
+        baseline_calls = conformers.call_count
+        actual = compute(*args, **kwargs)
+        self.assertLess(conformers.call_count - baseline_calls, baseline_calls)
+      self.assertExact(kwargs['random_state'].get_state(), rng.get_state())
+      layout = kwargs['all_token_atoms_layout']
+      nonpolymer = ~np.isin(
+          layout.chain_type,
+          list(mmcif_names.PEPTIDE_CHAIN_TYPES
+               | mmcif_names.NUCLEIC_ACID_CHAIN_TYPES),
+      )
+      self.assertTrue(np.any(nonpolymer))
+      for key, value in actual[0].as_data_dict().items():
+        reference = expected[0].as_data_dict()[key]
+        np.testing.assert_array_equal(
+            value[:layout.shape[0]][nonpolymer],
+            reference[:layout.shape[0]][nonpolymer],
+        )
+      self.assertExact(actual[1], expected[1])
+      audited.append(True)
+      return actual
+
+    with mock.patch.object(features.RefStructure, 'compute_features',
+                           side_effect=checked):
+      list(p._process_items(fold_input=inp, ccd=ccd))
+    self.assertLen(audited, 1)
 
 
   def test_nan_validation_preserved(self):

@@ -424,6 +424,7 @@ class WholePdbPipeline:
             ref_max_modified_date=ref_max_modified_date,  # pyrefly: ignore[bad-argument-type]
             conformer_max_iterations=None,
             ligand_ligand_bonds=ligand_ligand_bonds,
+            _for_frames=True,
         )
         if _reusable is not None:
           _reusable.deterministic_ref_structure = deterministic_ref_structure

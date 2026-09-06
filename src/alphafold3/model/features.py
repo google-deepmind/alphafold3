@@ -1548,6 +1548,8 @@ def get_reference(
     random_state: np.random.RandomState,
     ref_max_modified_date: datetime.date,
     conformer_max_iterations: int | None,
+    *,
+    _skip_conformer_generation: bool = False,
 ) -> tuple[dict[str, Any], Any, Any]:
   """Reference structure for residue from CCD or SMILES.
 
@@ -1564,6 +1566,8 @@ def get_reference(
       modified to be allowed to use reference coordinates.
     conformer_max_iterations: Optional override for maximum number of iterations
       to run for RDKit conformer search.
+    _skip_conformer_generation: For unused polymer frame coordinates only.
+      Retains the conformer seed draw and augmentation RNG progression.
 
   Returns:
     Mapping from atom names to features, from_atoms, dest_atoms.
@@ -1613,12 +1617,13 @@ def get_reference(
   # an RDKit conformer.
   if mol is not None:
     conformer_random_seed = int(random_state.randint(1, 1 << 31))
-    conformer = rdkit_utils.get_random_conformer(
-        mol=mol,
-        random_seed=conformer_random_seed,
-        max_iterations=conformer_max_iterations,
-        logging_name=res_name,
-    )
+    if not _skip_conformer_generation:
+      conformer = rdkit_utils.get_random_conformer(
+          mol=mol,
+          random_seed=conformer_random_seed,
+          max_iterations=conformer_max_iterations,
+          logging_name=res_name,
+      )
     if conformer:
       for idx, atom in enumerate(mol.GetAtoms()):
         atom_names.append(atom.GetProp('atom_name'))
@@ -1695,8 +1700,15 @@ class RefStructure:
       ref_max_modified_date: datetime.date,
       conformer_max_iterations: int | None,
       ligand_ligand_bonds: atom_layout.AtomLayout | None = None,
+      *,
+      _for_frames: bool = False,
   ) -> tuple[Self, Any]:
-    """Reference structure information for each residue."""
+    """Reference information; frame-only mode omits unused polymer conformers.
+
+    Frame-only results must not be used as model reference features. Polymer
+    frame masks ignore coordinates, but RNG progression is preserved so that
+    non-polymer reference geometry remains identical.
+    """
 
     # Get features per atom
     padded_shape = (padding_shapes.num_tokens, all_token_atoms_layout.shape[1])
@@ -1733,6 +1745,15 @@ class RefStructure:
               random_state=random_state,
               ref_max_modified_date=ref_max_modified_date,
               conformer_max_iterations=conformer_max_iterations,
+              _skip_conformer_generation=(
+                  _for_frames
+                  and (
+                      all_token_atoms_layout.chain_type[idx]
+                      in mmcif_names.PEPTIDE_CHAIN_TYPES
+                      or all_token_atoms_layout.chain_type[idx]
+                      in mmcif_names.NUCLEIC_ACID_CHAIN_TYPES
+                  )
+              ),
           )
           conformations[(chain_id, res_id)] = conf
 
