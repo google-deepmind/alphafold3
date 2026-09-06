@@ -89,7 +89,7 @@ class ReuseTest(parameterized.TestCase):
       actual = list(p._process_items(fold_input=inp, ccd=ccd))
     self.assertExact(actual, expected)
     self.assertEqual(msa.call_count, 1)
-    self.assertEqual(ref.call_count, n * (2 if frames else 1))
+    self.assertEqual(ref.call_count, n + int(frames and ligand))
     for i in range(1, n):
       for key in features.MSA.from_data_dict(actual[0]).as_data_dict():
         self.assertFalse(np.shares_memory(actual[0][key], actual[i][key]))
@@ -102,6 +102,30 @@ class ReuseTest(parameterized.TestCase):
                       for s in other.rng_seeds]
     self.assertExact(other_actual, other_expected)
 
+  def test_polymer_frames_ignore_reference_coordinates(self):
+    inp = self.make_input(False, [1])
+    ccd = chemical_components.Ccd()
+    p = pipeline.WholePdbPipeline(config=pipeline.WholePdbPipeline.Config())
+    compute = features.Frames.compute_features
+    audited = []
+
+    def checked(*args, **kwargs):
+      actual = compute(*args, **kwargs)
+      ref = kwargs['ref_structure']
+      empty = dataclasses.replace(
+          ref, positions=np.zeros_like(ref.positions),
+          mask=np.zeros_like(ref.mask),
+      )
+      expected = compute(*args, **{**kwargs, 'ref_structure': empty})
+      self.assertExact(actual, expected)
+      self.assertTrue(np.all(actual.mask[:len(kwargs['all_tokens'].atom_name)]))
+      audited.append(True)
+      return actual
+
+    with mock.patch.object(features.Frames, 'compute_features',
+                           side_effect=checked):
+      list(p._process_items(fold_input=inp, ccd=ccd))
+    self.assertLen(audited, 1)
 
 
 

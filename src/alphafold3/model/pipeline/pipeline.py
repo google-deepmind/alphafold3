@@ -30,6 +30,7 @@ from alphafold3 import structure
 from alphafold3.common import base_config
 from alphafold3.common import folding_input
 from alphafold3.constants import chemical_components
+from alphafold3.constants import mmcif_names
 from alphafold3.model import feat_batch
 from alphafold3.model import features
 from alphafold3.model.pipeline import inter_chain_bonds
@@ -88,12 +89,13 @@ class MmcifNumChainsError(Exception):
 class _SeedInvariantFeatures:
   """Internal reuse state for one input and one pipeline configuration.
 
-  MSA arrays are copied for every seed so yielded batches cannot mutate the
-  private reusable state.
+  The reference is only read by frame construction. MSA arrays are copied for
+  every seed so yielded batches cannot mutate the private reusable state.
   Instances must never outlive or be shared between featurisation requests.
   """
 
   msa: features.MSA | None = None
+  deterministic_ref_structure: features.RefStructure | None = None
 
 
 class WholePdbPipeline:
@@ -396,20 +398,35 @@ class WholePdbPipeline:
             ligand_ligand_bonds=ligand_ligand_bonds,
         )
     )
-    deterministic_ref_structure = None
-    if self._config.deterministic_frames:
-      deterministic_ref_structure, _ = features.RefStructure.compute_features(
-          all_token_atoms_layout=all_token_atoms_layout,
-          ccd=ccd,
-          padding_shapes=padding_shapes,
-          chemical_components_data=chemical_components_data,
-          random_state=(
-              np.random.RandomState(_DETERMINISTIC_FRAMES_RANDOM_SEED)
-          ),
-          ref_max_modified_date=ref_max_modified_date,  # pyrefly: ignore[bad-argument-type]
-          conformer_max_iterations=None,
-          ligand_ligand_bonds=ligand_ligand_bonds,
-      )
+    # Polymer frame masks do not depend on reference coordinates. Their
+    # seeded reference has already validated the chemistry and is sufficient
+    # for Frames; non-polymer inputs still need the fixed-seed reference.
+    deterministic_ref_structure = batch_ref_structure
+    if self._config.deterministic_frames and any(
+        chain_type not in mmcif_names.PEPTIDE_CHAIN_TYPES
+        and chain_type not in mmcif_names.NUCLEIC_ACID_CHAIN_TYPES
+        for chain_type in all_tokens.chain_type
+    ):
+      if (
+          _reusable is not None
+          and _reusable.deterministic_ref_structure is not None
+      ):
+        deterministic_ref_structure = _reusable.deterministic_ref_structure
+      else:
+        deterministic_ref_structure, _ = features.RefStructure.compute_features(
+            all_token_atoms_layout=all_token_atoms_layout,
+            ccd=ccd,
+            padding_shapes=padding_shapes,
+            chemical_components_data=chemical_components_data,
+            random_state=(
+                np.random.RandomState(_DETERMINISTIC_FRAMES_RANDOM_SEED)
+            ),
+            ref_max_modified_date=ref_max_modified_date,  # pyrefly: ignore[bad-argument-type]
+            conformer_max_iterations=None,
+            ligand_ligand_bonds=ligand_ligand_bonds,
+        )
+        if _reusable is not None:
+          _reusable.deterministic_ref_structure = deterministic_ref_structure
 
     # Create ligand-polymer bond features.
     polymer_ligand_bond_info = features.PolymerLigandBondInfo.compute_features(
