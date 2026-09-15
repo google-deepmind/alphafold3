@@ -158,7 +158,7 @@ class Rot3Array:
     return Rot3Array(c0.x, c1.x, c2.x, c0.y, c1.y, c2.y, c0.z, c1.z, c2.z)  # pyrefly: ignore[bad-argument-count, bad-return]
 
   @classmethod
-  def identity(cls, shape: Any, dtype: jnp.dtype = jnp.float32) -> Self:
+  def identity(cls, shape: Any, dtype: jnp.dtype = jnp.float32) -> Self:  # pyrefly: ignore[bad-function-definition]
     """Returns identity of given shape."""
     ones = jnp.ones(shape, dtype=dtype)
     zeros = jnp.zeros(shape, dtype=dtype)

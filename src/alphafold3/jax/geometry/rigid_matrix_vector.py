@@ -140,7 +140,7 @@ class Rigid3Array:
     return Rigid3Array(rot, trans)  # pyrefly: ignore[bad-argument-count, bad-return]
 
   @classmethod
-  def identity(cls, shape: Any, dtype: jnp.dtype = jnp.float32) -> Self:
+  def identity(cls, shape: Any, dtype: jnp.dtype = jnp.float32) -> Self:  # pyrefly: ignore[bad-function-definition]
     """Return identity Rigid3Array of given shape."""
     return cls(
         rotation_matrix.Rot3Array.identity(shape, dtype=dtype),  # pyrefly: ignore[bad-argument-count]
