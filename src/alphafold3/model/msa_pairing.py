@@ -177,7 +177,15 @@ def create_paired_features(
     )
     # Sort rows by the product of the original indices in the respective chain
     # MSAS, so as to rank hits that appear higher in the original MSAs higher.
-    rank_metric = np.abs(np.prod(rows.astype(np.float32), axis=1))
+    # Sum the logs instead of multiplying: with enough chains the product
+    # overflows float32, every row becomes inf and the ordering is lost.
+    # While log fixes the dynamic range, float64 is still needed for
+    # precision: two rows differing by one index k contribute ~1/k to the
+    # sum, but the float32 ULP of the sum grows as num_chains * log(k) *
+    # 2^-23. At ~100 chains and MSA depth ~10k this exceeds 1/k, losing
+    # the ability to distinguish consecutive indices.
+    with np.errstate(divide='ignore'):  # log(0) is -inf, which sorts first.
+      rank_metric = np.sum(np.log(np.abs(rows).astype(np.float64)), axis=1)
     sorted_rows = rows[np.argsort(rank_metric), :]
     all_rows.append(sorted_rows)
     num_rows_seen += rows.shape[0]
