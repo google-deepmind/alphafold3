@@ -70,7 +70,7 @@ class Ccd(Mapping[str, Mapping[str, Sequence[str]]]):
         be used to override specific entries in the CCD if desired.
     """
     self._ccd_pickle_path = ccd_pickle_path or _CCD_PICKLE_FILE
-    self._dict = _load_ccd_pickle_cached(self._ccd_pickle_path)
+    base_ccd = _load_ccd_pickle_cached(self._ccd_pickle_path)
 
     if user_ccd is not None:
       if not user_ccd:
@@ -79,7 +79,11 @@ class Ccd(Mapping[str, Mapping[str, Sequence[str]]]):
           key: value.to_dict()
           for key, value in cif_dict.parse_multi_data_cif(user_ccd).items()
       }
-      self._dict.update(user_ccd_cifs)
+      # Create a copy of the base CCD with the user modifications so the
+      # base CCD is not mutated across different instances of the class.
+      self._dict = {**base_ccd, **user_ccd_cifs}
+    else:
+      self._dict = base_ccd
 
   def __getitem__(self, key: object) -> Mapping[str, Sequence[str]]:
     if not isinstance(key, str):
