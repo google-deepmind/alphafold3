@@ -288,6 +288,19 @@ _HMMSEARCH_N_CPU = flags.DEFINE_integer(
     ' above 8 CPUs provides very little additional speedup.',
     lower_bound=0,
 )
+_JACKHMMER_N_WORKERS = flags.DEFINE_integer(
+    'jackhmmer_n_workers',
+    4,
+    'Maximum number of Jackhmmer database searches to run concurrently.',
+    lower_bound=1,
+)
+
+_NHMMER_N_WORKERS = flags.DEFINE_integer(
+    'nhmmer_n_workers',
+    3,
+    'Maximum number of Nhmmer database searches to run concurrently.',
+    lower_bound=1,
+)
 
 # Data pipeline configuration.
 _RESOLVE_MSA_OVERLAPS = flags.DEFINE_bool(
@@ -1025,8 +1038,10 @@ def main(_):
         pdb_database_path=expand_path(_PDB_DATABASE_PATH.value),
         seqres_database_path=expand_path(_SEQRES_DATABASE_PATH.value),
         jackhmmer_n_cpu=_JACKHMMER_N_CPU.value,
+        jackhmmer_n_workers=_JACKHMMER_N_WORKERS.value,
         jackhmmer_max_parallel_shards=_JACKHMMER_MAX_PARALLEL_SHARDS.value,
         nhmmer_n_cpu=_NHMMER_N_CPU.value,
+        nhmmer_n_workers=_NHMMER_N_WORKERS.value,
         nhmmer_max_parallel_shards=_NHMMER_MAX_PARALLEL_SHARDS.value,
         hmmsearch_n_cpu=_HMMSEARCH_N_CPU.value,
         max_template_date=max_template_date,
