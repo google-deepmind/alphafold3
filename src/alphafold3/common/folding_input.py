@@ -1484,15 +1484,23 @@ class Input:
 
   def to_json(self) -> str:
     """Converts Input to an AlphaFold JSON."""
-    deduped_chains = {}
-    deduped_chain_ids = {}
+    # Merge only *consecutive* content-identical chains. Merging chains that are
+    # separated by a different chain would emit that chain after them, and
+    # from_json rebuilds Input.chains in the order the sequences are emitted.
+    # Chain order fixes the token order and the asym_id/entity_id/sym_id
+    # assignment, so a round trip through to_json must not reorder chains.
+    grouped_chains = []
     for chain in self.chains:
-      deduped_chains[chain.hash_without_id()] = chain
-      deduped_chain_ids.setdefault(chain.hash_without_id(), []).append(chain.id)
+      if (
+          grouped_chains
+          and grouped_chains[-1][0].hash_without_id() == chain.hash_without_id()
+      ):
+        grouped_chains[-1][1].append(chain.id)
+      else:
+        grouped_chains.append((chain, [chain.id]))
 
     sequences = []
-    for chain_content_hash, ids in deduped_chain_ids.items():
-      chain = deduped_chains[chain_content_hash]
+    for chain, ids in grouped_chains:
       sequences.append(chain.to_dict(seq_id=ids if len(ids) > 1 else ids[0]))
 
     alphafold_json = json.dumps(
