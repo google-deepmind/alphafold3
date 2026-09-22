@@ -671,6 +671,31 @@ class InputTest(parameterized.TestCase):
     )
     self.assertEqual(af_input, round_trip_input)
 
+  def test_to_json_keeps_chain_order_of_interleaved_duplicates(self):
+    # Two identical chains separated by a different chain: to_json must not
+    # move the chain in between, as the chain order fixes the token order and
+    # the asym_id/entity_id/sym_id assignment in to_structure.
+    af_input = {
+        'name': 'test_input',
+        'modelSeeds': [1337],
+        'sequences': [
+            {'protein': {'id': 'A', 'sequence': 'RRR'}},
+            {'ligand': {'id': 'B', 'ccdCodes': ['GLY']}},
+            {'protein': {'id': 'C', 'sequence': 'RRR'}},
+        ],
+        'bondedAtomPairs': None,
+        'userCCD': None,
+        'dialect': 'alphafold3',
+        'version': folding_input.JSON_VERSION,
+    }
+    fold_input = folding_input.Input.from_json(json.dumps(af_input))
+    round_trip = folding_input.Input.from_json(fold_input.to_json())
+    self.assertEqual(
+        [chain.id for chain in round_trip.chains],
+        [chain.id for chain in fold_input.chains],
+    )
+    self.assertEqual(round_trip, fold_input)
+
   def test_from_json_some_chain_ids_given(self):
     test_json = data.Data(resources.ROOT / 'common/test_data/').load(
         'alphafold_input.json'
