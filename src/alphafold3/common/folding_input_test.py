@@ -104,6 +104,80 @@ class InputTest(parameterized.TestCase):
         folding_input.Template(mmcif='irrelevant', query_to_template_map={}),
     )
 
+  @parameterized.named_parameters(
+      dict(
+          testcase_name='negative_query_index_first_pos',
+          query_to_template_map={-1: 0, 1: 1},
+          expected_error='Query residue index -1 at position 1',
+      ),
+      dict(
+          testcase_name='negative_query_index_second_pos',
+          query_to_template_map={0: 0, -5: 1},
+          expected_error='Query residue index -5 at position 2',
+      ),
+      dict(
+          testcase_name='negative_template_index_first_pos',
+          query_to_template_map={0: -1, 1: 1},
+          expected_error='Template residue index -1 at position 1',
+      ),
+      dict(
+          testcase_name='negative_template_index_second_pos',
+          query_to_template_map={0: 0, 1: -3},
+          expected_error='Template residue index -3 at position 2',
+      ),
+  )
+  def test_template_negative_index_error(
+      self, query_to_template_map, expected_error
+  ):
+    with self.assertRaisesRegex(ValueError, expected_error):
+      folding_input.Template(
+          mmcif='tst', query_to_template_map=query_to_template_map
+      )
+
+  @parameterized.named_parameters(
+      dict(
+          testcase_name='first_template_first_pos',
+          templates=[
+              folding_input.Template(mmcif='tst', query_to_template_map={5: 0})
+          ],
+          expected_error=(
+              'Query residue index 5 at position 1 .+ length 4 for template 1'
+          ),
+      ),
+      dict(
+          testcase_name='first_template_second_pos',
+          templates=[
+              folding_input.Template(
+                  mmcif='tst', query_to_template_map={0: 0, 6: 1}
+              )
+          ],
+          expected_error=(
+              'Query residue index 6 at position 2 .+ length 4 for template 1'
+          ),
+      ),
+      dict(
+          testcase_name='second_template_second_pos',
+          templates=[
+              folding_input.Template(
+                  mmcif='tst', query_to_template_map={0: 0, 3: 1}
+              ),
+              folding_input.Template(
+                  mmcif='tst', query_to_template_map={1: 0, 10: 2}
+              ),
+          ],
+          expected_error=(
+              'Query residue index 10 at position 2 .+ length 4 for template 2'
+          ),
+      ),
+  )
+  def test_protein_chain_template_query_index_too_large_error(
+      self, templates, expected_error
+  ):
+    with self.assertRaisesRegex(ValueError, expected_error):
+      folding_input.ProteinChain(
+          id='A', sequence='ABCD', ptms=[], templates=templates
+      )
+
   def test_protein_to_ccd_sequence(self):
     protein_chain = folding_input.ProteinChain(
         id='A', sequence='ABCDEFGHIJ', ptms=[('HY3', 1), ('P1L', 5)]

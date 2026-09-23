@@ -116,6 +116,18 @@ class Template:
     # Needed to make the Template class hashable.
     self._query_to_template = tuple(query_to_template_map.items())
 
+    for pos, (query_index, hit_index) in enumerate(
+        query_to_template_map.items(), start=1
+    ):
+      if query_index < 0:
+        raise ValueError(
+            f'Query residue index {query_index} at position {pos} is negative.'
+        )
+      if hit_index < 0:
+        raise ValueError(
+            f'Template residue index {hit_index} at position {pos} is negative.'
+        )
+
   @property
   def query_to_template_map(self) -> Mapping[int, int]:
     return dict(self._query_to_template)
@@ -234,6 +246,18 @@ class ProteinChain:
       raise ValueError(
           f'Protein ptms must not contain the "CCD_" prefix, got {ptms}'
       )
+
+    for template_pos, template in enumerate(templates or [], start=1):
+      for pos, query_index in enumerate(
+          template.query_to_template_map.keys(), start=1
+      ):
+        if query_index > len(sequence):
+          raise ValueError(
+              f'Query residue index {query_index} at position {pos} is greater'
+              f' than the query sequence length {len(sequence)} for template'
+              f' {template_pos}.'
+          )
+
     # Use hashable containers for ptms and templates.
     self._id = id
     self._sequence = sequence
