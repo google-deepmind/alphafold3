@@ -1892,18 +1892,14 @@ class Structure(table.Database):
 
   def find_chains_with_unknown_sequence(self) -> Sequence[str]:
     """Returns a sequence of chain IDs that contain only unknown residues."""
-    unknown_sequences = []
-    for start, end in self.iter_chain_ranges():
-      try:
-        unknown_id = residue_names.UNKNOWN_TYPES.index(self.res_name[start])
-        if start + 1 == end or np.all(
-            self.res_name[start + 1 : end]
-            == residue_names.UNKNOWN_TYPES[unknown_id]
-        ):
-          unknown_sequences.append(self.chain_id[start])
-      except ValueError:
-        pass
-    return unknown_sequences
+    known_res_mask = string_array.isin(
+        self._residues.name, set(residue_names.UNKNOWN_TYPES), invert=True
+    )
+    chains_with_known_res = set(self._residues.chain_key[known_res_mask])
+    unknown_chain_mask = membership.isin(
+        self._chains.key, chains_with_known_res, invert=True
+    )
+    return self._chains.id[unknown_chain_mask].tolist()
 
   def add_bonds(
       self,
