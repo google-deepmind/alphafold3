@@ -1357,10 +1357,10 @@ class Structure(table.Database):
 
     return Structure(  # pyrefly: ignore[bad-return]
         name=name,
-        release_date=release_date,
-        resolution=resolution,
-        structure_method=structure_method,
-        bioassembly_data=bioassembly_data,
+        release_date=release_date,  # pyrefly: ignore[bad-argument-type]
+        resolution=resolution,  # pyrefly: ignore[bad-argument-type]
+        structure_method=structure_method,  # pyrefly: ignore[bad-argument-type]
+        bioassembly_data=bioassembly_data,  # pyrefly: ignore[bad-argument-type]
         chemical_components_data=chem_data,
         atoms=self._atoms,
         residues=self._residues,
