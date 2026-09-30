@@ -753,6 +753,30 @@ class InputTest(parameterized.TestCase):
     with self.assertRaises(ValueError):
       folding_input.Input.from_json(test_json)
 
+  @parameterized.parameters('Aa', 'aA', 'éA', 'Ａ', 'A1', '', 'a')
+  def test_from_json_rejects_invalid_chain_ids(self, chain_id):
+    test_json = json.dumps({
+        'name': 'test_input',
+        'modelSeeds': [1],
+        'sequences': [{'protein': {'id': chain_id, 'sequence': 'ACD'}}],
+        'dialect': 'alphafold3',
+        'version': folding_input.JSON_VERSION,
+    })
+    with self.assertRaises(ValueError):
+      folding_input.Input.from_json(test_json)
+
+  @parameterized.parameters('A', 'AA', 'BA', 'XYZ')
+  def test_from_json_accepts_uppercase_chain_ids(self, chain_id):
+    test_json = json.dumps({
+        'name': 'test_input',
+        'modelSeeds': [1],
+        'sequences': [{'protein': {'id': chain_id, 'sequence': 'ACD'}}],
+        'dialect': 'alphafold3',
+        'version': folding_input.JSON_VERSION,
+    })
+    fold_input = folding_input.Input.from_json(test_json)
+    self.assertEqual(fold_input.chains[0].id, chain_id)
+
   def test_from_json_chain_id_duplicates(self):
     test_json = data.Data(resources.ROOT / 'common/test_data/').load(
         'alphafold_input.json'
