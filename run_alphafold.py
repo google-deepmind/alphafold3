@@ -956,9 +956,21 @@ def main(_):
     elif _JAX_BACKEND.value == JaxBackend.GPU:
       gpu_devices = jax.local_devices(backend='gpu')
       if gpu_devices:
-        compute_capability = float(
-            gpu_devices[_GPU_DEVICE.value].compute_capability
+        gpu_device = gpu_devices[_GPU_DEVICE.value]
+        raw_compute_capability = getattr(
+            gpu_device, 'compute_capability', None
         )
+        try:
+          compute_capability = float(raw_compute_capability)
+        except (TypeError, ValueError):
+          # Non-NVIDIA GPUs do not report a numeric compute capability. AMD
+          # GPUs, for instance, report an architecture string such as "gfx942".
+          raise ValueError(
+              f'Unsupported GPU: {gpu_device.device_kind} reports compute'
+              f' capability {raw_compute_capability!r}, which is not numeric.'
+              ' AlphaFold 3 currently requires an NVIDIA GPU when'
+              ' --jax_backend=gpu. Use --jax_backend=cpu to run on CPU.'
+          ) from None
         if compute_capability < 6.0:
           raise ValueError(
               'AlphaFold 3 requires at least GPU compute capability 6.0 (see'
