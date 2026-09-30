@@ -273,6 +273,13 @@ You can download the AlphaFold 3 model parameters from
 https://storage.googleapis.com/alphafold3/af3.bin.zst. Use is subject to these
 [terms of use](https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md).
 
+In addition to the original AlphaFold 3 model parameters, the SynthID
+Bio-structure version of AlphaFold 3, corresponding to a fine-tuned version
+producing watermarked structures, is available at
+https://storage.googleapis.com/alphafold3/af3_synthid.bin.zst. Please refer to
+[google-deepmind/synthidbio](https://github.com/google-deepmind/synthidbio) for
+more details.
+
 Download the model parameters to a directory of your choosing, referred to as
 `<MODEL_PARAMETERS_DIR>` in the following instructions. As with the databases,
 this should *not* be a subdirectory in the AlphaFold 3 repository directory.

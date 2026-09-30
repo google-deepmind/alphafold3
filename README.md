@@ -34,6 +34,12 @@ download the AlphaFold 3 model parameters from
 https://storage.googleapis.com/alphafold3/af3.bin.zst. Use is subject to these
 [terms of use](https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md).
 
+The model parameters for the SynthID Bio-structure version of AlphaFold 3, which
+predicts watermarked structures, is available at
+https://storage.googleapis.com/alphafold3/af3_synthid.bin.zst. See
+[google-deepmind/synthidbio](https://github.com/google-deepmind/synthidbio) for
+more details.
+
 ## Installation and Running Your First Prediction
 
 See the [installation documentation](docs/installation.md).
@@ -164,6 +170,9 @@ AlphaFold team at alphafold@google.com.
 We would love to hear your feedback and understand how AlphaFold 3 has been
 useful in your research. Share your stories with us at
 [alphafold@google.com](mailto:alphafold@google.com).
+
+For questions surrounding SynthID Bio-structure, please contact
+[synthidbio@google.com](mailto:synthidbio@google.com).
 
 ## Licence and Disclaimer
 
