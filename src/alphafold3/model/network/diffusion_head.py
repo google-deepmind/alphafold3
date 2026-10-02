@@ -140,14 +140,15 @@ class DiffusionHead(hk.Module):
     super().__init__(name=name)
 
   @hk.transparent
-  def _conditioning(
+  def _pair_conditioning(
       self,
       batch: feat_batch.Batch,
       embeddings: dict[str, jnp.ndarray],
-      noise_level: jnp.ndarray,
       use_conditioning: bool,
-  ) -> tuple[jnp.ndarray, jnp.ndarray]:
-    single_embedding = use_conditioning * embeddings['single']
+  ) -> jnp.ndarray:
+    """ Pair conditioning. NOISE-INDEPENDENT --> loop invariant across diffusion steps. 
+    Split out the former `_conditioning` so it can be computed ONCE (see `compute_pair_conditioning`)
+    instead of redundantly per denoising step. Parameter are unchanged as per original `_conditioning`."""
     pair_embedding = use_conditioning * embeddings['pair']
 
     rel_features = featurization.create_relative_encoding(
@@ -172,6 +173,19 @@ class DiffusionHead(hk.Module):
       pair_cond += diffusion_transformer.transition_block(
           pair_cond, 2, self.global_config, name=f'pair_transition_{idx}'
       )
+    return pair_cond
+
+  @hk.transparent
+  def _single_conditioning(
+      self,
+      embeddings: dict[str, jnp.ndarray],
+      noise_level: jnp.ndarray,
+      use_conditioning: bool,
+  ) -> jnp.ndarray:
+    """Single conditioning. Depends on `noise_level` -> recomputed per step.
+    Parameter names are unchanged from the original `_conditioning`.
+    """
+    single_embedding = use_conditioning * embeddings['single']
 
     target_feat = embeddings['target_feat']
     features_1d = jnp.concatenate([single_embedding, target_feat], axis=-1)
@@ -206,22 +220,35 @@ class DiffusionHead(hk.Module):
           single_cond, 2, self.global_config, name=f'single_transition_{idx}'
       )
 
-    return single_cond, pair_cond
+    return single_cond
 
   def __call__(
       self,
       # positions_noisy.shape: (num_token, max_atoms_per_token, 3)
-      positions_noisy: jnp.ndarray,
-      noise_level: jnp.ndarray,
+      positions_noisy: jnp.ndarray | None = None, 
+      noise_level: jnp.ndarray | None = None,
+      *,
       batch: feat_batch.Batch,
       embeddings: dict[str, jnp.ndarray],
       use_conditioning: bool,
+      trunk_pair_cond: jnp.ndarray | None = None,
+      return_pair_cond: bool = False,
   ) -> jnp.ndarray:
+    # Two modes, both entered through __call__ so the haiku parameter scope is
+    # identical (= the per-step path's scope):
+    #   return_pair_cond=True  -> compute & return ONLY the loop-invariant pair
+    #     conditioning (called once, outside the diffusion sampling scan).
+    #   otherwise              -> a denoising step; `trunk_pair_cond` is the
+    #     precomputed pair conditioning threaded in (no per-step recompute).
 
+    if return_pair_cond:
+      with utils.bfloat16_context():
+        return self._pair_conditioning(batch, embeddings, use_conditioning)
+
+    assert trunk_pair_cond is not None    
     with utils.bfloat16_context():
-      # Get conditioning
-      trunk_single_cond, trunk_pair_cond = self._conditioning(
-          batch=batch,
+      # Single conditioning depends on noise_level -> still per-step.
+      trunk_single_cond = self._single_conditioning(
           embeddings=embeddings,
           noise_level=noise_level,
           use_conditioning=use_conditioning,
