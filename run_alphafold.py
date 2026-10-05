@@ -322,7 +322,9 @@ _FIX_STANDALONE_GLYCANS = flags.DEFINE_bool(
     'AlphaFold 3 model training and evaluation filtered out leaving atoms from'
     ' glycan ligands even if they were not bonded to anything ("standalone"'
     ' glycans). Setting this flag to True fixes this undesirable behavior, but'
-    ' moves away from the regime where AlphaFold 3 was trained and evaluated.',
+    ' moves away from the regime where AlphaFold 3 was trained and evaluated.'
+    ' It is recommended to set this flag to True when using the AF3-LA'
+    ' parameters.',
 )
 
 # JAX inference performance tuning.

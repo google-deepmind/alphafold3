@@ -40,6 +40,14 @@ https://storage.googleapis.com/alphafold3/af3_synthid.bin.zst. See
 [google-deepmind/synthidbio](https://github.com/google-deepmind/synthidbio) for
 more details.
 
+The model parameters for AlphaFold 3 Leaving Atom (AF3-LA) can be used as an
+alternative model fine-tuned for leaving atom handling. The weights are
+available at https://storage.googleapis.com/alphafold3/af3_leaving_atom.bin.zst
+and are subject to the same terms of use as the original AlphaFold 3 model
+parameters. See
+[google-deepmind/alphaprotein-novo](https://github.com/google-deepmind/alphaprotein-novo)
+for more details.
+
 ## Installation and Running Your First Prediction
 
 See the [installation documentation](docs/installation.md).

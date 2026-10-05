@@ -273,6 +273,14 @@ You can download the AlphaFold 3 model parameters from
 https://storage.googleapis.com/alphafold3/af3.bin.zst. Use is subject to these
 [terms of use](https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md).
 
+The model parameters for AlphaFold 3 Leaving Atom (AF3-LA) can be used as an
+alternative model fine-tuned for leaving atom handling. The weights are
+available at https://storage.googleapis.com/alphafold3/af3_leaving_atom.bin.zst
+and are subject to the same terms of use as the original AlphaFold 3 model
+parameters. See
+[google-deepmind/alphaprotein-novo](https://github.com/google-deepmind/alphaprotein-novo)
+for more details.
+
 In addition to the original AlphaFold 3 model parameters, the SynthID
 Bio-structure version of AlphaFold 3, corresponding to a fine-tuned version
 producing watermarked structures, is available at
