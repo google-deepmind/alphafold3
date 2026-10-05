@@ -325,7 +325,7 @@ class BioassemblyData:
               'Can not rename chains, the new names are not unique: '
               f'{sorted(new_asym_ids)}.'
           )
-        row['_pdbx_struct_assembly_gen.asym_id_list'] = ','.join(new_asym_ids)  # pytype: disable=unsupported-operands
+        row['_pdbx_struct_assembly_gen.asym_id_list'] = ','.join(new_asym_ids)  # pyrefly: ignore[unsupported-operation]
 
     return BioassemblyData(  # pyrefly: ignore[bad-return]
         pdbx_struct_assembly=copy.deepcopy(self._pdbx_struct_assembly),

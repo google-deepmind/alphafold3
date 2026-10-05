@@ -56,8 +56,8 @@ def _pad_features_to_max(feat_name: str, chains: list[BatchDict], axis: int):
   for chain in chains:
     feat = chain[feat_name]
 
-    padding = np.zeros_like(feat.shape)  # pytype: disable=attribute-error
-    padding[axis] = max_num_seq - feat.shape[axis]  # pytype: disable=attribute-error
+    padding = np.zeros_like(feat.shape)
+    padding[axis] = max_num_seq - feat.shape[axis]
     padding = [(0, p) for p in padding]
     padded_feats.append(
         np.pad(

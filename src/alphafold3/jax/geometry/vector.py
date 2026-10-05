@@ -117,7 +117,7 @@ class Vec3Array:
         jnp.zeros(shape, dtype),  # pyrefly: ignore[bad-argument-count]
         jnp.zeros(shape, dtype),
         jnp.zeros(shape, dtype),
-    )  # pytype: disable=wrong-arg-count  # trace-all-classes
+    )
 
   def to_array(self) -> jnp.ndarray:
     return jnp.stack([self.x, self.y, self.z], axis=-1)

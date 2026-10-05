@@ -498,7 +498,7 @@ class Model(hk.Module):
               'full_pae': result['full_pae'][idx, :num_tokens, :num_tokens],
               'contact_probs': contact_probs[:num_tokens, :num_tokens],
           },
-          metadata={  # pyrefly: ignore[bad-argument-type]
+          metadata={
               'predicted_distance_error': predicted_distance_errors[idx],
               'ranking_score': ranking_score,
               'fraction_disordered': fraction_disordered[idx],

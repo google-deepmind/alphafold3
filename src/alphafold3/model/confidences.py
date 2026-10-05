@@ -134,7 +134,7 @@ def fraction_disordered(
 
   if not rasa:
     return 0.0
-  return np.mean(np.array(rasa) > rasa_disorder_cutoff)  # pyrefly: ignore[bad-return]
+  return np.mean(np.array(rasa) > rasa_disorder_cutoff)
 
 
 def has_clash(

@@ -145,7 +145,7 @@ class Rigid3Array:
     return cls(
         rotation_matrix.Rot3Array.identity(shape, dtype=dtype),  # pyrefly: ignore[bad-argument-count]
         vector.Vec3Array.zeros(shape, dtype=dtype),
-    )  # pytype: disable=wrong-arg-count  # trace-all-classes
+    )
 
   def scale_translation(self, factor: Float) -> Self:
     """Scale translation in Rigid3Array by 'factor'."""
@@ -160,7 +160,7 @@ class Rigid3Array:
   def from_array(cls, array):
     rot = rotation_matrix.Rot3Array.from_array(array[..., :3])
     vec = vector.Vec3Array.from_array(array[..., -1])
-    return cls(rot, vec)  # pytype: disable=wrong-arg-count  # trace-all-classes
+    return cls(rot, vec)  # pyrefly: ignore[bad-argument-count]
 
   @classmethod
   def from_array4x4(cls, array: jnp.ndarray) -> Self:
@@ -175,7 +175,7 @@ class Rigid3Array:
     translation = vector.Vec3Array(
         array[..., 0, 3], array[..., 1, 3], array[..., 2, 3]  # pyrefly: ignore[bad-argument-count]
     )
-    return cls(rotation, translation)  # pytype: disable=wrong-arg-count  # trace-all-classes
+    return cls(rotation, translation)  # pyrefly: ignore[bad-argument-count]
 
   @classmethod
   def from_point_alignment(
@@ -221,7 +221,7 @@ class Rigid3Array:
 
     translations = points_to_center - rots.apply_to_point(points_from_center)
 
-    return cls(rots, translations)  # pytype: disable=wrong-arg-count  # trace-all-classes
+    return cls(rots, translations)  # pyrefly: ignore[bad-argument-count]
 
   def __getstate__(self):
     return (VERSION, (self.rotation, self.translation))

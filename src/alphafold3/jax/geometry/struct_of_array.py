@@ -211,10 +211,10 @@ class StructOfArray:
     cls.__len__ = get_len
     cls.__getitem__ = get_item
     cls.__post_init__ = post_init
-    new_cls = dataclasses.dataclass(cls, frozen=True, eq=False)  # pytype: disable=wrong-keyword-args
+    new_cls = dataclasses.dataclass(cls, frozen=True, eq=False)
     # pytree claims to require metadata to be hashable, not sure why,
     # But making derived dataclass that can just hold metadata
-    new_cls.metadata_cls = make_metadata_class(new_cls)  # pyrefly: ignore[missing-attribute]
+    new_cls.metadata_cls = make_metadata_class(new_cls)
 
     def unflatten(aux, data):
       inner_treedefs, metadata, num_arrays = aux
@@ -232,9 +232,9 @@ class StructOfArray:
       for field in metadata_fields:
         value_dict[field.name] = getattr(metadata, field.name)
 
-      return new_cls(**value_dict)  # pyrefly: ignore[bad-argument-count]
+      return new_cls(**value_dict)
 
     jax.tree_util.register_pytree_node(
-        nodetype=new_cls, flatten_func=flatten, unflatten_func=unflatten  # pyrefly: ignore[bad-argument-type]
+        nodetype=new_cls, flatten_func=flatten, unflatten_func=unflatten
     )
     return new_cls

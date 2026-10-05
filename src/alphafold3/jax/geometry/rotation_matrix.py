@@ -162,7 +162,7 @@ class Rot3Array:
     """Returns identity of given shape."""
     ones = jnp.ones(shape, dtype=dtype)
     zeros = jnp.zeros(shape, dtype=dtype)
-    return cls(ones, zeros, zeros, zeros, ones, zeros, zeros, zeros, ones)  # pytype: disable=wrong-arg-count  # trace-all-classes
+    return cls(ones, zeros, zeros, zeros, ones, zeros, zeros, zeros, ones)  # pyrefly: ignore[bad-argument-count]
 
   @classmethod
   def from_two_vectors(cls, e0: vector.Vec3Array, e1: vector.Vec3Array) -> Self:
@@ -185,7 +185,7 @@ class Rot3Array:
     e1 = (e1 - c * e0).normalized()
     # Compute e2 as cross product of e0 and e1.
     e2 = e0.cross(e1)
-    return cls(e0.x, e1.x, e2.x, e0.y, e1.y, e2.y, e0.z, e1.z, e2.z)  # pytype: disable=wrong-arg-count  # trace-all-classes
+    return cls(e0.x, e1.x, e2.x, e0.y, e1.y, e2.y, e0.z, e1.z, e2.z)  # pyrefly: ignore[bad-argument-count]
 
   @classmethod
   def from_array(cls, array: jnp.ndarray) -> Self:
@@ -231,7 +231,7 @@ class Rot3Array:
     zx = 2 * (x * z - w * y)
     zy = 2 * (y * z + w * x)
     zz = 1 - 2 * (jnp.square(x) + jnp.square(y))
-    return cls(xx, xy, xz, yx, yy, yz, zx, zy, zz)  # pytype: disable=wrong-arg-count  # trace-all-classes
+    return cls(xx, xy, xz, yx, yy, yz, zx, zy, zz)  # pyrefly: ignore[bad-argument-count]
 
   @classmethod
   def from_svd(cls, mat: jnp.ndarray, use_quat_formula: bool = True) -> Self:

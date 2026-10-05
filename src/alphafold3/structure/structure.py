@@ -3185,7 +3185,7 @@ def concat(
       seen_label_chain_ids.update(struc.chains)
 
     if struc.chemical_components_data is not None:
-      chemical_components_data.update(struc.chemical_components_data.chem_comp)  # pytype: disable=attribute-error  # always-use-property-annotation
+      chemical_components_data.update(struc.chemical_components_data.chem_comp)
 
   concatted_struc = table.concat_databases(strucs)
   name = name if name is not None else '_'.join(s.name for s in strucs)

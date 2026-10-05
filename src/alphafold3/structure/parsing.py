@@ -547,7 +547,7 @@ def from_res_arrays(atom_mask: np.ndarray, **kwargs) -> structure.Structure:
       key=chain_key[chain_start],
       id=chain_id[chain_start],
       type=fields.get('chain_type', chain_str_empty)[chain_start],
-      auth_asym_id=fields.get('chain_auth_asym_id', chain_id)[chain_start],  # pyrefly: ignore[unsupported-operation]
+      auth_asym_id=fields.get('chain_auth_asym_id', chain_id)[chain_start],
       entity_id=entity_id,
       entity_desc=fields.get('chain_entity_desc', chain_str_empty)[chain_start],
   )

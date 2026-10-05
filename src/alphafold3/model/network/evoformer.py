@@ -39,7 +39,7 @@ import jax.numpy as jnp
 class Evoformer(hk.Module):
   """Creates 'single' and 'pair' embeddings."""
 
-  class PairformerConfig(modules.PairFormerIteration.Config):  # pytype: disable=invalid-function-definition
+  class PairformerConfig(modules.PairFormerIteration.Config):
     block_remat: bool = False
     remat_block_size: int = 8
 
@@ -123,7 +123,7 @@ class Evoformer(hk.Module):
     mask = token_features.mask
     pair_mask = (mask[:, None] * mask[None, :]).astype(dtype)
     assert pair_mask.shape == (num_residues, num_residues)
-    return pair_activations, pair_mask  # pytype: disable=bad-return-type  # jax-ndarray
+    return pair_activations, pair_mask
 
   @hk.transparent
   def _embed_bonds(
