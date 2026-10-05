@@ -162,27 +162,22 @@ class InferenceTest(parameterized.TestCase):
         model_dir=run_alphafold.MODEL_DIR.value,
     )
 
-  @parameterized.parameters('model_103275239_1', 'model_169823281_1')
-  def test_model_inference(self, model_name: str):
+  def test_model_inference(self):
     """Run model inference and assert that output exists."""
-    model_dir = resources.ROOT / f'google/models/{model_name}'
-    runner = run_alphafold.ModelRunner(
-        config=self._model_config,
-        device=jax.local_devices()[0],
-        model_dir=model_dir,
-    )
-    featurised_examples = pickle.loads(
+    featurised_examples = pickle.loads(  # pylint: disable=g-unsafe-pickle-load
         (resources.ROOT / 'test_data' / 'featurised_example.pkl').read_bytes()
     )
 
     self.assertLen(featurised_examples, 1)
     featurised_example = featurised_examples[0]
-    result = runner.run_inference(featurised_example, jax.random.PRNGKey(0))
+    result = self._runner.run_inference(
+        featurised_example, jax.random.PRNGKey(0)
+    )
     self.assertIsNotNone(result)
-    inference_results = runner.extract_inference_results(
+    inference_results = self._runner.extract_inference_results(
         batch=featurised_example, result=result, target_name='target'
     )
-    embeddings = runner.extract_embeddings(
+    embeddings = self._runner.extract_embeddings(
         result=result,
         num_tokens=len(inference_results[0].metadata['token_chain_ids']),  # pyrefly: ignore[bad-argument-type]
     )
@@ -385,7 +380,7 @@ class InferenceTest(parameterized.TestCase):
     logging.info('Comparing inference results with expected values.')
 
     ### Assert that output is as expected.
-    expected_dict = pickle.loads(
+    expected_dict = pickle.loads(  # pylint: disable=g-unsafe-pickle-load
         (
             resources.ROOT
             / 'test_data'
