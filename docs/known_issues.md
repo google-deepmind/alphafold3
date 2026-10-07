@@ -14,6 +14,29 @@ https://github.com/google-deepmind/alphafold3/commit/4e4023c, AlphaFold 3
 handled incorrectly any two-letter atoms (e.g. Cl, Br) in ligands defined using
 SMILES strings.
 
+## Linked ketoses keep their leaving atom
+
+When a glycan component is bonded to another residue through
+`bondedAtomPairs`, AlphaFold 3 removes the atom named `O1` from it (unless `O1`
+itself takes part in the bond). The CCD leaving-atom flag
+(`_chem_comp_atom.pdbx_leaving_atom_flag`) is not used to pick the atom. This
+matches aldoses such as glucose, galactose or mannose, whose anomeric carbon is
+C1 and whose leaving atom is `O1`. It does not match ketoses, whose anomeric
+carbon is C2 and whose leaving atom is `O2`:
+
+*   Sialic acids (e.g. `SIA`, `SLB`, `NGC`, `KDN`) and `KDO` have no atom named
+    `O1`, so nothing is removed and `O2` is kept.
+*   Fructose, psicose, sorbose and tagatose (e.g. `FRU`, `BDF`, `PSV`, `SOE`,
+    `T6T`) have a C1 hydroxyl named `O1`, which is removed while `O2` is kept.
+
+In both cases the linked C2 ends up with five heavy-atom neighbours. See
+https://github.com/google-deepmind/alphafold3/issues/752 for details.
+
+As a workaround, provide the ketose as a [user-provided CCD](input.md#user-provided-ccd)
+component under a new name, with `O2`, `HO2` and their bonds removed. Components
+that are not in the CCD glycan sets have no atoms removed, so `O1` is also
+kept.
+
 ## MSA discrepancy between AlphaFold 3 and AlphaFold Server
 
 ### The root cause of the problem
