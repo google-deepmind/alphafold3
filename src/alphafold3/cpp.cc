@@ -17,6 +17,7 @@
 // if received directly from Google. Use is subject to terms of use available at
 // https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md
 
+#include "alphafold3/data/cpp/msa_features_pybind.h"
 #include "alphafold3/data/cpp/msa_profile_pybind.h"
 #include "alphafold3/model/json_serialize_pybind.h"
 #include "alphafold3/model/mkdssp_pybind.h"
@@ -49,6 +50,7 @@ PYBIND11_MODULE(cpp, m) {
   RegisterModuleMmcifAtomSite(m.def_submodule("mmcif_atom_site"));
   RegisterModuleJsonSerialize(m.def_submodule("json_serialize"));
   RegisterModuleMkdssp(m.def_submodule("mkdssp"));
+  RegisterModuleMsaFeatures(m.def_submodule("msa_features"));
   RegisterModuleMsaProfile(m.def_submodule("msa_profile"));
 }
 
