@@ -34,11 +34,14 @@ mkdir -p "${db_dir}"
 
 readonly SOURCE=https://storage.googleapis.com/alphafold-databases/v3.0
 
+pids=()
+
 echo "Start Fetching and Untarring 'pdb_2022_09_28_mmcif_files.tar'"
 wget --quiet --output-document=- \
     "${SOURCE}/pdb_2022_09_28_mmcif_files.tar.zst" | \
     tar --no-same-owner --no-same-permissions \
     --use-compress-program=zstd -xf - --directory="${db_dir}" &
+pids+=($!)
 
 for NAME in mgy_clusters_2022_05.fa \
             bfd-first_non_consensus_sequences.fasta \
@@ -51,7 +54,10 @@ for NAME in mgy_clusters_2022_05.fa \
   echo "Start Fetching '${NAME}'"
   wget --quiet --output-document=- "${SOURCE}/${NAME}.zst" | \
       zstd --decompress > "${db_dir}/${NAME}" &
+  pids+=($!)
 done
 
-wait
+for _ in "${pids[@]}"; do
+  wait -n
+done
 echo "Complete"

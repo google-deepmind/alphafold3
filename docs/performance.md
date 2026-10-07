@@ -92,13 +92,26 @@ hardware and take advantage of multi-core systems.
 
 Each genetic database with *n* sequences is split into *s* shards, each
 containing roughly *n* / *s* sequences. We recommend splitting the sequences
-between shards randomly to make sure each shard has similar sequence length
-distribution. This could be achieved using standard tools:
+between shards using `seqkit split2 --by-part <s>` to distribute sequences in
+round-robin order (`record_index % s`) in a single streaming pass. This ensures
+each shard has a similar sequence length distribution without requiring a
+separate `seqkit shuffle --two-pass` step:
 
-1.  Shuffle the sequences in the fasta. This can be done for example by running:
-    `seqkit shuffle --two-pass <db.fasta>`
-2.  Split the shuffled fasta in *s* shards. This can be done for example by
-    running: `seqkit split2 --by-part <s> <db.fasta>`
+```bash
+seqkit split2 --by-part <s> <db.fasta>
+```
+
+You can also use `scripts/shard_databases.sh`
+(`src/alphafold3/scripts/shard_databases.sh`) to shard all 7 genetic databases
+in parallel and rename the output parts to the required shard format:
+
+```bash
+./src/alphafold3/scripts/shard_databases.sh [<DB_SOURCE_DIR>] [<SHARDED_DIR>]
+```
+
+Note that `ulimit -n 65535` (or `--ulimit nofile=65535:65535` in Docker) should
+be set when splitting all databases concurrently so `seqkit` can hold all 1,436
+output shard files open simultaneously.
 
 Make sure the shards names follow this pattern:
 `prefix-<shard_index>-of-<total_shards>`, both `shard_index` and `total_shards`
