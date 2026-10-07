@@ -958,9 +958,14 @@ def main(_):
     elif _JAX_BACKEND.value == JaxBackend.GPU:
       gpu_devices = jax.local_devices(backend='gpu')
       if gpu_devices:
-        compute_capability = float(
-            gpu_devices[_GPU_DEVICE.value].compute_capability
-        )
+        compute_capability = gpu_devices[_GPU_DEVICE.value].compute_capability
+        if compute_capability.startswith('gfx'):
+          raise NotImplementedError(
+              f'Detected AMD GPU {gpu_devices[_GPU_DEVICE.value].device_kind} '
+              ' which is not currently supported.'
+          )
+        # We now assume we have an NVIDIA GPU with a numeric compute capability.
+        compute_capability = float(compute_capability)
         if compute_capability < 6.0:
           raise ValueError(
               'AlphaFold 3 requires at least GPU compute capability 6.0 (see'
