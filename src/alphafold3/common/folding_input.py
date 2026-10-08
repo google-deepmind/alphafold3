@@ -22,6 +22,7 @@
 from collections.abc import Collection, Iterator, Mapping, Sequence
 import dataclasses
 import gzip
+import itertools
 import json
 import logging
 import lzma
@@ -1508,16 +1509,15 @@ class Input:
 
   def to_json(self) -> str:
     """Converts Input to an AlphaFold JSON."""
-    deduped_chains = {}
-    deduped_chain_ids = {}
-    for chain in self.chains:
-      deduped_chains[chain.hash_without_id()] = chain
-      deduped_chain_ids.setdefault(chain.hash_without_id(), []).append(chain.id)
-
+    # Group only consecutive identical chains to preserve chain order on a JSON
+    # round-trip (chain order determines token order and mmCIF ID assignment).
     sequences = []
-    for chain_content_hash, ids in deduped_chain_ids.items():
-      chain = deduped_chains[chain_content_hash]
-      sequences.append(chain.to_dict(seq_id=ids if len(ids) > 1 else ids[0]))
+    for _, group in itertools.groupby(
+        self.chains, key=lambda c: c.hash_without_id()
+    ):
+      chains = list(group)
+      seq_id = [c.id for c in chains] if len(chains) > 1 else chains[0].id
+      sequences.append(chains[0].to_dict(seq_id=seq_id))
 
     alphafold_json = json.dumps(
         {
