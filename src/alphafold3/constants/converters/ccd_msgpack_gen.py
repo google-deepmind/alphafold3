@@ -17,14 +17,14 @@
 # if received directly from Google. Use is subject to terms of use available at
 # https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md
 
-"""Reads Chemical Components gz file and generates a CCD pickle file."""
+"""Reads Chemical Components gz file and generates a CCD MessagePack file."""
 
 from collections.abc import Sequence
 import gzip
-import pickle
 import sys
 
 from alphafold3.cpp import cif_dict
+import msgpack
 import tqdm
 
 
@@ -52,7 +52,7 @@ def main(argv: Sequence[str]) -> None:
 
   print(f'Writing {output_file}', flush=True)
   with open(output_file, 'wb') as f:
-    pickle.dump(result, f, protocol=pickle.HIGHEST_PROTOCOL)
+    msgpack.pack(result, f)
   print('Done', flush=True)
 
 if __name__ == '__main__':

@@ -22,21 +22,25 @@
 from typing import Final
 
 from alphafold3.common import resources
-from alphafold3.common import safe_pickle
+import msgpack
 
-_CCD_SETS_CCD_PICKLE_FILE = resources.filename(
-    resources.ROOT / 'constants/converters/chemical_component_sets.pickle'
+_CCD_SETS_MSGPACK_FILE = resources.filename(
+    resources.ROOT / 'constants/converters/chemical_component_sets.msgpack'
 )
 
-with open(_CCD_SETS_CCD_PICKLE_FILE, 'rb') as f:
-  _CCD_SET = safe_pickle.load(f)
+with open(_CCD_SETS_MSGPACK_FILE, 'rb') as f:
+  _CCD_SET = msgpack.unpack(f)
 
 # Glycan (or 'Saccharide') ligands.
 # _chem_comp.type containing 'saccharide' and 'linking' (when lower-case).
-GLYCAN_LINKING_LIGANDS: Final[frozenset[str]] = _CCD_SET['glycans_linking']
+GLYCAN_LINKING_LIGANDS: Final[frozenset[str]] = frozenset(
+    _CCD_SET['glycans_linking']
+)
 
 # _chem_comp.type containing 'saccharide' and not 'linking' (when lower-case).
-GLYCAN_OTHER_LIGANDS: Final[frozenset[str]] = _CCD_SET['glycans_other']
+GLYCAN_OTHER_LIGANDS: Final[frozenset[str]] = frozenset(
+    _CCD_SET['glycans_other']
+)
 
 # Each of these molecules appears in over 1k PDB structures, are used to
 # facilitate crystallization conditions, but do not have biological relevance.

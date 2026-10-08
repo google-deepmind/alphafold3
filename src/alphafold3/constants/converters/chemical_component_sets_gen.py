@@ -21,27 +21,26 @@
 
 from collections.abc import Mapping, Sequence
 import pathlib
-import pickle
 import re
 import sys
 
 from alphafold3.common import resources
-from alphafold3.common import safe_pickle
+import msgpack
 import tqdm
 
 
-_CCD_PICKLE_FILE = resources.filename(
-    'constants/converters/ccd.pickle'
+_CCD_MSGPACK_FILE = resources.filename(
+    'constants/converters/ccd.msgpack'
 )
 
 
 def find_ions_and_glycans_in_ccd(
     ccd: Mapping[str, Mapping[str, Sequence[str]]],
-) -> dict[str, frozenset[str]]:
+) -> dict[str, Sequence[str]]:
   """Finds glycans and ions in all version of CCD."""
-  glycans_linking = []
-  glycans_other = []
-  ions = []
+  glycans_linking: list[str] = []
+  glycans_other: list[str] = []
+  ions: list[str] = []
   for name, comp in tqdm.tqdm(ccd.items(), disable=None):
     if name == 'UNX':
       continue  # Skip "unknown atom or ion".
@@ -58,13 +57,11 @@ def find_ions_and_glycans_in_ccd(
     comp_name = comp['_chem_comp.name'][0].lower()
     if re.findall(r'\bion\b', comp_name):
       ions.append(name)
-  result = dict(
-      glycans_linking=frozenset(glycans_linking),
-      glycans_other=frozenset(glycans_other),
-      ions=frozenset(ions),
+  return dict(
+      glycans_linking=glycans_linking,
+      glycans_other=glycans_other,
+      ions=ions,
   )
-
-  return result
 
 
 def main(argv: Sequence[str]) -> None:
@@ -73,16 +70,16 @@ def main(argv: Sequence[str]) -> None:
         'Directory to write to must be specified as a command-line arguments.'
     )
 
-  print(f'Loading {_CCD_PICKLE_FILE}', flush=True)
-  with open(_CCD_PICKLE_FILE, 'rb') as f:
-    ccd: Mapping[str, Mapping[str, Sequence[str]]] = safe_pickle.load(f)
+  print(f'Loading {_CCD_MSGPACK_FILE}', flush=True)
+  with open(_CCD_MSGPACK_FILE, 'rb') as f:
+    ccd: Mapping[str, Mapping[str, Sequence[str]]] = msgpack.unpack(f)
   output_path = pathlib.Path(argv[1])
   output_path.parent.mkdir(exist_ok=True)
   print('Finding ions and glycans', flush=True)
   result = find_ions_and_glycans_in_ccd(ccd)
   print(f'writing to {output_path}', flush=True)
   with output_path.open('wb') as f:
-    pickle.dump(result, f)
+    msgpack.pack(result, f)
   print('Done', flush=True)
 
 

@@ -25,7 +25,7 @@ import pathlib
 import site
 
 import alphafold3.constants.converters
-from alphafold3.constants.converters import ccd_pickle_gen
+from alphafold3.constants.converters import ccd_msgpack_gen
 from alphafold3.constants.converters import chemical_component_sets_gen
 
 
@@ -48,11 +48,11 @@ def build_data():
       )
 
   out_root = resources.files(alphafold3.constants.converters)
-  ccd_pickle_path = out_root.joinpath('ccd.pickle')
-  chemical_component_sets_pickle_path = out_root.joinpath(
-      'chemical_component_sets.pickle'
+  ccd_msgpack_path = out_root.joinpath('ccd.msgpack')
+  chemical_component_sets_msgpack_path = out_root.joinpath(
+      'chemical_component_sets.msgpack'
   )
-  ccd_pickle_gen.main(['', str(cif_path), str(ccd_pickle_path)])
+  ccd_msgpack_gen.main(['', str(cif_path), str(ccd_msgpack_path)])
   chemical_component_sets_gen.main(
-      ['', str(chemical_component_sets_pickle_path)]
+      ['', str(chemical_component_sets_msgpack_path)]
   )

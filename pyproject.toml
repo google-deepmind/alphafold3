@@ -21,6 +21,7 @@ dependencies = [
     "jax==0.10.2",
     "jax[cuda12]==0.10.2; sys_platform != 'darwin'",
     "jax-mps==0.10.9; sys_platform == 'darwin' and platform_machine == 'arm64'",
+    "msgpack",
     "numpy",
     "rdkit==2026.3.3",
     "tokamax==0.0.12",
