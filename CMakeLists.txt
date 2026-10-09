@@ -37,35 +37,62 @@ set(ABSL_PROPAGATE_CXX_STD ON)
 # Remove support for scan deps, which is only useful when using C++ modules.
 unset(CMAKE_CXX_SCANDEP_SOURCE)
 
+# Do no build third party tests we are not using.
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+# Avoid creating a libcifpp cache directory with a redundant copy of the CCD.
+set(CIFPP_CACHE_DIR "" CACHE PATH "" FORCE)
+
+
+# Source archives instead of git tags so CMake doesn't do slow full git clones.
 FetchContent_Declare(
   abseil-cpp
-  GIT_REPOSITORY https://github.com/abseil/abseil-cpp
-  GIT_TAG d7aaad83b488fd62bd51c81ecf16cd938532cc0a # 20240116.2
+  URL https://github.com/abseil/abseil-cpp/archive/d7aaad83b488fd62bd51c81ecf16cd938532cc0a.tar.gz # 20240116.2
+  URL_HASH SHA256=3a1f642ea21f45b220a01708d06b46042a3b750f31772b52371d6268f02d5bbc
   EXCLUDE_FROM_ALL)
 
 FetchContent_Declare(
   pybind11
-  GIT_REPOSITORY https://github.com/pybind/pybind11
-  GIT_TAG 2e0815278cb899b20870a67ca8205996ef47e70f # v2.12.0
+  URL https://github.com/pybind/pybind11/archive/2e0815278cb899b20870a67ca8205996ef47e70f.tar.gz # v2.12.0
+  URL_HASH SHA256=a50dfa85eda59b4c95180dd06baec89437ee1bc28ba92c5d9d1f853738ddd490
   EXCLUDE_FROM_ALL)
 
 FetchContent_Declare(
   pybind11_abseil
-  GIT_REPOSITORY https://github.com/pybind/pybind11_abseil
-  GIT_TAG bddf30141f9fec8e577f515313caec45f559d319 # HEAD @ 2024-08-07
+  URL https://github.com/pybind/pybind11_abseil/archive/bddf30141f9fec8e577f515313caec45f559d319.tar.gz # HEAD @ 2024-08-07
+  URL_HASH SHA256=a92e5faba0397eb4a6ba79317ab57de7891dc69ca8848cf2326abe28d5179c8f
+  EXCLUDE_FROM_ALL)
+
+# Transitive dependencies of libcifpp and dssp, declared also as source archives
+# so CMake does not perform slow full git clones.
+FetchContent_Declare(
+  boost-rx
+  URL https://github.com/boostorg/regex/archive/refs/tags/boost-1.83.0.tar.gz
+  URL_HASH SHA256=1aa9cbe85e9a0077b20a3da3d1a48dbf2b9564d1c770e0cc5895354aff9f4616
+  EXCLUDE_FROM_ALL)
+
+FetchContent_Declare(
+  my-eigen3
+  URL https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz
+  URL_HASH SHA256=8586084f71f9bde545ee7fa6d00288b264a2b7ac3607b974e54d13e7162c1c72
+  EXCLUDE_FROM_ALL)
+
+FetchContent_Declare(
+  libmcfp
+  URL https://github.com/mhekkel/libmcfp/archive/refs/tags/v1.3.1.tar.gz
+  URL_HASH SHA256=28d298940d48610f45ea357c5b34c0d9e8c072cbb5e3582c27ce9a9038c1c400
   EXCLUDE_FROM_ALL)
 
 FetchContent_Declare(
   cifpp
-  GIT_REPOSITORY https://github.com/pdb-redo/libcifpp
-  GIT_TAG ac98531a2fc8daf21131faa0c3d73766efa46180 # v7.0.3
+  URL https://github.com/pdb-redo/libcifpp/archive/ac98531a2fc8daf21131faa0c3d73766efa46180.tar.gz # v7.0.3
+  URL_HASH SHA256=5fa208efa5aa7890b2a31ac1743ffb4dfc8bdc2605f590cc4639cc8922b18890
   # Don't `EXCLUDE_FROM_ALL` as necessary for build_data.
 )
 
 FetchContent_Declare(
   dssp
-  GIT_REPOSITORY https://github.com/PDB-REDO/dssp
-  GIT_TAG 57560472b4260dc41f457706bc45fc6ef0bc0f10 # v4.4.7
+  URL https://github.com/PDB-REDO/dssp/archive/57560472b4260dc41f457706bc45fc6ef0bc0f10.tar.gz # v4.4.7
+  URL_HASH SHA256=6cf3068527117e9a613728633a62f489af8890d5c30e7db919183b470e972258
   EXCLUDE_FROM_ALL)
 
 FetchContent_MakeAvailable(pybind11 abseil-cpp pybind11_abseil cifpp dssp)
