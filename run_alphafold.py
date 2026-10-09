@@ -917,7 +917,7 @@ def main(_):
         'jax_compilation_cache_dir', _JAX_COMPILATION_CACHE_DIR.value
     )
 
-  if _JSON_PATH.value is None == _INPUT_DIR.value is None:
+  if (_JSON_PATH.value is None) == (_INPUT_DIR.value is None):
     raise ValueError(
         'Exactly one of --json_path or --input_dir must be specified.'
     )
