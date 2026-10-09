@@ -59,5 +59,7 @@ while (( ${#FILES[@]} )); do
   fi
 done
 
-printf 'No room left on ssd for: %s\n' "${NOT_COPIED_FILES[@]}"
+if (( ${#NOT_COPIED_FILES[@]} )); then
+  printf 'No room left on ssd for: %s\n' "${NOT_COPIED_FILES[@]}"
+fi
 wait

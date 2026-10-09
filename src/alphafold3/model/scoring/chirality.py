@@ -84,7 +84,9 @@ def _mol_from_ligand_struc(
   """Creates a Mol object from a ligand structure and reference mol."""
 
   if ligand_struc.num_residues(count_unresolved=True) > 1:
-    raise ValueError('ligand_struc %s has more than one residue.')
+    raise ValueError(
+        f'ligand_struc {ligand_struc.name} has more than one residue.'
+    )
   coords_by_atom_name = dict(zip(ligand_struc.atom_name, ligand_struc.coords))
 
   ref_mol = rdkit_utils.sanitize_mol(
