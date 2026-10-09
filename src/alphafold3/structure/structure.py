@@ -1578,14 +1578,16 @@ class Structure(table.Database):
       atom_chain_mask = membership.isin(
           self._atoms.chain_key, set(self._chains.key[chain_mask])
       )
-      np.logical_and(atom_mask, atom_chain_mask, out=atom_mask)
+      # Not in-place: `atom_mask` may be the `mask` array passed in by the
+      # caller.
+      atom_mask = np.logical_and(atom_mask, atom_chain_mask)
 
     # Remove atoms that belong to filtered out residues.
     if res_mask is not None:
       atom_res_mask = membership.isin(
           self._atoms.res_key, set(self._residues.key[res_mask])
       )
-      np.logical_and(atom_mask, atom_res_mask, out=atom_mask)
+      atom_mask = np.logical_and(atom_mask, atom_res_mask)
 
     final_atom_mask = ~atom_mask if invert else atom_mask
 
@@ -2759,8 +2761,8 @@ class Structure(table.Database):
     res_boundaries = self._iter_residue_ranges(
         residue_chain_boundaries, count_unresolved=True
     )
-    for idx, (start, end) in enumerate(res_boundaries):
-      chain_id = chain_ids[idx]
+    for start, end in res_boundaries:
+      chain_id = chain_ids[start]  # `chain_ids` has one entry per residue.
       chain_res_ids = new_res_id[start:end]
       if len(chain_res_ids) != len(set(chain_res_ids)):
         raise ValueError(

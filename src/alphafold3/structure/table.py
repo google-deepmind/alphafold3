@@ -336,7 +336,8 @@ class Table:
               [callable_predicate(elem) for elem in self.get_column(col)]
           )
         np.logical_or(field_mask, predicate_result, out=field_mask)
-      np.logical_and(mask, field_mask, out=mask)  # Update in-place.
+      # Not in-place: `mask` may be the array passed in by the caller.
+      mask = np.logical_and(mask, field_mask)
     return mask
 
   def filter(
