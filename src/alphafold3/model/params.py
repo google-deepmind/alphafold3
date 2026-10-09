@@ -79,7 +79,11 @@ def _read_record(stream: IO[bytes]) -> tuple[str, str, np.ndarray] | None:
   scope = scope.decode('utf-8')
   name = name.decode('utf-8')
   dtype = dtype.decode('utf-8')
-  arr = np.frombuffer(payload[-arr_buffer_len:], dtype=dtype)
+  # Note: `payload[-arr_buffer_len:]` would copy the data and, for an empty
+  # array (arr_buffer_len == 0), would return the whole payload instead.
+  arr = np.frombuffer(
+      payload, dtype=dtype, offset=len(payload) - arr_buffer_len
+  )
   arr = np.reshape(arr, shape)
   if sys.byteorder == 'big':
     arr = arr.byteswap()
@@ -139,7 +143,7 @@ class _MultiFileIO(io.RawIOBase):
       case os.SEEK_CUR:
         pos += self._abspos
       case os.SEEK_END:
-        pos = self._length - pos
+        pos += self._length
       case _:
         raise ValueError(f'Invalid whence: {whence}')
     self._abspos = pos
@@ -204,7 +208,7 @@ def select_model_files(
       (r'(?P<model_name>.*)\.[0-9]+\.bin\.zst$', True),
       (r'(?P<model_name>.*)\.bin\.zst\.[0-9]+$', True),
       (r'(?P<model_name>.*)\.[0-9]+\.bin$', False),
-      (r'(?P<model_name>.*)\.bin]\.[0-9]+$', False),
+      (r'(?P<model_name>.*)\.bin\.[0-9]+$', False),
       (r'(?P<model_name>.*)\.bin\.zst$', True),
       (r'(?P<model_name>.*)\.bin$', False),
   ):
