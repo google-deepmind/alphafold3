@@ -147,7 +147,9 @@ DB_DIR = flags.DEFINE_multi_string(
 _SMALL_BFD_DATABASE_PATH = flags.DEFINE_string(
     'small_bfd_database_path',
     '${DB_DIR}/bfd-first_non_consensus_sequences.fasta',
-    'Small BFD database path, used for protein MSA search.',
+    'Small BFD database path, used for protein MSA search. The resulting MSA '
+    'is combined with the UniRef90 and MGnify MSAs to construct the profile '
+    'for template search.',
 )
 _SMALL_BFD_Z_VALUE = flags.DEFINE_integer(
     'small_bfd_z_value',
@@ -159,7 +161,9 @@ _SMALL_BFD_Z_VALUE = flags.DEFINE_integer(
 _MGNIFY_DATABASE_PATH = flags.DEFINE_string(
     'mgnify_database_path',
     '${DB_DIR}/mgy_clusters_2022_05.fa',
-    'Mgnify database path, used for protein MSA search.',
+    'MGnify database path, used for protein MSA search. The resulting MSA is '
+    'combined with the UniRef90 and Small BFD MSAs to construct the profile '
+    'for template search.',
 )
 _MGNIFY_Z_VALUE = flags.DEFINE_integer(
     'mgnify_z_value',
@@ -183,8 +187,9 @@ _UNIPROT_CLUSTER_ANNOT_Z_VALUE = flags.DEFINE_integer(
 _UNIREF90_DATABASE_PATH = flags.DEFINE_string(
     'uniref90_database_path',
     '${DB_DIR}/uniref90_2022_05.fa',
-    'UniRef90 database path, used for MSA search. The MSA obtained by '
-    'searching it is used to construct the profile for template search.',
+    'UniRef90 database path, used for protein MSA search. The resulting MSA '
+    'is combined with the Small BFD and MGnify MSAs to construct the profile '
+    'for template search.',
 )
 _UNIREF90_Z_VALUE = flags.DEFINE_integer(
     'uniref90_z_value',
