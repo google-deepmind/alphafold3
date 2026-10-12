@@ -143,7 +143,7 @@ Zr: Final[Element] = Element(
     name='Zirconium', number=40, symbol='Zr', weight=91.224
 )
 Nb: Final[Element] = Element(
-    name='Niobiu', number=41, symbol='Nb', weight=92.906
+    name='Niobium', number=41, symbol='Nb', weight=92.906
 )
 Mo: Final[Element] = Element(
     name='Molybdenum', number=42, symbol='Mo', weight=95.94
