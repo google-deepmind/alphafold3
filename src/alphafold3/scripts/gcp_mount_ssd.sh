@@ -66,8 +66,8 @@ else
     fi
 
     # Check if the disk is already mounted
-    if grep -qs "^/dev/nvme0n1 " /proc/mounts; then
-      grep -s "^/dev/nvme0n1 " /proc/mounts
+    if grep -qs "^${SSD_DISK} " /proc/mounts; then
+      grep -s "^${SSD_DISK} " /proc/mounts
       echo "Disk ${SSD_DISK} is already mounted, skip it."
       continue
     fi
