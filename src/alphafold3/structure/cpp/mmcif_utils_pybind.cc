@@ -337,8 +337,8 @@ class FixArginine : public ProcessResidue {
       atom_ids[hh12_index] = hh22_.get();
     } else if (hh22_index >= 0) {
       Py_DECREF(atom_ids[hh22_index]);
-      Py_INCREF(hh21_.get());
-      atom_ids[hh22_index] = hh21_.get();
+      Py_INCREF(hh12_.get());
+      atom_ids[hh22_index] = hh12_.get();
     }
   }
 
