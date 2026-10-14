@@ -141,7 +141,7 @@ class _MultiFileIO(io.RawIOBase):
       case os.SEEK_CUR:
         pos += self._abspos
       case os.SEEK_END:
-        pos = self._length - pos
+        pos += self._length
       case _:
         raise ValueError(f'Invalid whence: {whence}')
     self._abspos = pos
