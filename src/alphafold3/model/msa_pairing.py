@@ -134,7 +134,7 @@ def create_paired_features(
     row_indices = np.arange(len(species_ids))
     # The grouping np.split code requires that the input is already clustered
     # by species id.
-    sort_idxs = species_ids.argsort()
+    sort_idxs = species_ids.argsort(kind='stable')
     species_ids = species_ids[sort_idxs]
     row_indices = row_indices[sort_idxs]
 
@@ -327,3 +327,4 @@ def remove_all_gapped_rows_from_all_seqs(
           chain[feat_name] = chain[feat_name][non_gapped_keep_rows]
     chain['num_alignments_all_seq'] = np.sum(non_gapped_keep_rows)  # pyrefly: ignore[unsupported-operation]
   return chains_list
+
