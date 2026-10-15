@@ -1,0 +1,166 @@
+--- hmmer-3.4/easel/esl_sqio_ascii.c
++++ hmmer-3.4/easel/esl_sqio_ascii.c
+@@ -62,7 +62,7 @@
+ static int  loadmem  (ESL_SQFILE *sqfp);
+ static int  loadbuf  (ESL_SQFILE *sqfp);
+ static int  nextchar (ESL_SQFILE *sqfp, char *ret_c);
+-static int  seebuf   (ESL_SQFILE *sqfp, int64_t maxn, int64_t *opt_nres, int64_t *opt_endpos);
++static int  seebuf   (ESL_SQFILE *sqfp, ESL_SQ *sq, int64_t maxn, int64_t *opt_nres, int64_t *opt_endpos);
+ static void addbuf   (ESL_SQFILE *sqfp, ESL_SQ *sq, int64_t nres);
+ static void skipbuf  (ESL_SQFILE *sqfp, int64_t nskip);
+ static int  read_nres(ESL_SQFILE *sqfp, ESL_SQ *sq, int64_t nskip, int64_t nres, int64_t *opt_actual_nres);
+@@ -786,13 +786,13 @@
+   if ((status = ascii->parse_header(sqfp, sq)) != eslOK) return status; /* EMEM, EOF, EFORMAT */
+ 
+   do {
+-    if ((status = seebuf(sqfp, -1, &n, &epos)) == eslEFORMAT) return status;
+-    if (esl_sq_GrowTo(sq, sq->n + n) != eslOK) return eslEMEM;
+-    addbuf(sqfp, sq, n);
++    if (sq->n >= sq->salloc - 2 && esl_sq_GrowTo(sq, sq->salloc * 2) != eslOK) return eslEMEM;
++    if ((status = seebuf(sqfp, sq, sq->salloc - 2 - sq->n, &n, &epos)) == eslEFORMAT) return status;
++    ascii->bpos = epos;
+     ascii->L   += n;
+     sq->eoff   = ascii->boff + epos - 1;
+     if (status == eslEOD)     break;
+-  } while ((status = loadbuf(sqfp)) == eslOK);
++  } while (epos < ascii->nc || (status = loadbuf(sqfp)) == eslOK);
+     
+   if      (status == eslEOF)
+     {
+@@ -886,7 +886,7 @@
+ 
+   ascii->L       = 0;
+   do {
+-    status = seebuf(sqfp, -1, &n, &epos);
++    status = seebuf(sqfp, NULL, -1, &n, &epos);
+     ascii->L += n;
+     sq->eoff = ascii->boff + epos - 1;
+     if (status == eslEFORMAT) return status;
+@@ -986,7 +986,7 @@
+   if ((status = ascii->skip_header(sqfp, sq)) != eslOK) return status; /* EOF, EFORMAT */
+ 
+   do {
+-    if ((status = seebuf(sqfp, -1, &n, &epos)) == eslEFORMAT) return status;
++    if ((status = seebuf(sqfp, NULL, -1, &n, &epos)) == eslEFORMAT) return status;
+     if (esl_sq_GrowTo(sq, sq->n + n) != eslOK) return eslEMEM;
+     addbuf(sqfp, sq, n);
+     ascii->L   += n;
+@@ -2247,9 +2247,9 @@
+  * the need for the <maxn> limit, which ReadWindow() uses.)
+  */
+ static int
+-seebuf(ESL_SQFILE *sqfp, int64_t maxn, int64_t *opt_nres, int64_t *opt_endpos)
++seebuf(ESL_SQFILE *sqfp, ESL_SQ *sq, int64_t maxn, int64_t *opt_nres, int64_t *opt_endpos)
+ {
+-  int     bpos;
++  int64_t bpos;
+   int64_t nres  = 0;
+   int64_t nres2 = 0;/* an optimization for determining lastrpl from nres, without incrementing lastrpl on every char */
+   int     sym;
+@@ -2257,19 +2257,38 @@
+   int     lasteol;
+   int     status  = eslOK;
+ 
+-  ESL_SQASCII_DATA *ascii = &sqfp->data.ascii;
++  ESL_DSQ dsq_inmap[128];
++  ESL_SQASCII_DATA * restrict ascii = &sqfp->data.ascii;
++  const unsigned char * restrict buf = (const unsigned char *) ascii->buf;
++  const ESL_DSQ * restrict inmap = sqfp->inmap;
++  ESL_DSQ * restrict dst = (sq == NULL) ? NULL : (sq->dsq != NULL ? sq->dsq + sq->n + 1 : (ESL_DSQ *) (sq->seq + sq->n));
++  if (sq != NULL && sq->dsq != NULL) {
++    if (sqfp->do_digital && sqfp->abc == sq->abc) {
++      if (sqfp->inmap['*'] == '*') sqfp->inmap['*'] = sq->abc->inmap['*'];
++    } else {
++      for (int c = 0; c < 128; c++) dsq_inmap[c] = (sqfp->inmap[c] <= 127) ? sq->abc->inmap[sqfp->inmap[c]] : sqfp->inmap[c];
++      inmap = dsq_inmap;
++    }
++  }
+ 
+   lasteol = ascii->bpos - 1;
+   if (maxn == -1) maxn = ascii->nc; /* makes for a more efficient test. nc is a guaranteed upper bound on nres */
+ 
+   for (bpos = ascii->bpos; nres < maxn && bpos < ascii->nc; bpos++)
+   {
+-      sym = ascii->buf[bpos];
++      sym = buf[bpos];
+       //printf ("nres: %d, bpos: %d  (%d)\n", nres, bpos, sym);
+       if (!isascii(sym)) ESL_FAIL(eslEFORMAT, ascii->errbuf, "Line %" PRId64 ": non-ASCII character %c in sequence", ascii->linenumber, sym); 
+-      x   = sqfp->inmap[sym];
++      x   = inmap[sym];
+ 
+-      if      (x <= 127) nres++;
++      if      (x <= 127) {
++        if (dst != NULL) {
++          ESL_DSQ * restrict d = dst + nres;
++          *d = x;
++          for (int64_t end = ESL_MIN(ascii->nc, bpos + maxn - nres) - 1; bpos < end && (sym = buf[bpos + 1], (sym | (x = inmap[sym & 127])) <= 127); ) { bpos++; *++d = x; }
++          nres = (d - dst) + 1;
++        } else nres++;
++      }
+       else if (x == eslDSQ_EOL) 
+       {
+          if (ascii->curbpl != -1) ascii->curbpl += bpos - lasteol;
+@@ -2299,6 +2318,7 @@
+     else if (x != eslDSQ_IGNORED) ESL_FAIL(eslEFORMAT, ascii->errbuf, "inmap corruption?");
+   }
+ 
++  if (sq         != NULL) sq->n      += nres;
+   if (ascii->curbpl != -1) ascii->curbpl += bpos - lasteol - 1;
+   if (ascii->currpl != -1) ascii->currpl += nres - nres2;
+   if (opt_nres   != NULL) *opt_nres   = nres;
+@@ -2464,11 +2484,11 @@
+   int     status      = eslOK;
+   
+   ESL_SQASCII_DATA *ascii = &sqfp->data.ascii;
+-  status = seebuf(sqfp, nskip+nres, &n, &epos);
++  status = seebuf(sqfp, NULL, nskip+nres, &n, &epos);
+   while (status == eslOK && nskip - n > 0) {
+     nskip   -= n;
+     if ((status = loadbuf(sqfp)) == eslEOF) break;
+-    status = seebuf(sqfp, nskip+nres, &n, &epos);
++    status = seebuf(sqfp, NULL, nskip+nres, &n, &epos);
+   }
+   
+   if         (status == eslEOF) { 
+@@ -2489,7 +2509,7 @@
+       actual_nres += n;
+       nres        -= n;
+       if ((status = loadbuf(sqfp)) == eslEOF) break;
+-      status = seebuf(sqfp, nres, &n, &epos);
++      status = seebuf(sqfp, NULL, nres, &n, &epos);
+     }
+ 
+ 
+@@ -3034,7 +3054,10 @@
+   pos = 0;
+   while (status == eslOK && ! isspace(c))
+   {
+-      sq->name[pos++] = c;
++      char * restrict d = sq->name + pos; const char * restrict s = ascii->buf + ascii->bpos;
++      int64_t k = 0, end = ESL_MIN(ascii->nc - ascii->bpos, sq->nalloc - 1 - pos) - 1;
++      for (d[0] = c; k < end && (unsigned char)s[k + 1] > ' '; ) { k++; d[k] = s[k]; }
++      pos += k + 1; ascii->bpos += k;
+       if (pos == sq->nalloc-1) { ESL_RALLOC(sq->name, tmp, sq->nalloc*2); sq->nalloc*=2; }
+       status = nextchar(sqfp, &c); 
+   }
+@@ -3048,7 +3071,10 @@
+   pos = 0;
+   while (status == eslOK && c != '\n' && c != '\r' && c != 1)
+   {
+-      sq->desc[pos++] = c;
++      char * restrict d = sq->desc + pos; const char * restrict s = ascii->buf + ascii->bpos;
++      int64_t k = 0, end = ESL_MIN(ascii->nc - ascii->bpos, sq->dalloc - 1 - pos) - 1;
++      for (d[0] = c; k < end && (unsigned char)s[k + 1] > '\r'; ) { k++; d[k] = s[k]; }
++      pos += k + 1; ascii->bpos += k;
+       if (pos == sq->dalloc-1) { ESL_RALLOC(sq->desc, tmp, sq->dalloc*2); sq->dalloc*= 2; }
+       status = nextchar(sqfp, &c); 
+   }
+@@ -3337,7 +3363,7 @@
+   if ((status = ascii->parse_header(&sqfp, sq)) != eslOK) return status; /* EOF, EFORMAT */
+ 
+   do {
+-    if ((status = seebuf(&sqfp, -1, &n, &epos)) == eslEFORMAT) return status;
++    if ((status = seebuf(&sqfp, NULL, -1, &n, &epos)) == eslEFORMAT) return status;
+     if (esl_sq_GrowTo(sq, sq->n + n) != eslOK) return eslEMEM;
+     addbuf(&sqfp, sq, n);
+     ascii->L   += n;

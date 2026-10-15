@@ -1,0 +1,221 @@
+--- hmmer-3.4/src/jackhmmer.c
++++ hmmer-3.4/src/jackhmmer.c
+@@ -2,6 +2,7 @@
+  */
+ #include <p7_config.h>
+ 
++#include <ctype.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+@@ -34,6 +35,10 @@
+ typedef struct {
+ #ifdef HMMER_THREADS
+   ESL_WORK_QUEUE   *queue;
++  ESL_SQFILE       *dbfp;
++  off_t            *next_offset;
++  off_t             file_size;
++  int               sstatus;
+ #endif
+   P7_BG            *bg;
+   P7_PIPELINE      *pli;
+@@ -549,6 +554,7 @@
+       info[i].bg    = p7_bg_Clone(bg);
+ #ifdef HMMER_THREADS
+       info[i].queue = queue;
++      info[i].dbfp  = NULL;
+ #endif
+     }
+ 
+@@ -765,7 +771,12 @@
+   /* Cleanup - prepare for successful exit
+    */
+   for (i = 0; i < infocnt; ++i)
+-    p7_bg_Destroy(info[i].bg);
++    {
++      p7_bg_Destroy(info[i].bg);
++#ifdef HMMER_THREADS
++      esl_sqfile_Close(info[i].dbfp);
++#endif
++    }
+ 
+ #ifdef HMMER_THREADS
+   if (ncpus > 0)
+@@ -1633,14 +1644,60 @@
+ }
+ 
+ #ifdef HMMER_THREADS
++#define FASTA_CHUNK_SIZE (512 * 1024)
++
+ static int
+ thread_loop(ESL_THREADS *obj, ESL_WORK_QUEUE *queue, ESL_SQFILE *dbfp)
+ {
+-  int  status  = eslOK;
+-  int  sstatus = eslOK;
++  int  status   = eslOK;
++  int  sstatus  = eslOK;
+   int  eofCount = 0;
+   ESL_SQ_BLOCK *block;
+   void         *newBlock;
++  int  nworkers = esl_threads_GetWorkerCount(obj);
++  int  w;
++
++  if (dbfp->format == eslSQFILE_FASTA && esl_sqfile_IsRewindable(dbfp))
++    {
++      off_t next_offset = 0;
++      if (fseeko(dbfp->data.ascii.fp, 0, SEEK_END) != 0) p7_Fail("fseeko() failed");
++      off_t file_size = ftello(dbfp->data.ascii.fp);
++      if (file_size < 0) p7_Fail("ftello() failed");
++
++      for (w = 0; w < nworkers; ++w)
++        {
++          WORKER_INFO *info = (WORKER_INFO *) esl_threads_GetData(obj, w);
++          if (info->dbfp == NULL &&
++              esl_sqfile_OpenDigital(info->om->abc, dbfp->filename, dbfp->format, p7_SEQDBENV, &info->dbfp) != eslOK)
++            p7_Fail("Failed to open target sequence database %s for reading\n", dbfp->filename);
++          info->next_offset = &next_offset;
++          info->file_size   = file_size;
++          info->sstatus     = eslEOF;
++        }
++
++      esl_threads_WaitForStart(obj);
++      esl_threads_WaitForFinish(obj);
++
++      off_t err_offset = file_size;
++      sstatus = eslEOF;
++      for (w = 0; w < nworkers; ++w)
++        {
++          WORKER_INFO *info = (WORKER_INFO *) esl_threads_GetData(obj, w);
++          if (info->sstatus != eslEOF && info->file_size < err_offset)
++            {
++              sstatus    = info->sstatus;
++              err_offset = info->file_size;
++            }
++        }
++      if (sstatus == eslEFORMAT)
++        {
++          ESL_SQ *tmpsq = esl_sq_CreateDigital(dbfp->abc);
++          esl_sqfile_Position(dbfp, 0);
++          while ((sstatus = esl_sqio_Read(dbfp, tmpsq)) == eslOK) esl_sq_Reuse(tmpsq);
++          esl_sq_Destroy(tmpsq);
++        }
++      return sstatus;
++    }
+ 
+   esl_workqueue_Reset(queue);
+   esl_threads_WaitForStart(obj);
+@@ -1699,6 +1756,114 @@
+ 
+   info = (WORKER_INFO *) esl_threads_GetData(obj, workeridx);
+ 
++  if (info->dbfp != NULL)
++    {
++      ESL_SQ           *dbsq      = esl_sq_CreateDigital(info->om->abc);
++      ESL_SQASCII_DATA *ascii     = &info->dbfp->data.ascii;
++      off_t             file_size = info->file_size;
++      off_t             cur_roff  = -1;
++      off_t             x0;
++
++      while ((x0 = __atomic_fetch_add(info->next_offset, FASTA_CHUNK_SIZE, __ATOMIC_RELAXED)) < file_size)
++        {
++          off_t x1 = ESL_MIN(x0 + FASTA_CHUNK_SIZE, file_size);
++          status = eslOK;
++
++          if (x0 <= cur_roff)
++            {
++              if (cur_roff >= x1) continue;
++            }
++          else if (x0 == 0)
++            {
++              if (ascii->boff != 0 || ascii->bpos != 0 || ascii->nc == 0)
++                status = esl_sqfile_Position(info->dbfp, 0);
++              char prev = 0;
++              while (status == eslOK && ascii->bpos < ascii->nc && isspace((unsigned char) ascii->buf[ascii->bpos]))
++                {
++                  prev = ascii->buf[ascii->bpos++];
++                  if (ascii->bpos == ascii->nc)
++                    status = esl_sqfile_Position(info->dbfp, ascii->boff + ascii->nc);
++                }
++              if (status == eslOK && ascii->boff + ascii->bpos >= x1 &&
++                  ascii->buf[ascii->bpos] == '>' && (prev == '\n' || prev == '\r'))
++                {
++                  cur_roff = ascii->boff + ascii->bpos;
++                  continue;
++                }
++            }
++          else
++            {
++              off_t pos = x0 - 1;
++              while (pos < x1 && (status = esl_sqfile_Position(info->dbfp, pos)) == eslOK)
++                {
++                  off_t limit = ESL_MIN((off_t) ascii->nc, x1 - ascii->boff);
++                  const char *p   = ascii->buf + 1;
++                  const char *end = ascii->buf + limit;
++                  while (p < end && (p = memchr(p, '>', end - p)) != NULL)
++                    {
++                      if (p[-1] == '\n' || p[-1] == '\r') break;
++                      ++p;
++                    }
++                  if (p != NULL && p < end) { ascii->bpos = (int) (p - ascii->buf); break; }
++                  if (ascii->boff + limit >= x1 || ascii->nc <= 1) { pos = x1; break; }
++                  pos = ascii->boff + ascii->nc - 1;
++                }
++              if (status == eslOK && pos >= x1) { cur_roff = -1; continue; }
++            }
++          if (status != eslOK)
++            {
++              if (status != eslEOF)
++                {
++                  info->sstatus   = status;
++                  info->file_size = x0;
++                  __atomic_store_n(info->next_offset, file_size, __ATOMIC_RELAXED);
++                }
++              break;
++            }
++
++          cur_roff = -1;
++          while ((status = esl_sqio_Read(info->dbfp, dbsq)) == eslOK)
++            {
++              off_t next_roff = dbsq->eoff + 1;
++
++              p7_pli_NewSeq(info->pli, dbsq);
++              p7_bg_SetLength(info->bg, dbsq->n);
++              p7_oprofile_ReconfigLength(info->om, dbsq->n);
++
++              p7_Pipeline(info->pli, info->om, info->bg, dbsq, NULL, info->th);
++
++              esl_sq_Reuse(dbsq);
++              p7_pipeline_Reuse(info->pli);
++
++              if (next_roff >= x1)
++                {
++                  if (next_roff >= file_size) break;
++                  if (ascii->bpos == 0)
++                    {
++                      if ((status = esl_sqfile_Position(info->dbfp, next_roff - 1)) != eslOK) break;
++                      ascii->bpos = 1;
++                    }
++                  if (ascii->buf[ascii->bpos - 1] == '\n' || ascii->buf[ascii->bpos - 1] == '\r')
++                    {
++                      cur_roff = next_roff;
++                      break;
++                    }
++                }
++            }
++          if (status != eslOK && status != eslEOF)
++            {
++              info->sstatus   = status;
++              info->file_size = x0;
++              __atomic_store_n(info->next_offset, file_size, __ATOMIC_RELAXED);
++              break;
++            }
++        }
++
++      esl_sq_Destroy(dbsq);
++      esl_threads_Finished(obj, workeridx);
++      return;
++    }
++
+   status = esl_workqueue_WorkerUpdate(info->queue, NULL, &newBlock);
+   if (status != eslOK) p7_Fail("Work queue worker failed");
+ 

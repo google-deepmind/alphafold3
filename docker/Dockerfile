@@ -55,9 +55,11 @@ RUN mkdir /hmmer_build /hmmer ; \
     (cd /hmmer_build && echo "ca70d94fd0cf271bd7063423aabb116d42de533117343a9b27a65c17ff06fbf3 hmmer-3.4.tar.gz" | sha256sum --check) && \
     (cd /hmmer_build && tar zxf hmmer-3.4.tar.gz && rm hmmer-3.4.tar.gz)
 
-# Apply the --seq_limit patch to HMMER.
-COPY docker/jackhmmer_seq_limit.patch /hmmer_build/
-RUN (cd /hmmer_build && patch -p0 < jackhmmer_seq_limit.patch)
+# Apply speedup patches to EASEL and HMMER.
+COPY docker/*.patch /hmmer_build/
+RUN (cd /hmmer_build && patch -p0 < jackhmmer_seq_limit.patch) && \
+    (cd /hmmer_build && patch -p0 < easel_fast_fasta_parsing.patch) && \
+    (cd /hmmer_build && patch -p0 < jackhmmer_parallel_fasta.patch)
 
 # Build HMMER.
 RUN (cd /hmmer_build/hmmer-3.4 && ./configure --prefix /hmmer) && \
