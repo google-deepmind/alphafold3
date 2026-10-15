@@ -739,6 +739,11 @@ You will need to specify:
 2.  Ligand chain B with the 4 components.
 3.  Bonds ASN-CMP1, CMP1-CMP2, CMP2-CMP3, CMP2-CMP4.
 
+When a glycan component is linked, AlphaFold 3 removes its atom named `O1`
+(unless `O1` is the bonded atom). This is correct for aldoses but not for
+ketoses such as sialic acids or fructose; see
+[Known Issues](known_issues.md#linked-ketoses-keep-their-leaving-atom).
+
 ## User-provided CCD
 
 There are two approaches to model a custom ligand not defined in the CCD:
@@ -938,7 +943,9 @@ to the model, but they are necessary for the data pipeline to run – see the
 *   `_chem_comp_atom.type_symbol`: Atom element type.
 *   `_chem_comp_atom.charge`: Atom charge.
 *   `_chem_comp_atom.pdbx_leaving_atom_flag`: Optional flag determining whether
-    this is a leaving atom. If unset, assumed to be no (`N`) for all atoms.
+    this is a leaving atom. If unset, assumed to be no (`N`) for all atoms. Note
+    that this flag does not decide which atoms are removed when the component
+    is bonded to another residue.
 *   `_chem_comp_atom.pdbx_model_Cartn_x_ideal`: Ideal x coordinate.
 *   `_chem_comp_atom.pdbx_model_Cartn_y_ideal`: Ideal y coordinate.
 *   `_chem_comp_atom.pdbx_model_Cartn_z_ideal`: Ideal z coordinate.
