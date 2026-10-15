@@ -43,9 +43,12 @@ def main(argv: Sequence[str]) -> None:
   with opener(input_file, 'rb') as f:
     whole_file = f.read()
   result = {
-      key: value.to_dict()
-      for key, value in tqdm.tqdm(
-          cif_dict.parse_multi_data_cif(whole_file).items(), disable=None
+      key: dict(sorted(value.to_dict().items()))
+      for key, value in sorted(
+          tqdm.tqdm(
+              cif_dict.parse_multi_data_cif(whole_file).items(), disable=None
+          ),
+          key=lambda item: item[0],
       )
   }
   assert len(result) == whole_file.count(b'data_')
