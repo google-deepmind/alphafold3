@@ -156,6 +156,15 @@ class InputTest(parameterized.TestCase):
           ),
       ),
       dict(
+          testcase_name='query_index_equal_to_length',
+          templates=[
+              folding_input.Template(mmcif='tst', query_to_template_map={4: 0})
+          ],
+          expected_error=(
+              'Query residue index 4 at position 1 .+ length 4 for template 1'
+          ),
+      ),
+      dict(
           testcase_name='second_template_second_pos',
           templates=[
               folding_input.Template(
