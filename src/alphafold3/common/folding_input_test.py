@@ -178,6 +178,16 @@ class InputTest(parameterized.TestCase):
           id='A', sequence='ABCD', ptms=[], templates=templates
       )
 
+  @parameterized.named_parameters(
+      ('protein_lowercase', folding_input.ProteinChain, 'ptms', 'mkTA'),
+      ('protein_non_ascii', folding_input.ProteinChain, 'ptms', 'MKÉA'),
+      ('rna_lowercase', folding_input.RnaChain, 'modifications', 'acgu'),
+      ('dna_lowercase', folding_input.DnaChain, 'modifications', 'acgt'),
+  )
+  def test_sequence_not_upper_case_error(self, chain_cls, mods_kwarg, sequence):
+    with self.assertRaisesRegex(ValueError, 'upper case letters'):
+      chain_cls(id='A', sequence=sequence, **{mods_kwarg: []})
+
   def test_protein_to_ccd_sequence(self):
     protein_chain = folding_input.ProteinChain(
         id='A', sequence='ABCDEFGHIJ', ptms=[('HY3', 1), ('P1L', 5)]
