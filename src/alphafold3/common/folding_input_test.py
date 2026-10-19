@@ -169,6 +169,15 @@ class InputTest(parameterized.TestCase):
               'Query residue index 10 at position 2 .+ length 4 for template 2'
           ),
       ),
+      dict(
+          testcase_name='query_index_equal_to_length',
+          templates=[
+              folding_input.Template(mmcif='tst', query_to_template_map={4: 0})
+          ],
+          expected_error=(
+              'Query residue index 4 at position 1 .+ length 4 for template 1'
+          ),
+      ),
   )
   def test_protein_chain_template_query_index_too_large_error(
       self, templates, expected_error

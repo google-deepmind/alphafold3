@@ -254,11 +254,11 @@ class ProteinChain:
       for pos, query_index in enumerate(
           template.query_to_template_map.keys(), start=1
       ):
-        if query_index > len(sequence):
+        if query_index >= len(sequence):
           raise ValueError(
-              f'Query residue index {query_index} at position {pos} is greater'
-              f' than the query sequence length {len(sequence)} for template'
-              f' {template_pos}.'
+              f'Query residue index {query_index} at position {pos} is out of'
+              f' range for the query sequence of length {len(sequence)} for'
+              f' template {template_pos}.'
           )
 
     # Use hashable containers for ptms and templates.
