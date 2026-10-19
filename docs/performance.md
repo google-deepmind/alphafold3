@@ -129,8 +129,12 @@ shards should be:
 The file spec for these files is `uniprot.fasta@3`.
 
 Save the total number of sequences in the protein databases, and the total
-number of nucleic bases in the RNA databases – these will be needed later as a
-flag to Jackhmmer/Nhmmer to correctly scale e-values across all shards.
+number of megabases in the RNA databases – these will be needed later as a flag
+to Jackhmmer/Nhmmer to correctly scale e-values across all shards. The units
+differ between the two tools: Jackhmmer's `-Z` is a number of sequences (an
+integer), while Nhmmer's `-Z` is a database size in megabases (a float), so an
+RNA Z-value given in bases is a factor of a million too large and silently
+shrinks the MSA.
 
 Save the sharded databases on a fast SSD or in a RAM-backed filesystem, then
 launch AlphaFold with the sharded paths instead of normal paths and set the
@@ -153,7 +157,7 @@ python run_alphafold.py \
     --rfam_database_path="rfam_14_9_clust_seq_id_90_cov_80_rep_seq.fasta@16" \
     --rfam_z_value=138.115553 \
     --rna_central_database_path="rnacentral_active_seq_id_90_cov_80_linclust.fasta@64" \
-    --rna_central_z_value=13271.415730
+    --rna_central_z_value=13271.415730 \
     --jackhmmer_n_cpu=2 \
     --jackhmmer_max_parallel_shards=16 \
     --nhmmer_n_cpu=2 \
