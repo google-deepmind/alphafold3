@@ -239,8 +239,10 @@ class ProteinChain:
         field is unset and must be filled in by the data pipeline before
         featurisation. The list can be empty or contain up to 20 templates.
     """
-    if not all(res.isalpha() for res in sequence):
-      raise ValueError(f'Protein must contain only letters, got "{sequence}"')
+    if not re.fullmatch(r'[A-Z]*', sequence):
+      raise ValueError(
+          f'Protein must contain only upper case letters, got "{sequence}"'
+      )
     if any(not 0 < mod[1] <= len(sequence) for mod in ptms):
       raise ValueError(f'Invalid protein modification index: {ptms}')
     if any(mod[0].startswith('CCD_') for mod in ptms):
@@ -537,8 +539,10 @@ class RnaChain:
         featurisation. If set to an empty string, it will be treated as a custom
         MSA with no sequences.
     """
-    if not all(res.isalpha() for res in sequence):
-      raise ValueError(f'RNA must contain only letters, got "{sequence}"')
+    if not re.fullmatch(r'[A-Z]*', sequence):
+      raise ValueError(
+          f'RNA must contain only upper case letters, got "{sequence}"'
+      )
     if any(not 0 < mod[1] <= len(sequence) for mod in modifications):
       raise ValueError(f'Invalid RNA modification index: {modifications}')
     if any(mod[0].startswith('CCD_') for mod in modifications):
@@ -734,8 +738,10 @@ class DnaChain:
         (1-based) residue index where the modification is applied.
       description: An optional textual description of the DNA chain.
     """
-    if not all(res.isalpha() for res in sequence):
-      raise ValueError(f'DNA must contain only letters, got "{sequence}"')
+    if not re.fullmatch(r'[A-Z]*', sequence):
+      raise ValueError(
+          f'DNA must contain only upper case letters, got "{sequence}"'
+      )
     if any(not 0 < mod[1] <= len(sequence) for mod in modifications):
       raise ValueError(f'Invalid DNA modification index: {modifications}')
     if any(mod[0].startswith('CCD_') for mod in modifications):

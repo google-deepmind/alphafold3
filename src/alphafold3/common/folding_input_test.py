@@ -205,6 +205,20 @@ class InputTest(parameterized.TestCase):
         ['6OG', '6MA', 'DC', 'DT', 'DN'],
     )
 
+  def test_sequence_not_upper_case_error(self):
+    with self.subTest('protein_lowercase'):
+      with self.assertRaisesRegex(ValueError, 'upper case letters'):
+        folding_input.ProteinChain(id='A', sequence='DeepMind', ptms=[])
+    with self.subTest('protein_non_ascii'):
+      with self.assertRaisesRegex(ValueError, 'upper case letters'):
+        folding_input.ProteinChain(id='A', sequence='ŘEŘICHA', ptms=[])
+    with self.subTest('rna_lowercase'):
+      with self.assertRaisesRegex(ValueError, 'upper case letters'):
+        folding_input.RnaChain(id='A', sequence='acgu', modifications=[])
+    with self.subTest('dna_lowercase'):
+      with self.assertRaisesRegex(ValueError, 'upper case letters'):
+        folding_input.DnaChain(id='A', sequence='acgt', modifications=[])
+
   def test_protein_to_single_letter_sequence(self):
     protein_chain = folding_input.ProteinChain(
         id='A', sequence='ABCDEFGHIJ', ptms=[('UNK', 1), ('P1L', 5)]
