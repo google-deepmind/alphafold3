@@ -19,8 +19,8 @@
 
 // A C++ implementation of a CIF parser. For the format specification see
 // https://www.iucr.org/resources/cif/spec/version1.1/cifsyntax
-#ifndef ALPHAFOLD3_SRC_ALPHAFOLD3_PARSERS_PYTHON_CIF_DICT_LIB_H_
-#define ALPHAFOLD3_SRC_ALPHAFOLD3_PARSERS_PYTHON_CIF_DICT_LIB_H_
+#ifndef ALPHAFOLD3_SRC_ALPHAFOLD3_PARSERS_CPP_CIF_DICT_LIB_H_
+#define ALPHAFOLD3_SRC_ALPHAFOLD3_PARSERS_CPP_CIF_DICT_LIB_H_
 
 #include <cstddef>
 #include <memory>
@@ -153,4 +153,4 @@ absl::StatusOr<absl::flat_hash_map<std::string, CifDict>> ParseMultiDataCifDict(
 
 }  // namespace alphafold3
 
-#endif  // ALPHAFOLD3_SRC_ALPHAFOLD3_PARSERS_PYTHON_CIF_DICT_LIB_H_
+#endif  // ALPHAFOLD3_SRC_ALPHAFOLD3_PARSERS_CPP_CIF_DICT_LIB_H_

@@ -17,8 +17,8 @@
 // if received directly from Google. Use is subject to terms of use available at
 // https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md
 
-#ifndef ALPHAFOLD3_SRC_ALPHAFOLD3_STRUCTURE_PYTHON_MMCIF_LAYOUT_H_
-#define ALPHAFOLD3_SRC_ALPHAFOLD3_STRUCTURE_PYTHON_MMCIF_LAYOUT_H_
+#ifndef ALPHAFOLD3_SRC_ALPHAFOLD3_STRUCTURE_CPP_MMCIF_LAYOUT_H_
+#define ALPHAFOLD3_SRC_ALPHAFOLD3_STRUCTURE_CPP_MMCIF_LAYOUT_H_
 
 #include <cstddef>
 #include <cstdint>
@@ -150,4 +150,4 @@ class MmcifLayout {
 
 }  // namespace alphafold3
 
-#endif  // ALPHAFOLD3_SRC_ALPHAFOLD3_STRUCTURE_PYTHON_MMCIF_LAYOUT_H_
+#endif  // ALPHAFOLD3_SRC_ALPHAFOLD3_STRUCTURE_CPP_MMCIF_LAYOUT_H_

@@ -17,8 +17,8 @@
 // if received directly from Google. Use is subject to terms of use available at
 // https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md
 
-#ifndef ALPHAFOLD3_SRC_ALPHAFOLD3_STRUCTURE_PYTHON_MMCIF_STRUCT_CONN_H_
-#define ALPHAFOLD3_SRC_ALPHAFOLD3_STRUCTURE_PYTHON_MMCIF_STRUCT_CONN_H_
+#ifndef ALPHAFOLD3_SRC_ALPHAFOLD3_STRUCTURE_CPP_MMCIF_STRUCT_CONN_H_
+#define ALPHAFOLD3_SRC_ALPHAFOLD3_STRUCTURE_CPP_MMCIF_STRUCT_CONN_H_
 
 #include <utility>
 #include <vector>
@@ -38,4 +38,4 @@ GetBondAtomIndices(const CifDict& mmcif, absl::string_view model_id);
 
 }  // namespace alphafold3
 
-#endif  // ALPHAFOLD3_SRC_ALPHAFOLD3_STRUCTURE_PYTHON_MMCIF_STRUCT_CONN_H_
+#endif  // ALPHAFOLD3_SRC_ALPHAFOLD3_STRUCTURE_CPP_MMCIF_STRUCT_CONN_H_

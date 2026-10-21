@@ -17,8 +17,8 @@
 // if received directly from Google. Use is subject to terms of use available at
 // https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md
 
-#ifndef ALPHAFOLD3_SRC_ALPHAFOLD3_STRUCTURE_PYTHON_MMCIF_ALTLOCS_H_
-#define ALPHAFOLD3_SRC_ALPHAFOLD3_STRUCTURE_PYTHON_MMCIF_ALTLOCS_H_
+#ifndef ALPHAFOLD3_SRC_ALPHAFOLD3_STRUCTURE_CPP_MMCIF_ALTLOCS_H_
+#define ALPHAFOLD3_SRC_ALPHAFOLD3_STRUCTURE_CPP_MMCIF_ALTLOCS_H_
 
 #include <cstddef>
 #include <cstdint>
@@ -55,4 +55,4 @@ std::vector<std::uint64_t> ResolveMmcifAltLocs(
 
 }  // namespace alphafold3
 
-#endif  // ALPHAFOLD3_SRC_ALPHAFOLD3_STRUCTURE_PYTHON_MMCIF_ALTLOCS_H_
+#endif  // ALPHAFOLD3_SRC_ALPHAFOLD3_STRUCTURE_CPP_MMCIF_ALTLOCS_H_
