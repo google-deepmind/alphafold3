@@ -28,9 +28,8 @@ from alphafold3.common import resources
 import msgpack
 import tqdm
 
-
 _CCD_MSGPACK_FILE = resources.filename(
-    'constants/converters/ccd.msgpack'
+    resources.ROOT / 'constants/converters/ccd.msgpack'
 )
 
 
