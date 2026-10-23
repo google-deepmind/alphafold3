@@ -2923,6 +2923,54 @@ class StructureTest(test_utils.StructureTestCase):
     )
 
   @parameterized.parameters(True, False)
+  def test_to_res_arrays_unresolved_leading_chain(
+      self, include_missing_residues
+  ):
+    struc = structure.from_mmcif(
+        test_utils.read_test_cif_file('2pv7'), include_bonds=False
+    )
+    zero_first = struc.filter(
+        struc.chain_id != struc.chains[0],
+        cascade_delete=structure.CascadeDelete.NONE,
+    )
+    actual = zero_first.to_res_arrays(
+        include_missing_residues=include_missing_residues
+    )
+    remaining = struc.filter(struc.chain_id != struc.chains[0]).to_res_arrays(
+        include_missing_residues=include_missing_residues
+    )
+    offset = (
+        len(struc.all_residues[struc.chains[0]])
+        if include_missing_residues
+        else 0
+    )
+    np.testing.assert_array_equal(
+        actual.atom_mask[:offset],
+        np.zeros((offset, atom_types.ATOM37_NUM), dtype=np.float32),
+        strict=True,
+    )
+    np.testing.assert_array_equal(
+        actual.atom_positions[offset:],
+        remaining.atom_positions,
+        strict=True,
+    )
+    np.testing.assert_array_equal(
+        actual.atom_mask[offset:],
+        remaining.atom_mask,
+        strict=True,
+    )
+    np.testing.assert_array_equal(
+        actual.atom_b_factor[offset:],
+        remaining.atom_b_factor,
+        strict=True,
+    )
+    np.testing.assert_array_equal(
+        actual.atom_occupancy[offset:],
+        remaining.atom_occupancy,
+        strict=True,
+    )
+
+  @parameterized.parameters(True, False)
   def test_to_res_arrays_empty_structure(self, include_missing_residues):
     res_arrays = structure.make_empty_structure().to_res_arrays(
         include_missing_residues=include_missing_residues

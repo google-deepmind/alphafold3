@@ -2493,23 +2493,29 @@ class Structure(table.Database):
       raise ValueError(
           f'Only 1D atom arrays allowed, got {self.atoms_table.ndim=}'
       )
-    num_res = self.num_residues(count_unresolved=include_missing_residues)
-    atom_type_num = len(atom_order)
-    atom_positions = np.zeros((num_res, atom_type_num, 3), dtype=np.float32)
-    atom_mask = np.zeros((num_res, atom_type_num), dtype=np.float32)
-    atom_b_factor = np.zeros((num_res, atom_type_num), dtype=np.float32)
-    atom_occupancy = np.zeros((num_res, atom_type_num), dtype=np.float32)
+    res_table = (
+        self._residues if include_missing_residues else self.present_residues
+    )
+    shape = (res_table.size, len(atom_order))
+    atom_positions = np.zeros((*shape, 3), dtype=np.float32)
+    atom_mask = np.zeros(shape, dtype=np.float32)
+    atom_b_factor = np.zeros(shape, dtype=np.float32)
+    atom_occupancy = np.zeros(shape, dtype=np.float32)
 
-    all_residues = None if not include_missing_residues else self.all_residues
-    for i, atom in enumerate_residues(self.iter_atoms(), all_residues):
-      atom_idx = atom_order.get(atom['atom_name'])
-      if atom_idx is not None:
-        atom_positions[i, atom_idx, 0] = atom['atom_x']
-        atom_positions[i, atom_idx, 1] = atom['atom_y']
-        atom_positions[i, atom_idx, 2] = atom['atom_z']
-        atom_mask[i, atom_idx] = 1.0
-        atom_b_factor[i, atom_idx] = atom['atom_b_factor']
-        atom_occupancy[i, atom_idx] = atom['atom_occupancy']
+    atom_idx = np.fromiter(
+        (atom_order.get(name, -1) for name in self._atoms.name),
+        dtype=np.int64,
+        count=self._atoms.size,
+    )
+    valid = atom_idx >= 0
+    res_idx = res_table.index_by_key[self._atoms.res_key[valid]]
+    atom_idx = atom_idx[valid]
+    atom_positions[res_idx, atom_idx, 0] = self._atoms.x[valid]
+    atom_positions[res_idx, atom_idx, 1] = self._atoms.y[valid]
+    atom_positions[res_idx, atom_idx, 2] = self._atoms.z[valid]
+    atom_mask[res_idx, atom_idx] = 1.0
+    atom_b_factor[res_idx, atom_idx] = self._atoms.b_factor[valid]
+    atom_occupancy[res_idx, atom_idx] = self._atoms.occupancy[valid]
 
     return ResArrays(
         atom_positions=atom_positions,
