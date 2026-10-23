@@ -923,12 +923,13 @@ class Structure(table.Database):
           f'index_arr must be a 1D NumPy array, but has shape {index_arr.shape}'
       )
 
-    if index_arr.dtype == bool and np.all(index_arr):
-      return self  # Shortcut: The operation is a no-op, so just return itself.
-
-    atoms = structure_tables.Atoms(
-        **{col: self._atoms[col][..., index_arr] for col in self._atoms.columns}
+    atoms = (
+        self._atoms.apply_array(index_arr)
+        if index_arr.dtype == bool
+        else self._atoms.apply_index(index_arr)
     )
+    if atoms is self._atoms:
+      return self
     updated_tables = self._cascade_delete(atoms=atoms)
     return self.copy_and_update(
         atoms=updated_tables.atoms,

@@ -148,6 +148,19 @@ class Table:
     if index_arr.dtype == bool:
       raise ValueError('The index array must not be a boolean mask.')
 
+    if self.size == 0 and index_arr.size == 0:
+      return self  # Shortcut: No-op, so just return.
+
+    if (
+        # Perform cheap checks first.
+        len(index_arr) == self.size
+        and index_arr[0] == 0
+        and index_arr[-1] == self.size - 1
+        # Then do the full expensive check.
+        and np.array_equal(index_arr, np.arange(self.size, dtype=np.int64))
+    ):
+      return self  # Shortcut: No-op, so just return.
+
     return self.copy_and_update(
         **{col: self.get_column(col)[..., index_arr] for col in self.columns}
     )
