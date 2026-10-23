@@ -1044,6 +1044,9 @@ def main(_):
   if _RUN_INFERENCE.value:
     devices = jax.local_devices(backend=_JAX_BACKEND.value)
     device = devices[_GPU_DEVICE.value]
+    # tokamax picks kernels at trace time from JAX's default device, not from
+    # the jit target, so make the selected device the default.
+    jax.config.update('jax_default_device', device)
     print(
         f'Found local {str(_JAX_BACKEND.value).upper()} devices: {devices},'
         f' using device {_GPU_DEVICE.value}: {device}'
