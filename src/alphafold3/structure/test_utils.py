@@ -23,9 +23,28 @@ import dataclasses
 
 from absl.testing import parameterized
 from alphafold3 import structure
+from alphafold3.common import resources
 from alphafold3.common.testing import data
 import numpy as np
-import tree
+
+_TEST_DATA = data.Data(
+    resources.ROOT / 'test_data/miniature_databases/pdb_mmcif'
+)
+
+
+def read_test_cif_file(filename: str) -> str:
+  return _TEST_DATA.load(f'{filename}.cif')
+
+
+def _flatten_dict_with_path(d, prefix=()):
+  items = []
+  for k, v in sorted(d.items()):
+    path = prefix + (k,)
+    if isinstance(v, dict):
+      items.extend(_flatten_dict_with_path(v, path))
+    else:
+      items.append((path, v))
+  return items
 
 
 class StructureTestCase(parameterized.TestCase):
@@ -33,8 +52,8 @@ class StructureTestCase(parameterized.TestCase):
 
   def assertAuthorNamingSchemeEqual(self, ans1, ans2):  # pylint: disable=invalid-name
     """Walks naming scheme, making sure all elements are equal."""
-    flat_ans1 = dict(tree.flatten_with_path(dataclasses.asdict(ans1)))
-    flat_ans2 = dict(tree.flatten_with_path(dataclasses.asdict(ans2)))
+    flat_ans1 = dict(_flatten_dict_with_path(dataclasses.asdict(ans1)))
+    flat_ans2 = dict(_flatten_dict_with_path(dataclasses.asdict(ans2)))
     for k, v in flat_ans1.items():
       self.assertEqual(v, flat_ans2[k], msg=str(k))
     for k, v in flat_ans2.items():

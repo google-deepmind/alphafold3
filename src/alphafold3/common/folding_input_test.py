@@ -814,6 +814,45 @@ class InputTest(parameterized.TestCase):
     with self.assertRaises(ValueError):
       folding_input.RnaChain.from_dict(rna_input)
 
+  @parameterized.parameters(
+      ('100d', 0, 0, 0, 1, 0),  # 100d has only RNA/DNA hybrid chains + ligand.
+      ('2pv7', 2, 0, 0, 4, 27),
+      (
+          '2ppb_trimmed',
+          5,
+          1,
+          2,
+          6,
+          78,
+      ),  # 2x chains, but defined using bioassembly.
+  )
+  def test_from_mmcif(
+      self,
+      pdb_id,
+      exp_num_protein_chains,
+      exp_num_rna_chains,
+      exp_num_dna_chains,
+      exp_num_ligands,
+      exp_num_bonds,
+  ):
+    mmcif = data.Data(
+        resources.ROOT / 'test_data/miniature_databases/pdb_mmcif'
+    ).load(f'{pdb_id}.cif')
+    fold_input = folding_input.Input.from_mmcif(
+        mmcif, ccd=chemical_components.Ccd()
+    )
+    self.assertEqual(fold_input.name, pdb_id.upper())
+    with self.subTest('protein_chains'):
+      self.assertLen(fold_input.protein_chains, exp_num_protein_chains)
+    with self.subTest('rna_chains'):
+      self.assertLen(fold_input.rna_chains, exp_num_rna_chains)
+    with self.subTest('dna_chains'):
+      self.assertLen(fold_input.dna_chains, exp_num_dna_chains)
+    with self.subTest('ligands'):
+      self.assertLen(fold_input.ligands, exp_num_ligands)
+    with self.subTest('bonds'):
+      self.assertLen(fold_input.bonded_atom_pairs or [], exp_num_bonds)
+
   def test_from_mmcif_round_trip(self):
     fold_input = folding_input.Input(
         name='test_input',

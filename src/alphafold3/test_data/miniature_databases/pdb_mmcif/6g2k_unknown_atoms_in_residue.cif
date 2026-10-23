@@ -1,0 +1,51 @@
+data_6G2K
+#
+loop_
+_atom_site.B_iso_or_equiv
+_atom_site.Cartn_x
+_atom_site.Cartn_y
+_atom_site.Cartn_z
+_atom_site.auth_asym_id
+_atom_site.auth_seq_id
+_atom_site.group_PDB
+_atom_site.id
+_atom_site.label_alt_id
+_atom_site.label_asym_id
+_atom_site.label_atom_id
+_atom_site.label_comp_id
+_atom_site.label_seq_id
+_atom_site.occupancy
+_atom_site.pdbx_PDB_ins_code
+_atom_site.pdbx_PDB_model_num
+34.92 31.530 0.415   -1.059  A 1  ATOM 19  . A N   CYS 1  1.0 . 1
+37.10 32.365 -0.717  -0.814  A 1  ATOM 20  . A CA  CYS 1  1.0 . 1
+34.25 31.701 -1.653  0.190   A 1  ATOM 21  . A C   CYS 1  1.0 . 1
+38.41 33.752 -0.306  -0.314  A 1  ATOM 22  . A CB  CYS 1  1.0 . 1
+34.78 31.374 -1.267  1.336   A 1  ATOM 23  . A O   CYS 1  1.0 . 1
+43.49 34.970 -1.668  -0.266  A 1  ATOM 24  . A SG  CYS 1  1.0 . 1
+62.24 35.153 -1.939  -2.290  A 1  ATOM 25  . A SD  CYS 1  1.0 . 1
+62.68 36.563 -1.267  -3.203  A 1  ATOM 26  . A CE  CYS 1  1.0 . 1
+63.29 37.892 -3.048  -4.261  A 1  ATOM 27  . A OH  CYS 1  1.0 . 1
+66.16 37.745 -2.237  -3.077  A 1  ATOM 28  . A CZ  CYS 1  1.0 . 1
+#
+loop_
+_chem_comp.id
+_chem_comp.name
+_chem_comp.type
+CYS CYSTEINE         "L-peptide linking"
+#
+_entity_poly.entity_id      0
+_entity_poly.pdbx_strand_id A
+_entity_poly.type           polypeptide(L)
+#
+loop_
+_entity_poly_seq.entity_id
+_entity_poly_seq.mon_id
+_entity_poly_seq.num
+0 CYS 1
+#
+_entry.id 6G2K
+#
+_struct_asym.entity_id 0
+_struct_asym.id        A
+#

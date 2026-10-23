@@ -1,0 +1,504 @@
+# Copyright 2024 DeepMind Technologies Limited
+#
+# AlphaFold 3 source code is licensed under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with the
+# License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# To request access to the AlphaFold 3 model parameters, follow the process set
+# out at https://github.com/google-deepmind/alphafold3. You may only use these
+# if received directly from Google. Use is subject to terms of use available at
+# https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md
+
+from collections.abc import Collection, Mapping
+import dataclasses
+from typing import ClassVar, Self
+
+from absl.testing import absltest
+from alphafold3.structure import table
+import numpy as np
+
+
+@dataclasses.dataclass(frozen=True)
+class OneColTable(table.Table):
+  data: np.ndarray
+
+
+@dataclasses.dataclass(frozen=True)
+class TwoColTable(table.Table):
+  data: np.ndarray
+  ints: np.ndarray
+
+
+class TableTest(absltest.TestCase):
+
+  def test_post_init_validation(self):
+    with self.assertRaises(ValueError):
+      _ = OneColTable(
+          key=np.array([1, 2, 3], dtype=np.int64),
+          data=np.array(['A'], dtype=object),
+      )
+
+  def test_single_table(self):
+    test_table = OneColTable(
+        key=np.array([1, 2, 3, 5, 6, 8]),
+        data=np.array(['A', 'B', 'C', 'D', 'E', 'F'], dtype=object),
+    )
+
+    with self.subTest('columns'):
+      self.assertSequenceEqual(test_table.columns, ['key', 'data'])
+    with self.subTest('size'):
+      self.assertEqual(test_table.size, 6)
+    with self.subTest('len'):
+      self.assertLen(test_table, 6)
+    with self.subTest('get_column_by_name'):
+      np.testing.assert_array_equal(test_table['data'], test_table.data)
+
+    mask = np.array([False, True, False, False, True, True])
+    with self.subTest('get_column_with_mask'):
+      np.testing.assert_array_equal(
+          test_table['data', mask], np.array(['B', 'E', 'F'])
+      )
+    with self.subTest('apply_mask'):
+      masked_test_table = test_table[mask]
+      np.testing.assert_array_equal(
+          masked_test_table.data, np.array(['B', 'E', 'F'])  # pyrefly: ignore[missing-attribute]
+      )
+
+    key_arr = np.array([1, 5, 6])
+    with self.subTest('slice_into_column'):
+      np.testing.assert_array_equal(
+          test_table['data', key_arr], np.array(['A', 'D', 'E'])
+      )
+    with self.subTest('slice_table'):
+      sliced_table = test_table[key_arr]
+      np.testing.assert_array_equal(
+          sliced_table.data, np.array(['A', 'D', 'E'])  # pyrefly: ignore[missing-attribute]
+      )
+    with self.subTest('apply_index'):
+      masked_test_table = test_table.apply_index(
+          np.array([0, 3, 4], dtype=np.int64)
+      )
+      np.testing.assert_array_equal(
+          masked_test_table.data, np.array(['A', 'D', 'E'])
+      )
+
+    with self.subTest('get_row_by_key'):
+      row = test_table.get_row_by_key(6)
+      self.assertDictEqual(row, {'key': 6, 'data': 'E'})
+      self.assertDictEqual(row, {'key': 6, 'data': 'E'})
+
+    with self.subTest('get_row_by_index'):
+      row = test_table.get_row_by_index(4)
+      self.assertDictEqual(row, {'key': 6, 'data': 'E'})
+
+    with self.subTest('get_row_by_key_renamed'):
+      row = test_table.get_row_by_key(6, column_name_map={'data_col': 'data'})
+      self.assertDictEqual(row, {'data_col': 'E'})
+
+    with self.subTest('get_row_by_index_renamed'):
+      row = test_table.get_row_by_index(4, column_name_map={'data_col': 'data'})
+      self.assertDictEqual(row, {'data_col': 'E'})
+
+  def test_tables_with_foreign_keys(self):
+    @dataclasses.dataclass(frozen=True)
+    class TableA(table.Table):
+      data: np.ndarray
+
+    @dataclasses.dataclass(frozen=True)
+    class TableB(table.Table):
+      table_a_key: np.ndarray
+      data: np.ndarray
+
+    table_a = TableA(
+        key=np.array([1, 2, 3, 5, 6, 8]),
+        data=np.array(['A', 'B', 'C', 'D', 'E', 'F'], dtype=object),
+    )
+
+    table_b = TableB(
+        key=np.array([0, 1, 2, 3]),
+        table_a_key=np.array([2, 2, 5, 8]),
+        data=np.array([2.3, 5.2, 8.1, 3.0], dtype=np.float32),
+    )
+
+    with self.subTest('iterrows'):
+      expected = [
+          {'A_data': 'B', 'B_data': np.float32(2.3)},
+          {'A_data': 'B', 'B_data': np.float32(5.2)},
+          {'A_data': 'D', 'B_data': np.float32(8.1)},
+          {'A_data': 'F', 'B_data': np.float32(3.0)},
+      ]
+      rows = list(
+          table_b.iterrows(
+              column_name_map={'B_data': 'data'},
+              table_a_key=table_a.with_column_names({'A_data': 'data'}),
+          )
+      )
+      self.assertSequenceEqual(rows, expected)
+
+    with self.subTest('iterrows_with_keys'):
+      expected = [
+          {'A_data': 'B', 'B_data': np.float32(5.2)},
+          {'A_data': 'D', 'B_data': np.float32(8.1)},
+      ]
+      rows = list(
+          table_b.iterrows(
+              row_keys=np.array([1, 2]),
+              column_name_map={'B_data': 'data'},
+              table_a_key=table_a.with_column_names({'A_data': 'data'}),
+          )
+      )
+      self.assertSequenceEqual(rows, expected)
+
+  def test_filter(self):
+    test_table = TwoColTable(
+        key=np.array([1, 2, 3, 5, 6, 8]),
+        data=np.array(['A', 'B', 'C', 'D', 'E', 'F'], dtype=object),
+        ints=np.array([3, 5, 1, 7, -1, 5]),
+    )
+
+    with self.subTest('filter_single_value'):
+      filtered = test_table.filter(data='C')
+      self.assertEqual(filtered.size, 1)
+      np.testing.assert_array_equal(filtered.key, [3])
+      np.testing.assert_array_equal(filtered.data, ['C'])
+      np.testing.assert_array_equal(filtered.ints, [1])
+
+    with self.subTest('filter_multiple_values'):
+      filtered = test_table.filter(data=('B', 'E', 'F'))
+      self.assertEqual(filtered.size, 3)
+      np.testing.assert_array_equal(filtered.key, [2, 6, 8])
+      np.testing.assert_array_equal(filtered.data, ['B', 'E', 'F'])
+      np.testing.assert_array_equal(filtered.ints, [5, -1, 5])
+
+    with self.subTest('filter_multiple_cols'):
+      filtered = test_table.filter(data='B', ints=5)
+      self.assertEqual(filtered.size, 1)
+      np.testing.assert_array_equal(filtered.key, [2])
+      np.testing.assert_array_equal(filtered.data, ['B'])
+      np.testing.assert_array_equal(filtered.ints, [5])
+
+    with self.subTest('filter_multiple_cols_and_vals'):
+      filtered = test_table.filter(data=('B', 'C', 'D'), ints=(5, 6, 7))
+      self.assertEqual(filtered.size, 2)
+      np.testing.assert_array_equal(filtered.key, [2, 5])
+      np.testing.assert_array_equal(filtered.data, ['B', 'D'])
+      np.testing.assert_array_equal(filtered.ints, [5, 7])
+
+    with self.subTest('filter_with_lambda'):
+      filtered = test_table.filter(ints=lambda x: x < 4)
+      self.assertEqual(filtered.size, 3)
+      np.testing.assert_array_equal(filtered.key, [1, 3, 6])
+      np.testing.assert_array_equal(filtered.data, ['A', 'C', 'E'])
+      np.testing.assert_array_equal(filtered.ints, [3, 1, -1])
+
+    with self.subTest('filter_with_mask'):
+      mask = np.array([False, True, False, False, True, True])
+      filtered = test_table.filter(mask)
+      self.assertEqual(filtered.size, 3)
+      np.testing.assert_array_equal(filtered.key, [2, 6, 8])
+      np.testing.assert_array_equal(filtered.data, ['B', 'E', 'F'])
+      np.testing.assert_array_equal(filtered.ints, [5, -1, 5])
+
+    with self.subTest('filter_with_mask_and_values'):
+      mask = np.array([False, True, False, False, True, True])
+      filtered = test_table.filter(mask, data=('D', 'E', 'F'))
+      self.assertEqual(filtered.size, 2)
+      np.testing.assert_array_equal(filtered.key, [6, 8])
+      np.testing.assert_array_equal(filtered.data, ['E', 'F'])
+      np.testing.assert_array_equal(filtered.ints, [-1, 5])
+
+    with self.subTest('filter_single_inverted'):
+      filtered = test_table.filter(data='C', invert=True)
+      self.assertEqual(filtered.size, 5)
+      np.testing.assert_array_equal(filtered.key, [1, 2, 5, 6, 8])
+      np.testing.assert_array_equal(filtered.data, ['A', 'B', 'D', 'E', 'F'])
+      np.testing.assert_array_equal(filtered.ints, [3, 5, 7, -1, 5])
+
+    with self.subTest('filter_multiple_inverted'):
+      filtered = test_table.filter(
+          data=('B', 'C', 'D'), ints=(5, 6, 7), invert=True
+      )
+      self.assertEqual(filtered.size, 4)
+      np.testing.assert_array_equal(filtered.key, [1, 3, 6, 8])
+      np.testing.assert_array_equal(filtered.data, ['A', 'C', 'E', 'F'])
+      np.testing.assert_array_equal(filtered.ints, [3, 1, -1, 5])
+
+    with self.subTest('filter_apply_by_element'):
+      filtered = test_table.filter(
+          data=lambda x: x.lower() == 'c', apply_per_element=True
+      )
+      self.assertEqual(filtered.size, 1)
+      np.testing.assert_array_equal(filtered.key, [3])
+      np.testing.assert_array_equal(filtered.data, ['C'])
+      np.testing.assert_array_equal(filtered.ints, [1])
+
+    with self.subTest('filter_all'):
+      filtered = test_table.filter(data=lambda _: False, apply_per_element=True)
+      self.assertEqual(filtered.size, 0)
+      np.testing.assert_array_equal(filtered.key, [])
+      np.testing.assert_array_equal(filtered.data, [])
+      np.testing.assert_array_equal(filtered.ints, [])
+
+  def test_copy_methods(self):
+    test_table = TwoColTable(
+        key=np.array([1, 2, 3, 5, 6, 8], dtype=np.int64),
+        data=np.array(['A', 'B', 'C', 'D', 'E', 'F'], dtype=object),
+        ints=np.array([3, 5, 1, 7, -1, 5], dtype=np.int64),
+    )
+
+    with self.subTest('copy'):
+      copied = test_table.copy_and_update()
+      self.assertIsNot(copied, test_table)
+      for col in copied.columns:
+        self.assertIs(
+            copied.get_column(col), test_table.get_column(col), msg=col
+        )
+
+    with self.subTest('copy_and_update_invalid_column_name'):
+      with self.assertRaisesRegex(ValueError, 'Invalid column names: '):
+        _ = test_table.copy_and_update(bad_col_name=test_table.key)
+
+    with self.subTest('copy_and_update_invalid_length'):
+      with self.assertRaisesRegex(ValueError, 'All columns should have length'):
+        _ = test_table.copy_and_update(ints=np.array([1, 2, 3], dtype=np.int64))
+
+    with self.subTest('copy_and_update'):
+      new_data = np.array(['U', 'V', 'W', 'X', 'Y', 'Z'], dtype=object)
+      new_ints = np.array([0, 0, 1, 1, 2, 2], dtype=np.int64)
+      updated = test_table.copy_and_update(data=new_data, ints=new_ints)
+      self.assertIsNot(updated, test_table)
+      self.assertIs(updated.data, new_data)
+      self.assertIs(updated.ints, new_ints)
+      self.assertIs(updated.key, test_table.key)
+
+    with self.subTest('copy_and_remap'):
+      remapped = test_table.copy_and_remap(
+          key={2: 10, 5: 15, 15: 5},
+          data={'A': 'B', 'B': 'A', 'Q': 'Z'},
+      )
+      self.assertIsNot(remapped, test_table)
+      self.assertIs(remapped.ints, test_table.ints)
+      np.testing.assert_array_equal(remapped.key, [1, 10, 3, 15, 6, 8])
+      np.testing.assert_array_equal(
+          remapped.data, ['B', 'A', 'C', 'D', 'E', 'F']
+      )
+
+    with self.subTest('copy_and_remap_invalid_column_name'):
+      with self.assertRaisesRegex(ValueError, 'Invalid column names: '):
+        _ = test_table.copy_and_remap(bad_col_name={})
+
+  def test_copy_and_remap_empty_table(self):
+    test_table = OneColTable(
+        key=np.array([], dtype=np.int64),
+        data=np.array([], dtype=object),
+    )
+
+    remapped = test_table.copy_and_remap(key={1: 5}, data={'a': 'A', 'b': 'B'})
+    with self.subTest('copies_table'):
+      self.assertEqual(remapped.size, 0)
+
+    with self.subTest('invalid_column_name'):
+      with self.assertRaisesRegex(ValueError, 'Invalid column names: '):
+        _ = test_table.copy_and_remap(bad_col_name={})
+
+
+@dataclasses.dataclass(frozen=True)
+class Residues(table.Table):
+  id: np.ndarray
+
+
+@dataclasses.dataclass(frozen=True)
+class Atoms(table.Table):
+  name: np.ndarray
+  coords: np.ndarray  # 3 x N
+  res_key: np.ndarray
+
+
+@dataclasses.dataclass(frozen=True)
+class Bonds(table.Table):
+  from_atom_key: np.ndarray
+  dest_atom_key: np.ndarray
+
+
+@dataclasses.dataclass(frozen=True)
+class Polymer(table.Database):
+  residues: Residues
+  atoms: Atoms
+  bonds: Bonds
+
+  tables: ClassVar[Collection[str]] = ('residues', 'atoms', 'bonds')  # pyrefly: ignore[bad-override]
+  foreign_keys: ClassVar[Mapping[str, Collection[tuple[str, str]]]] = {  # pyrefly: ignore[bad-override]
+      'atoms': (('res_key', 'residues'),),
+      'bonds': (
+          ('from_atom_key', 'atoms'),
+          ('dest_atom_key', 'atoms'),
+      ),
+  }
+
+  def get_table(self, table_name: str) -> table.Table:
+    return getattr(self, table_name)
+
+  def copy_and_update(self, **changes) -> Self:
+    return dataclasses.replace(self, **changes)
+
+
+class DatabaseTest(absltest.TestCase):
+
+  def test_concat_fails_on_empty(self):
+    with self.assertRaisesRegex(ValueError, 'Need at least one'):
+      table.concat_databases([])
+
+  def test_concat_fails_on_different_types(self):
+    @dataclasses.dataclass(frozen=True)
+    class OtherDB(table.Database):
+      atoms: Atoms
+      tables: ClassVar[Collection[str]] = ('atoms',)  # pyrefly: ignore[bad-override]
+      foreign_keys: ClassVar[Mapping[str, Collection[tuple[str, str]]]] = {}  # pyrefly: ignore[bad-override]
+      get_table = getattr  # pyrefly: ignore[bad-override]
+      copy_and_update = dataclasses.replace
+
+    with self.assertRaisesRegex(
+        ValueError, 'All `dbs` must be of the same type.'
+    ):
+      table.concat_databases([
+          Polymer(
+              residues=Residues(
+                  key=np.array([], dtype=np.int64),
+                  id=np.array([], dtype=object),
+              ),
+              atoms=Atoms(
+                  key=np.array([], dtype=np.int64),
+                  name=np.array([], dtype=object),
+                  coords=np.array([[], [], []], dtype=np.float32),
+                  res_key=np.array([], dtype=np.int64),
+              ),
+              bonds=Bonds(
+                  key=np.array([], dtype=np.int64),
+                  from_atom_key=np.array([], dtype=np.int64),
+                  dest_atom_key=np.array([], dtype=np.int64),
+              ),
+          ),
+          OtherDB(
+              atoms=Atoms(
+                  key=np.array([], dtype=np.int64),
+                  name=np.array([], dtype=object),
+                  coords=np.array([[], [], []], dtype=np.float32),
+                  res_key=np.array([], dtype=np.int64),
+              ),
+          ),
+      ])
+
+  def test_concat(self):
+    p1 = Polymer(
+        residues=Residues(
+            key=np.array([1, 2], dtype=np.int64),
+            id=np.array([1, 2], dtype=object),
+        ),
+        atoms=Atoms(
+            key=np.array([1, 2, 3, 4], dtype=np.int64),
+            name=np.array(['a', 'b', 'c', 'd'], dtype=object),
+            coords=np.array(
+                [
+                    [0.0, 1.0, 2.0, 3.0],
+                    [0.1, 1.1, 2.1, 3.1],
+                    [0.2, 1.2, 2.2, 3.2],
+                ],
+                dtype=np.float32,
+            ),
+            res_key=np.array([1, 2, 1, 2], dtype=np.int64),
+        ),
+        bonds=Bonds(
+            key=np.array([1, 2, 3], dtype=np.int64),
+            from_atom_key=np.array([1, 2, 1], dtype=np.int64),
+            dest_atom_key=np.array([3, 4, 2], dtype=np.int64),
+        ),
+    )
+    p2 = Polymer(
+        residues=Residues(
+            key=np.array([1, 2], dtype=np.int64),
+            id=np.array([5, 6], dtype=object),
+        ),
+        atoms=Atoms(
+            key=np.array([1, 2, 3], dtype=np.int64),
+            name=np.array(['x', 'y', 'z'], dtype=object),
+            coords=np.array(
+                [
+                    [10.0, 11.0, 12.0],
+                    [10.1, 11.1, 12.1],
+                    [10.2, 11.2, 12.2],
+                ],
+                dtype=np.float32,
+            ),
+            res_key=np.array([2, 2, 1], dtype=np.int64),
+        ),
+        bonds=Bonds(
+            key=np.array([1, 2], dtype=np.int64),
+            from_atom_key=np.array([2, 3], dtype=np.int64),
+            dest_atom_key=np.array([3, 1], dtype=np.int64),
+        ),
+    )
+    empty = Polymer(
+        residues=Residues(
+            key=np.array([1, 2], dtype=np.int64),
+            id=np.array([8, 9], dtype=object),
+        ),
+        atoms=Atoms(
+            key=np.array([], dtype=np.int64),
+            name=np.array([], dtype=object),
+            coords=np.array([[], [], []], dtype=np.float32),
+            res_key=np.array([], dtype=np.int64),
+        ),
+        bonds=Bonds(
+            key=np.array([], dtype=np.int64),
+            from_atom_key=np.array([], dtype=np.int64),
+            dest_atom_key=np.array([], dtype=np.int64),
+        ),
+    )
+    concatted = table.concat_databases([p1, empty, p2])
+    with self.subTest('plain_columns_concatenate'):
+      np.testing.assert_array_equal(
+          concatted.residues.id,
+          [1, 2, 8, 9, 5, 6],
+      )
+      np.testing.assert_array_equal(
+          concatted.atoms.name, ['a', 'b', 'c', 'd', 'x', 'y', 'z']
+      )
+    with self.subTest('foreign_keys_concatenate'):
+      np.testing.assert_array_equal(
+          concatted.residues.apply_array(concatted.atoms.res_key).id,
+          [1, 2, 1, 2, 6, 6, 5],
+      )
+      np.testing.assert_array_almost_equal(
+          concatted.atoms.coords,
+          [
+              [0.0, 1.0, 2.0, 3.0, 10.0, 11.0, 12.0],
+              [0.1, 1.1, 2.1, 3.1, 10.1, 11.1, 12.1],
+              [0.2, 1.2, 2.2, 3.2, 10.2, 11.2, 12.2],
+          ],
+      )
+      np.testing.assert_array_equal(
+          concatted.atoms.apply_array(concatted.bonds.from_atom_key).name,
+          ['a', 'b', 'a', 'y', 'z'],
+      )
+      np.testing.assert_array_equal(
+          concatted.atoms.apply_array(concatted.bonds.dest_atom_key).name,
+          ['c', 'd', 'b', 'z', 'x'],
+      )
+    with self.subTest('key_is_unique'):
+      for table_name in Polymer.tables:
+        self.assertLen(
+            set(concatted.get_table(table_name).key),
+            len(concatted.get_table(table_name).key),
+        )
+
+
+if __name__ == '__main__':
+  absltest.main()

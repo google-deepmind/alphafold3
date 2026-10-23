@@ -1,0 +1,134 @@
+data_7A4P
+#
+_entry.id 7A4P
+#
+loop_
+_pdbx_audit_revision_history.ordinal
+_pdbx_audit_revision_history.data_content_type
+_pdbx_audit_revision_history.major_revision
+_pdbx_audit_revision_history.minor_revision
+_pdbx_audit_revision_history.revision_date
+1 'Structure model' 1 0 2021-07-28
+2 'Structure model' 1 1 2021-09-08
+3 'Structure model' 1 2 2021-09-29
+4 'Structure model' 1 3 2024-03-13
+#
+loop_
+_entity.id
+_entity.type
+_entity.src_method
+_entity.pdbx_description
+_entity.formula_weight
+_entity.pdbx_number_of_molecules
+_entity.pdbx_ec
+_entity.pdbx_mutation
+_entity.pdbx_fragment
+_entity.details
+1  polymer nat 'Photosystem I P700 chlorophyll a apoprotein A1'              82125.898 1 1.97.1.12 ? ? ?
+20 polymer nat 'Photosystem I reaction center subunit VI-chloroplastic-like' 329.392   1 ?         ? ? ?
+#
+loop_
+_entity_poly.entity_id
+_entity_poly.type
+_entity_poly.nstd_linkage
+_entity_poly.nstd_monomer
+_entity_poly.pdbx_seq_one_letter_code
+_entity_poly.pdbx_seq_one_letter_code_can
+_entity_poly.pdbx_strand_id
+_entity_poly.pdbx_target_identifier
+1  polypeptide(L) no no ? ? A ?
+20 polypeptide(L) no no ? ? H ?
+#
+loop_
+_entity_poly_seq.entity_id
+_entity_poly_seq.num
+_entity_poly_seq.mon_id
+_entity_poly_seq.hetero
+1  1 LYS n
+1  2 LYS n
+20 1 LEU n
+20 2 PRO n
+20 3 THR n
+#
+loop_
+_chem_comp.id
+_chem_comp.type
+_chem_comp.mon_nstd_flag
+_chem_comp.name
+_chem_comp.pdbx_synonyms
+_chem_comp.formula
+_chem_comp.formula_weight
+LEU 'L-peptide linking' y LEUCINE   ? 'C6 H13 N O2'    131.173
+LYS 'L-peptide linking' y LYSINE    ? 'C6 H15 N2 O2 1' 147.195
+PRO 'L-peptide linking' y PROLINE   ? 'C5 H9 N O2'     115.130
+THR 'L-peptide linking' y THREONINE ? 'C4 H9 N O3'     119.119
+#
+loop_
+_pdbx_poly_seq_scheme.asym_id
+_pdbx_poly_seq_scheme.entity_id
+_pdbx_poly_seq_scheme.seq_id
+_pdbx_poly_seq_scheme.mon_id
+_pdbx_poly_seq_scheme.ndb_seq_num
+_pdbx_poly_seq_scheme.pdb_seq_num
+_pdbx_poly_seq_scheme.auth_seq_num
+_pdbx_poly_seq_scheme.pdb_mon_id
+_pdbx_poly_seq_scheme.auth_mon_id
+_pdbx_poly_seq_scheme.pdb_strand_id
+_pdbx_poly_seq_scheme.pdb_ins_code
+_pdbx_poly_seq_scheme.hetero
+A 1  1 LYS 1 11  11 LYS LYS A . n
+A 1  2 LYS 2 12  12 LYS LYS A . n
+U 20 1 LEU 1 110 ?  ?   ?   H . n
+U 20 2 PRO 2 111 ?  ?   ?   H . n
+U 20 3 THR 3 112 ?  ?   ?   H . n
+#
+loop_
+_struct_asym.id
+_struct_asym.pdbx_blank_PDB_chainid_flag
+_struct_asym.pdbx_modified
+_struct_asym.entity_id
+_struct_asym.details
+A N N 1  ?
+U N N 20 ?
+#
+loop_
+_atom_site.group_PDB
+_atom_site.id
+_atom_site.type_symbol
+_atom_site.label_atom_id
+_atom_site.label_alt_id
+_atom_site.label_comp_id
+_atom_site.label_asym_id
+_atom_site.label_entity_id
+_atom_site.label_seq_id
+_atom_site.pdbx_PDB_ins_code
+_atom_site.Cartn_x
+_atom_site.Cartn_y
+_atom_site.Cartn_z
+_atom_site.occupancy
+_atom_site.B_iso_or_equiv
+_atom_site.pdbx_formal_charge
+_atom_site.auth_seq_id
+_atom_site.auth_comp_id
+_atom_site.auth_asym_id
+_atom_site.auth_atom_id
+_atom_site.pdbx_PDB_model_num
+ATOM 1  N N  . LYS A 1 1 ? 226.05400 198.40100 138.86200 1.000 59.69125 ? 11 LYS A N  1
+ATOM 2  C CA . LYS A 1 1 ? 225.26500 198.15300 137.66200 1.000 59.69125 ? 11 LYS A CA 1
+ATOM 3  C C  . LYS A 1 1 ? 224.33800 196.95900 137.89500 1.000 59.69125 ? 11 LYS A C  1
+ATOM 4  O O  . LYS A 1 1 ? 224.74500 195.96200 138.49000 1.000 59.69125 ? 11 LYS A O  1
+ATOM 5  C CB . LYS A 1 1 ? 226.18600 197.91600 136.46400 1.000 59.69125 ? 11 LYS A CB 1
+ATOM 6  C CG . LYS A 1 1 ? 225.49200 197.89300 135.10900 1.000 59.69125 ? 11 LYS A CG 1
+ATOM 7  C CD . LYS A 1 1 ? 225.26700 196.47800 134.62200 1.000 59.69125 ? 11 LYS A CD 1
+ATOM 8  C CE . LYS A 1 1 ? 226.56900 195.78100 134.29500 1.000 59.69125 ? 11 LYS A CE 1
+ATOM 9  N NZ . LYS A 1 1 ? 226.32800 194.40300 133.79200 1.000 59.69125 ? 11 LYS A NZ 1
+ATOM 10 N N  . LYS A 1 2 ? 223.09100 197.09000 137.43700 1.000 60.18196 ? 12 LYS A N  1
+ATOM 11 C CA . LYS A 1 2 ? 222.01700 196.12000 137.64800 1.000 60.18196 ? 12 LYS A CA 1
+ATOM 12 C C  . LYS A 1 2 ? 221.57500 196.07100 139.10400 1.000 60.18196 ? 12 LYS A C  1
+ATOM 13 O O  . LYS A 1 2 ? 222.28700 195.55800 139.97100 1.000 60.18196 ? 12 LYS A O  1
+ATOM 14 C CB . LYS A 1 2 ? 222.40400 194.71400 137.17900 1.000 60.18196 ? 12 LYS A CB 1
+ATOM 15 C CG . LYS A 1 2 ? 222.59600 194.60500 135.69100 1.000 60.18196 ? 12 LYS A CG 1
+ATOM 16 C CD . LYS A 1 2 ? 221.32900 194.95000 134.93700 1.000 60.18196 ? 12 LYS A CD 1
+ATOM 17 C CE . LYS A 1 2 ? 221.55800 194.87000 133.43900 1.000 60.18196 ? 12 LYS A CE 1
+ATOM 18 N NZ . LYS A 1 2 ? 220.38700 195.33500 132.65300 1.000 60.18196 ? 12 LYS A NZ 1
+#

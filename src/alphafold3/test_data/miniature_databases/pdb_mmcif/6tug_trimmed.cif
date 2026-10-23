@@ -1,0 +1,1459 @@
+data_6TUG
+# 
+_entry.id   6TUG 
+# 
+loop_
+_entity.id 
+_entity.type 
+_entity.src_method 
+_entity.pdbx_description 
+_entity.formula_weight 
+_entity.pdbx_number_of_molecules 
+_entity.pdbx_ec 
+_entity.pdbx_mutation 
+_entity.pdbx_fragment 
+_entity.details 
+1 polymer     man 'CRISPR system endoribonuclease Csm6'                   50967.016 8   3.1.-.- ? ? ? 
+2 non-polymer syn 
+;2'-deoxy-2'-fluoroadenosine 5'-(dihydrogen phosphate)
+;
+349.212   24  ?       ? ? ? 
+3 non-polymer syn 'SULFATE ION'                                           96.063    4   ?       ? ? ? 
+4 water       nat water                                                   18.015    345 ?       ? ? ? 
+# 
+_entity_poly.entity_id                      1 
+_entity_poly.type                           'polypeptide(L)' 
+_entity_poly.nstd_linkage                   no 
+_entity_poly.nstd_monomer                   no 
+_entity_poly.pdbx_seq_one_letter_code       
+;SNAMKILFSPIGNTDPWRNDRDGAMLHIVRHYQPDRVVLFFTESIWQGNQHFSGQQAFDWVKIIQSINENCQIEIKCDTI
+EVENDFDAYKDLFHQYLVEEKRKYPNAEIFLNVTSGTPQMETTLCLEYVTYPDKMRCIQVSTPLKTSNAKTKYAQADCQE
+VDLEIVNEEESQQPSRCHKIAILSFREAIVRNQIKSLLDNYDYEAALQLVASQKSFRNGKEIRKKLKELIDDIKMHRVFS
+YLIKQYPRNEKLQKALLHTILLEMRHQRGDIAETLIRVKSIAEYIVEQYIQKNYPYLIIYKEDKPYFNVSYSQELTESYL
+ALMDSRNKKTNKKMTVDSLDRILGFPAYRDFLQLLEASNEMTNEMNKVNEINNLRNKVAHNLDSLNLDRDKNGRKITNAV
+TAVRTMLLAVFPEVQENDFHYLKQFNQSIKELL
+;
+_entity_poly.pdbx_seq_one_letter_code_can   
+;SNAMKILFSPIGNTDPWRNDRDGAMLHIVRHYQPDRVVLFFTESIWQGNQHFSGQQAFDWVKIIQSINENCQIEIKCDTI
+EVENDFDAYKDLFHQYLVEEKRKYPNAEIFLNVTSGTPQMETTLCLEYVTYPDKMRCIQVSTPLKTSNAKTKYAQADCQE
+VDLEIVNEEESQQPSRCHKIAILSFREAIVRNQIKSLLDNYDYEAALQLVASQKSFRNGKEIRKKLKELIDDIKMHRVFS
+YLIKQYPRNEKLQKALLHTILLEMRHQRGDIAETLIRVKSIAEYIVEQYIQKNYPYLIIYKEDKPYFNVSYSQELTESYL
+ALMDSRNKKTNKKMTVDSLDRILGFPAYRDFLQLLEASNEMTNEMNKVNEINNLRNKVAHNLDSLNLDRDKNGRKITNAV
+TAVRTMLLAVFPEVQENDFHYLKQFNQSIKELL
+;
+_entity_poly.pdbx_strand_id                 A,B,C,D,E,F,G,H 
+_entity_poly.pdbx_target_identifier         ? 
+# 
+loop_
+_entity_poly_seq.entity_id 
+_entity_poly_seq.num 
+_entity_poly_seq.mon_id 
+_entity_poly_seq.hetero 
+1 1   SER n 
+1 2   ASN n 
+1 3   ALA n 
+# 
+loop_
+_chem_comp.id 
+_chem_comp.type 
+_chem_comp.mon_nstd_flag 
+_chem_comp.name 
+_chem_comp.pdbx_synonyms 
+_chem_comp.formula 
+_chem_comp.formula_weight 
+AF2 'DNA linking'       n 
+;2'-deoxy-2'-fluoroadenosine 5'-(dihydrogen phosphate)
+;
+? 'C10 H13 F N5 O6 P' 349.212 
+ALA 'L-peptide linking' y ALANINE                                                 ? 'C3 H7 N O2'        89.093  
+ASN 'L-peptide linking' y ASPARAGINE                                              ? 'C4 H8 N2 O3'       132.118 
+HOH non-polymer         . WATER                                                   ? 'H2 O'              18.015  
+SER 'L-peptide linking' y SERINE                                                  ? 'C3 H7 N O3'        105.093 
+SO4 non-polymer         . 'SULFATE ION'                                           ? 'O4 S -2'           96.063  
+# 
+_exptl.absorpt_coefficient_mu     ? 
+_exptl.absorpt_correction_T_max   ? 
+_exptl.absorpt_correction_T_min   ? 
+_exptl.absorpt_correction_type    ? 
+_exptl.absorpt_process_details    ? 
+_exptl.entry_id                   6TUG 
+_exptl.crystals_number            1 
+_exptl.details                    ? 
+_exptl.method                     'X-RAY DIFFRACTION' 
+_exptl.method_details             ? 
+# 
+_reflns.B_iso_Wilson_estimate            37.02 
+_reflns.entry_id                         6TUG 
+_reflns.data_reduction_details           ? 
+_reflns.data_reduction_method            ? 
+_reflns.d_resolution_high                2.42 
+_reflns.d_resolution_low                 48.51 
+_reflns.details                          ? 
+_reflns.limit_h_max                      ? 
+_reflns.limit_h_min                      ? 
+_reflns.limit_k_max                      ? 
+_reflns.limit_k_min                      ? 
+_reflns.limit_l_max                      ? 
+_reflns.limit_l_min                      ? 
+_reflns.number_all                       ? 
+_reflns.number_obs                       156394 
+_reflns.observed_criterion               ? 
+_reflns.observed_criterion_F_max         ? 
+_reflns.observed_criterion_F_min         ? 
+_reflns.observed_criterion_I_max         ? 
+_reflns.observed_criterion_I_min         ? 
+_reflns.observed_criterion_sigma_F       ? 
+_reflns.observed_criterion_sigma_I       ? 
+_reflns.percent_possible_obs             90.8 
+_reflns.R_free_details                   ? 
+_reflns.Rmerge_F_all                     ? 
+_reflns.Rmerge_F_obs                     ? 
+_reflns.Friedel_coverage                 ? 
+_reflns.number_gt                        ? 
+_reflns.threshold_expression             ? 
+_reflns.pdbx_redundancy                  3.5 
+_reflns.pdbx_Rmerge_I_obs                0.07649 
+_reflns.pdbx_Rmerge_I_all                ? 
+_reflns.pdbx_Rsym_value                  ? 
+_reflns.pdbx_netI_over_av_sigmaI         ? 
+_reflns.pdbx_netI_over_sigmaI            13.12 
+_reflns.pdbx_res_netI_over_av_sigmaI_2   ? 
+_reflns.pdbx_res_netI_over_sigmaI_2      ? 
+_reflns.pdbx_chi_squared                 ? 
+_reflns.pdbx_scaling_rejects             ? 
+_reflns.pdbx_d_res_high_opt              ? 
+_reflns.pdbx_d_res_low_opt               ? 
+_reflns.pdbx_d_res_opt_method            ? 
+_reflns.phase_calculation_details        ? 
+_reflns.pdbx_Rrim_I_all                  0.0902 
+_reflns.pdbx_Rpim_I_all                  0.04726 
+_reflns.pdbx_d_opt                       ? 
+_reflns.pdbx_number_measured_all         ? 
+_reflns.pdbx_diffrn_id                   1 
+_reflns.pdbx_ordinal                     1 
+_reflns.pdbx_CC_half                     0.998 
+_reflns.pdbx_CC_star                     0.999 
+_reflns.pdbx_R_split                     ? 
+# 
+_refine.aniso_B[1][1]                            ? 
+_refine.aniso_B[1][2]                            ? 
+_refine.aniso_B[1][3]                            ? 
+_refine.aniso_B[2][2]                            ? 
+_refine.aniso_B[2][3]                            ? 
+_refine.aniso_B[3][3]                            ? 
+_refine.B_iso_max                                ? 
+_refine.B_iso_mean                               50.78 
+_refine.B_iso_min                                ? 
+_refine.correlation_coeff_Fo_to_Fc               ? 
+_refine.correlation_coeff_Fo_to_Fc_free          ? 
+_refine.details                                  ? 
+_refine.diff_density_max                         ? 
+_refine.diff_density_max_esd                     ? 
+_refine.diff_density_min                         ? 
+_refine.diff_density_min_esd                     ? 
+_refine.diff_density_rms                         ? 
+_refine.diff_density_rms_esd                     ? 
+_refine.entry_id                                 6TUG 
+_refine.pdbx_refine_id                           'X-RAY DIFFRACTION' 
+_refine.ls_abs_structure_details                 ? 
+_refine.ls_abs_structure_Flack                   ? 
+_refine.ls_abs_structure_Flack_esd               ? 
+_refine.ls_abs_structure_Rogers                  ? 
+_refine.ls_abs_structure_Rogers_esd              ? 
+_refine.ls_d_res_high                            2.42 
+_refine.ls_d_res_low                             48.51 
+_refine.ls_extinction_coef                       ? 
+_refine.ls_extinction_coef_esd                   ? 
+_refine.ls_extinction_expression                 ? 
+_refine.ls_extinction_method                     ? 
+_refine.ls_goodness_of_fit_all                   ? 
+_refine.ls_goodness_of_fit_all_esd               ? 
+_refine.ls_goodness_of_fit_obs                   ? 
+_refine.ls_goodness_of_fit_obs_esd               ? 
+_refine.ls_hydrogen_treatment                    ? 
+_refine.ls_matrix_type                           ? 
+_refine.ls_number_constraints                    ? 
+_refine.ls_number_parameters                     ? 
+_refine.ls_number_reflns_all                     ? 
+_refine.ls_number_reflns_obs                     156268 
+_refine.ls_number_reflns_R_free                  7655 
+_refine.ls_number_reflns_R_work                  ? 
+_refine.ls_number_restraints                     ? 
+_refine.ls_percent_reflns_obs                    90.85 
+_refine.ls_percent_reflns_R_free                 4.90 
+_refine.ls_R_factor_all                          ? 
+_refine.ls_R_factor_obs                          0.2648 
+_refine.ls_R_factor_R_free                       0.2917 
+_refine.ls_R_factor_R_free_error                 ? 
+_refine.ls_R_factor_R_free_error_details         ? 
+_refine.ls_R_factor_R_work                       0.2635 
+_refine.ls_R_Fsqd_factor_obs                     ? 
+_refine.ls_R_I_factor_obs                        ? 
+_refine.ls_redundancy_reflns_all                 ? 
+_refine.ls_redundancy_reflns_obs                 ? 
+_refine.ls_restrained_S_all                      ? 
+_refine.ls_restrained_S_obs                      ? 
+_refine.ls_shift_over_esd_max                    ? 
+_refine.ls_shift_over_esd_mean                   ? 
+_refine.ls_structure_factor_coef                 ? 
+_refine.ls_weighting_details                     ? 
+_refine.ls_weighting_scheme                      ? 
+_refine.ls_wR_factor_all                         ? 
+_refine.ls_wR_factor_obs                         ? 
+_refine.ls_wR_factor_R_free                      ? 
+_refine.ls_wR_factor_R_work                      ? 
+_refine.occupancy_max                            ? 
+_refine.occupancy_min                            ? 
+_refine.solvent_model_details                    ? 
+_refine.solvent_model_param_bsol                 ? 
+_refine.solvent_model_param_ksol                 ? 
+_refine.pdbx_R_complete                          ? 
+_refine.ls_R_factor_gt                           ? 
+_refine.ls_goodness_of_fit_gt                    ? 
+_refine.ls_goodness_of_fit_ref                   ? 
+_refine.ls_shift_over_su_max                     ? 
+_refine.ls_shift_over_su_max_lt                  ? 
+_refine.ls_shift_over_su_mean                    ? 
+_refine.ls_shift_over_su_mean_lt                 ? 
+_refine.pdbx_ls_sigma_I                          ? 
+_refine.pdbx_ls_sigma_F                          1.98 
+_refine.pdbx_ls_sigma_Fsqd                       ? 
+_refine.pdbx_data_cutoff_high_absF               ? 
+_refine.pdbx_data_cutoff_high_rms_absF           ? 
+_refine.pdbx_data_cutoff_low_absF                ? 
+_refine.pdbx_isotropic_thermal_model             ? 
+_refine.pdbx_ls_cross_valid_method               'FREE R-VALUE' 
+_refine.pdbx_method_to_determine_struct          SIRAS 
+_refine.pdbx_starting_model                      ? 
+_refine.pdbx_stereochemistry_target_values       ? 
+_refine.pdbx_R_Free_selection_details            ? 
+_refine.pdbx_stereochem_target_val_spec_case     ? 
+_refine.pdbx_overall_ESU_R                       ? 
+_refine.pdbx_overall_ESU_R_Free                  ? 
+_refine.pdbx_solvent_vdw_probe_radii             1.1100 
+_refine.pdbx_solvent_ion_probe_radii             ? 
+_refine.pdbx_solvent_shrinkage_radii             0.9000 
+_refine.pdbx_real_space_R                        ? 
+_refine.pdbx_density_correlation                 ? 
+_refine.pdbx_pd_number_of_powder_patterns        ? 
+_refine.pdbx_pd_number_of_points                 ? 
+_refine.pdbx_pd_meas_number_of_points            ? 
+_refine.pdbx_pd_proc_ls_prof_R_factor            ? 
+_refine.pdbx_pd_proc_ls_prof_wR_factor           ? 
+_refine.pdbx_pd_Marquardt_correlation_coeff      ? 
+_refine.pdbx_pd_Fsqrd_R_factor                   ? 
+_refine.pdbx_pd_ls_matrix_band_width             ? 
+_refine.pdbx_overall_phase_error                 30.8114 
+_refine.pdbx_overall_SU_R_free_Cruickshank_DPI   ? 
+_refine.pdbx_overall_SU_R_free_Blow_DPI          ? 
+_refine.pdbx_overall_SU_R_Blow_DPI               ? 
+_refine.pdbx_TLS_residual_ADP_flag               ? 
+_refine.pdbx_diffrn_id                           1 
+_refine.overall_SU_B                             ? 
+_refine.overall_SU_ML                            0.3407 
+_refine.overall_SU_R_Cruickshank_DPI             ? 
+_refine.overall_SU_R_free                        ? 
+_refine.overall_FOM_free_R_set                   ? 
+_refine.overall_FOM_work_R_set                   ? 
+_refine.pdbx_average_fsc_overall                 ? 
+_refine.pdbx_average_fsc_work                    ? 
+_refine.pdbx_average_fsc_free                    ? 
+# 
+loop_
+_struct_asym.id 
+_struct_asym.pdbx_blank_PDB_chainid_flag 
+_struct_asym.pdbx_modified 
+_struct_asym.entity_id 
+_struct_asym.details 
+A  N N 1 ? 
+B  N N 1 ? 
+C  N N 1 ? 
+D  N N 1 ? 
+E  N N 1 ? 
+F  N N 1 ? 
+G  N N 1 ? 
+H  N N 1 ? 
+I  N N 2 ? 
+J  N N 2 ? 
+K  N N 2 ? 
+L  N N 2 ? 
+M  N N 2 ? 
+N  N N 2 ? 
+O  N N 3 ? 
+P  N N 2 ? 
+Q  N N 2 ? 
+R  N N 2 ? 
+S  N N 3 ? 
+T  N N 2 ? 
+U  N N 2 ? 
+V  N N 2 ? 
+W  N N 2 ? 
+X  N N 2 ? 
+Y  N N 2 ? 
+Z  N N 2 ? 
+AA N N 2 ? 
+BA N N 2 ? 
+CA N N 3 ? 
+DA N N 2 ? 
+EA N N 2 ? 
+FA N N 2 ? 
+GA N N 3 ? 
+HA N N 2 ? 
+IA N N 2 ? 
+JA N N 2 ? 
+KA N N 4 ? 
+LA N N 4 ? 
+MA N N 4 ? 
+NA N N 4 ? 
+OA N N 4 ? 
+PA N N 4 ? 
+QA N N 4 ? 
+RA N N 4 ? 
+# 
+loop_
+_struct_conn.id 
+_struct_conn.conn_type_id 
+_struct_conn.pdbx_leaving_atom_flag 
+_struct_conn.pdbx_PDB_id 
+_struct_conn.ptnr1_label_asym_id 
+_struct_conn.ptnr1_label_comp_id 
+_struct_conn.ptnr1_label_seq_id 
+_struct_conn.ptnr1_label_atom_id 
+_struct_conn.pdbx_ptnr1_label_alt_id 
+_struct_conn.pdbx_ptnr1_PDB_ins_code 
+_struct_conn.pdbx_ptnr1_standard_comp_id 
+_struct_conn.ptnr1_symmetry 
+_struct_conn.ptnr2_label_asym_id 
+_struct_conn.ptnr2_label_comp_id 
+_struct_conn.ptnr2_label_seq_id 
+_struct_conn.ptnr2_label_atom_id 
+_struct_conn.pdbx_ptnr2_label_alt_id 
+_struct_conn.pdbx_ptnr2_PDB_ins_code 
+_struct_conn.ptnr1_auth_asym_id 
+_struct_conn.ptnr1_auth_comp_id 
+_struct_conn.ptnr1_auth_seq_id 
+_struct_conn.ptnr2_auth_asym_id 
+_struct_conn.ptnr2_auth_comp_id 
+_struct_conn.ptnr2_auth_seq_id 
+_struct_conn.ptnr2_symmetry 
+_struct_conn.pdbx_ptnr3_label_atom_id 
+_struct_conn.pdbx_ptnr3_label_seq_id 
+_struct_conn.pdbx_ptnr3_label_comp_id 
+_struct_conn.pdbx_ptnr3_label_asym_id 
+_struct_conn.pdbx_ptnr3_label_alt_id 
+_struct_conn.pdbx_ptnr3_PDB_ins_code 
+_struct_conn.details 
+_struct_conn.pdbx_dist_value 
+_struct_conn.pdbx_value_order 
+covale1  covale one ? I  AF2 . P     ? ? ? 1_555 K  AF2 . "O3'" ? ? A AF2 501 A AF2 503 1_555 ? ? ? ? ? ? ? 1.518 ? 
+covale2  covale one ? I  AF2 . "O3'" ? ? ? 1_555 L  AF2 . P     ? ? A AF2 501 B AF2 501 1_555 ? ? ? ? ? ? ? 1.607 ? 
+covale3  covale one ? J  AF2 . P     ? ? ? 1_555 N  AF2 . "O3'" ? ? A AF2 502 B AF2 503 1_555 ? ? ? ? ? ? ? 1.604 ? 
+covale4  covale one ? J  AF2 . "O3'" ? ? ? 1_555 K  AF2 . P     ? ? A AF2 502 A AF2 503 1_555 ? ? ? ? ? ? ? 1.610 ? 
+covale5  covale one ? L  AF2 . "O3'" ? ? ? 1_555 M  AF2 . P     ? ? B AF2 501 B AF2 502 1_555 ? ? ? ? ? ? ? 1.609 ? 
+covale6  covale one ? M  AF2 . "O3'" ? ? ? 1_555 N  AF2 . P     ? ? B AF2 502 B AF2 503 1_555 ? ? ? ? ? ? ? 1.606 ? 
+covale7  covale one ? P  AF2 . P     ? ? ? 1_555 R  AF2 . "O3'" ? ? C AF2 501 C AF2 503 1_555 ? ? ? ? ? ? ? 1.520 ? 
+covale8  covale one ? P  AF2 . "O3'" ? ? ? 1_555 T  AF2 . P     ? ? C AF2 501 D AF2 501 1_555 ? ? ? ? ? ? ? 1.610 ? 
+covale9  covale one ? Q  AF2 . P     ? ? ? 1_555 V  AF2 . "O3'" ? ? C AF2 502 D AF2 503 1_555 ? ? ? ? ? ? ? 1.608 ? 
+covale10 covale one ? Q  AF2 . "O3'" ? ? ? 1_555 R  AF2 . P     ? ? C AF2 502 C AF2 503 1_555 ? ? ? ? ? ? ? 1.608 ? 
+covale11 covale one ? T  AF2 . "O3'" ? ? ? 1_555 U  AF2 . P     ? ? D AF2 501 D AF2 502 1_555 ? ? ? ? ? ? ? 1.607 ? 
+covale12 covale one ? U  AF2 . "O3'" ? ? ? 1_555 V  AF2 . P     ? ? D AF2 502 D AF2 503 1_555 ? ? ? ? ? ? ? 1.602 ? 
+covale13 covale one ? W  AF2 . P     ? ? ? 1_555 Y  AF2 . "O3'" ? ? E AF2 501 E AF2 503 1_555 ? ? ? ? ? ? ? 1.551 ? 
+covale14 covale one ? W  AF2 . "O3'" ? ? ? 1_555 Z  AF2 . P     ? ? E AF2 501 F AF2 501 1_555 ? ? ? ? ? ? ? 1.605 ? 
+covale15 covale one ? X  AF2 . P     ? ? ? 1_555 BA AF2 . "O3'" ? ? E AF2 502 F AF2 503 1_555 ? ? ? ? ? ? ? 1.610 ? 
+covale16 covale one ? X  AF2 . "O3'" ? ? ? 1_555 Y  AF2 . P     ? ? E AF2 502 E AF2 503 1_555 ? ? ? ? ? ? ? 1.607 ? 
+covale17 covale one ? Z  AF2 . "O3'" ? ? ? 1_555 AA AF2 . P     ? ? F AF2 501 F AF2 502 1_555 ? ? ? ? ? ? ? 1.608 ? 
+covale18 covale one ? AA AF2 . "O3'" ? ? ? 1_555 BA AF2 . P     ? ? F AF2 502 F AF2 503 1_555 ? ? ? ? ? ? ? 1.605 ? 
+covale19 covale one ? DA AF2 . P     ? ? ? 1_555 FA AF2 . "O3'" ? ? G AF2 501 G AF2 503 1_555 ? ? ? ? ? ? ? 1.524 ? 
+covale20 covale one ? DA AF2 . "O3'" ? ? ? 1_555 HA AF2 . P     ? ? G AF2 501 H AF2 501 1_555 ? ? ? ? ? ? ? 1.609 ? 
+covale21 covale one ? EA AF2 . P     ? ? ? 1_555 JA AF2 . "O3'" ? ? G AF2 502 H AF2 503 1_555 ? ? ? ? ? ? ? 1.609 ? 
+covale22 covale one ? EA AF2 . "O3'" ? ? ? 1_555 FA AF2 . P     ? ? G AF2 502 G AF2 503 1_555 ? ? ? ? ? ? ? 1.608 ? 
+covale23 covale one ? HA AF2 . "O3'" ? ? ? 1_555 IA AF2 . P     ? ? H AF2 501 H AF2 502 1_555 ? ? ? ? ? ? ? 1.607 ? 
+covale24 covale one ? IA AF2 . "O3'" ? ? ? 1_555 JA AF2 . P     ? ? H AF2 502 H AF2 503 1_555 ? ? ? ? ? ? ? 1.604 ? 
+# 
+loop_
+_atom_site.group_PDB 
+_atom_site.id 
+_atom_site.type_symbol 
+_atom_site.label_atom_id 
+_atom_site.label_alt_id 
+_atom_site.label_comp_id 
+_atom_site.label_asym_id 
+_atom_site.label_entity_id 
+_atom_site.label_seq_id 
+_atom_site.pdbx_PDB_ins_code 
+_atom_site.Cartn_x 
+_atom_site.Cartn_y 
+_atom_site.Cartn_z 
+_atom_site.occupancy 
+_atom_site.B_iso_or_equiv 
+_atom_site.pdbx_formal_charge 
+_atom_site.auth_seq_id 
+_atom_site.auth_comp_id 
+_atom_site.auth_asym_id 
+_atom_site.auth_atom_id 
+_atom_site.pdbx_PDB_model_num 
+ATOM   1     N N      . ASN A  1 2   ? 14.53070  1.20035   9.91923   1.000 75.83236  ? -1  ASN A N      1 
+ATOM   2     C CA     . ASN A  1 2   ? 15.29731  2.27367   10.62607  1.000 77.90058  ? -1  ASN A CA     1 
+ATOM   3     C C      . ASN A  1 2   ? 16.61836  1.73779   11.17512  1.000 75.73435  ? -1  ASN A C      1 
+ATOM   4     O O      . ASN A  1 2   ? 16.86840  1.74933   12.38177  1.000 79.77481  ? -1  ASN A O      1 
+ATOM   5     C CB     . ASN A  1 2   ? 14.44860  2.88083   11.74655  1.000 81.60552  ? -1  ASN A CB     1 
+ATOM   6     C CG     . ASN A  1 2   ? 13.42048  3.87549   11.22570  1.000 83.54849  ? -1  ASN A CG     1 
+ATOM   7     O OD1    . ASN A  1 2   ? 13.52901  4.36511   10.10189  1.000 83.17245  ? -1  ASN A OD1    1 
+ATOM   8     N ND2    . ASN A  1 2   ? 12.42486  4.18748   12.04928  1.000 86.06574  ? -1  ASN A ND2    1 
+ATOM   9     H H      . ASN A  1 2   ? 13.75994  1.53238   9.62296   1.000 91.07003  ? -1  ASN A H      1 
+ATOM   10    H HA     . ASN A  1 2   ? 15.51076  2.98202   9.99871   1.000 93.55190  ? -1  ASN A HA     1 
+ATOM   11    H HB2    . ASN A  1 2   ? 13.97410  2.17009   12.20546  1.000 97.99782  ? -1  ASN A HB2    1 
+ATOM   12    H HB3    . ASN A  1 2   ? 15.03004  3.34655   12.36779  1.000 97.99782  ? -1  ASN A HB3    1 
+ATOM   13    H HD21   . ASN A  1 2   ? 11.81936  4.74504   11.80009  1.000 103.35008 ? -1  ASN A HD21   1 
+ATOM   14    H HD22   . ASN A  1 2   ? 12.38621  3.83177   12.83131  1.000 103.35008 ? -1  ASN A HD22   1 
+ATOM   15    N N      . ALA A  1 3   ? 17.46515  1.27844   10.25697  1.000 70.84130  ? 0   ALA A N      1 
+ATOM   16    C CA     . ALA A  1 3   ? 18.77036  0.71158   10.56275  1.000 70.91512  ? 0   ALA A CA     1 
+ATOM   17    C C      . ALA A  1 3   ? 19.55529  0.70371   9.26216   1.000 66.73672  ? 0   ALA A C      1 
+ATOM   18    O O      . ALA A  1 3   ? 18.97603  0.75421   8.17452   1.000 66.56135  ? 0   ALA A O      1 
+ATOM   19    C CB     . ALA A  1 3   ? 18.66106  -0.69696  11.14632  1.000 72.94271  ? 0   ALA A CB     1 
+ATOM   20    H H      . ALA A  1 3   ? 17.29787  1.28512   9.41343   1.000 85.08076  ? 0   ALA A H      1 
+ATOM   21    H HA     . ALA A  1 3   ? 19.23217  1.25538   11.21994  1.000 85.16934  ? 0   ALA A HA     1 
+ATOM   22    H HB1    . ALA A  1 3   ? 19.55145  -1.02618  11.34564  1.000 87.60244  ? 0   ALA A HB1    1 
+ATOM   23    H HB2    . ALA A  1 3   ? 18.13178  -0.66213  11.95844  1.000 87.60244  ? 0   ALA A HB2    1 
+ATOM   24    H HB3    . ALA A  1 3   ? 18.23222  -1.27559  10.49657  1.000 87.60244  ? 0   ALA A HB3    1 
+ATOM   6734  N N      . ALA B  1 3   ? 38.59936  -50.12985 9.07502   1.000 35.90069  ? 0   ALA B N      1 
+ATOM   6735  C CA     . ALA B  1 3   ? 37.28238  -49.55437 9.47016   1.000 49.15711  ? 0   ALA B CA     1 
+ATOM   6736  C C      . ALA B  1 3   ? 36.34151  -49.50001 8.27157   1.000 46.32366  ? 0   ALA B C      1 
+ATOM   6737  O O      . ALA B  1 3   ? 36.75726  -49.16419 7.16294   1.000 44.95152  ? 0   ALA B O      1 
+ATOM   6738  C CB     . ALA B  1 3   ? 37.46419  -48.16507 10.06305  1.000 45.77277  ? 0   ALA B CB     1 
+ATOM   6739  H H      . ALA B  1 3   ? 39.25038  -49.70776 9.51104   1.000 42.72484  ? 0   ALA B H      1 
+ATOM   6740  H HA     . ALA B  1 3   ? 36.88099  -50.11762 10.15026  1.000 59.05973  ? 0   ALA B HA     1 
+ATOM   6741  H HB1    . ALA B  1 3   ? 36.59581  -47.81198 10.31233  1.000 54.99852  ? 0   ALA B HB1    1 
+ATOM   6742  H HB2    . ALA B  1 3   ? 38.03296  -48.22791 10.84628  1.000 54.99852  ? 0   ALA B HB2    1 
+ATOM   6743  H HB3    . ALA B  1 3   ? 37.87701  -47.59019 9.39973   1.000 54.99852  ? 0   ALA B HB3    1 
+ATOM   13592 N N      . ASN C  1 2   ? 88.66662  -50.44851 67.82697  1.000 75.19213  ? -1  ASN C N      1 
+ATOM   13593 C CA     . ASN C  1 2   ? 88.06293  -51.40759 68.79753  1.000 76.82207  ? -1  ASN C CA     1 
+ATOM   13594 C C      . ASN C  1 2   ? 86.69337  -50.92588 69.27662  1.000 75.04947  ? -1  ASN C C      1 
+ATOM   13595 O O      . ASN C  1 2   ? 86.20997  -51.34580 70.32900  1.000 78.10709  ? -1  ASN C O      1 
+ATOM   13596 C CB     . ASN C  1 2   ? 88.99174  -51.61217 69.99814  1.000 79.75178  ? -1  ASN C CB     1 
+ATOM   13597 C CG     . ASN C  1 2   ? 89.64143  -52.98633 70.00944  1.000 80.40065  ? -1  ASN C CG     1 
+ATOM   13598 O OD1    . ASN C  1 2   ? 89.13554  -53.93245 69.40333  1.000 78.49848  ? -1  ASN C OD1    1 
+ATOM   13599 N ND2    . ASN C  1 2   ? 90.76250  -53.10414 70.71245  1.000 82.61391  ? -1  ASN C ND2    1 
+ATOM   13600 H H      . ASN C  1 2   ? 89.51973  -50.66219 67.69040  1.000 90.30176  ? -1  ASN C H      1 
+ATOM   13601 H HA     . ASN C  1 2   ? 87.94233  -52.26263 68.35563  1.000 92.25767  ? -1  ASN C HA     1 
+ATOM   13602 H HB2    . ASN C  1 2   ? 89.69703  -50.94686 69.96946  1.000 95.77334  ? -1  ASN C HB2    1 
+ATOM   13603 H HB3    . ASN C  1 2   ? 88.47815  -51.51618 70.81540  1.000 95.77334  ? -1  ASN C HB3    1 
+ATOM   13604 H HD21   . ASN C  1 2   ? 91.16866  -53.86123 70.75045  1.000 99.20789  ? -1  ASN C HD21   1 
+ATOM   13605 H HD22   . ASN C  1 2   ? 91.08205  -52.42332 71.12954  1.000 99.20789  ? -1  ASN C HD22   1 
+ATOM   13606 N N      . ALA C  1 3   ? 86.07059  -50.04536 68.49764  1.000 68.89048  ? 0   ALA C N      1 
+ATOM   13607 C CA     . ALA C  1 3   ? 84.75022  -49.52122 68.81433  1.000 60.46563  ? 0   ALA C CA     1 
+ATOM   13608 C C      . ALA C  1 3   ? 83.91956  -49.47852 67.54134  1.000 50.82035  ? 0   ALA C C      1 
+ATOM   13609 O O      . ALA C  1 3   ? 84.45152  -49.29646 66.44282  1.000 48.14893  ? 0   ALA C O      1 
+ATOM   13610 C CB     . ALA C  1 3   ? 84.83168  -48.12327 69.44104  1.000 59.26004  ? 0   ALA C CB     1 
+ATOM   13611 H H      . ALA C  1 3   ? 86.40010  -49.73210 67.76765  1.000 82.73977  ? 0   ALA C H      1 
+ATOM   13612 H HA     . ALA C  1 3   ? 84.30692  -50.10623 69.44848  1.000 72.62995  ? 0   ALA C HA     1 
+ATOM   13613 H HB1    . ALA C  1 3   ? 83.93407  -47.81252 69.63760  1.000 71.18324  ? 0   ALA C HB1    1 
+ATOM   13614 H HB2    . ALA C  1 3   ? 85.35080  -48.17360 70.25889  1.000 71.18324  ? 0   ALA C HB2    1 
+ATOM   13615 H HB3    . ALA C  1 3   ? 85.26046  -47.52042 68.81366  1.000 71.18324  ? 0   ALA C HB3    1 
+ATOM   20325 N N      . ALA D  1 3   ? 67.56361  1.00209   69.01270  1.000 62.44191  ? 0   ALA D N      1 
+ATOM   20326 C CA     . ALA D  1 3   ? 67.22099  1.70914   67.74651  1.000 60.16755  ? 0   ALA D CA     1 
+ATOM   20327 C C      . ALA D  1 3   ? 67.98142  1.10063   66.57543  1.000 52.63512  ? 0   ALA D C      1 
+ATOM   20328 O O      . ALA D  1 3   ? 67.39241  0.72504   65.56182  1.000 50.53611  ? 0   ALA D O      1 
+ATOM   20329 C CB     . ALA D  1 3   ? 67.53185  3.19518   67.86716  1.000 61.72988  ? 0   ALA D CB     1 
+ATOM   20330 H H      . ALA D  1 3   ? 67.11388  1.36809   69.68790  1.000 75.00149  ? 0   ALA D H      1 
+ATOM   20331 H HA     . ALA D  1 3   ? 66.27052  1.61750   67.57590  1.000 72.27226  ? 0   ALA D HA     1 
+ATOM   20332 H HB1    . ALA D  1 3   ? 67.30816  3.63349   67.03125  1.000 74.14705  ? 0   ALA D HB1    1 
+ATOM   20333 H HB2    . ALA D  1 3   ? 67.00395  3.57064   68.58914  1.000 74.14705  ? 0   ALA D HB2    1 
+ATOM   20334 H HB3    . ALA D  1 3   ? 68.47680  3.30582   68.05614  1.000 74.14705  ? 0   ALA D HB3    1 
+ATOM   27041 N N      . ASN E  1 2   ? 45.13157  54.86685  131.20100 1.000 70.72202  ? -1  ASN E N      1 
+ATOM   27042 C CA     . ASN E  1 2   ? 44.33277  55.77738  130.32777 1.000 70.75039  ? -1  ASN E CA     1 
+ATOM   27043 C C      . ASN E  1 2   ? 43.07933  55.07439  129.81536 1.000 68.17821  ? -1  ASN E C      1 
+ATOM   27044 O O      . ASN E  1 2   ? 42.81328  55.05229  128.61357 1.000 70.87276  ? -1  ASN E O      1 
+ATOM   27045 C CB     . ASN E  1 2   ? 45.18194  56.27225  129.15708 1.000 72.60487  ? -1  ASN E CB     1 
+ATOM   27046 C CG     . ASN E  1 2   ? 46.30671  57.18945  129.60088 1.000 75.28220  ? -1  ASN E CG     1 
+ATOM   27047 O OD1    . ASN E  1 2   ? 46.52231  57.39219  130.79605 1.000 75.22473  ? -1  ASN E OD1    1 
+ATOM   27048 N ND2    . ASN E  1 2   ? 47.03283  57.74504  128.63800 1.000 78.18730  ? -1  ASN E ND2    1 
+ATOM   27049 H H      . ASN E  1 2   ? 45.83970  55.30409  131.51640 1.000 84.93762  ? -1  ASN E H      1 
+ATOM   27050 H HA     . ASN E  1 2   ? 44.05316  56.55143  130.84116 1.000 84.97166  ? -1  ASN E HA     1 
+ATOM   27051 H HB2    . ASN E  1 2   ? 45.57616  55.50899  128.70661 1.000 87.19704  ? -1  ASN E HB2    1 
+ATOM   27052 H HB3    . ASN E  1 2   ? 44.61685  56.76517  128.54177 1.000 87.19704  ? -1  ASN E HB3    1 
+ATOM   27053 H HD21   . ASN E  1 2   ? 47.68171  58.27255  128.83874 1.000 93.89596  ? -1  ASN E HD21   1 
+ATOM   27054 H HD22   . ASN E  1 2   ? 46.85426  57.57738  127.81363 1.000 93.89596  ? -1  ASN E HD22   1 
+ATOM   27055 N N      . ALA E  1 3   ? 42.31206  54.50247  130.74074 1.000 61.84279  ? 0   ALA E N      1 
+ATOM   27056 C CA     . ALA E  1 3   ? 41.07686  53.81005  130.40451 1.000 58.12790  ? 0   ALA E CA     1 
+ATOM   27057 C C      . ALA E  1 3   ? 40.23343  53.69750  131.66585 1.000 51.19170  ? 0   ALA E C      1 
+ATOM   27058 O O      . ALA E  1 3   ? 40.76520  53.44403  132.74934 1.000 52.13471  ? 0   ALA E O      1 
+ATOM   27059 C CB     . ALA E  1 3   ? 41.35402  52.42151  129.81860 1.000 60.05208  ? 0   ALA E CB     1 
+ATOM   27060 H H      . ALA E  1 3   ? 42.48988  54.50302  131.58215 1.000 74.28254  ? 0   ALA E H      1 
+ATOM   27061 H HA     . ALA E  1 3   ? 40.58222  54.32027  129.74428 1.000 69.82468  ? 0   ALA E HA     1 
+ATOM   27062 H HB1    . ALA E  1 3   ? 40.50942  51.99185  129.61139 1.000 72.13369  ? 0   ALA E HB1    1 
+ATOM   27063 H HB2    . ALA E  1 3   ? 41.88233  52.51924  129.01098 1.000 72.13369  ? 0   ALA E HB2    1 
+ATOM   27064 H HB3    . ALA E  1 3   ? 41.84167  51.89497  130.47117 1.000 72.13369  ? 0   ALA E HB3    1 
+ATOM   33796 N N      . ALA F  1 3   ? 20.89570  3.10620   131.89360 1.000 33.13887  ? 0   ALA F N      1 
+ATOM   33797 C CA     . ALA F  1 3   ? 22.17685  3.75002   131.47772 1.000 38.61454  ? 0   ALA F CA     1 
+ATOM   33798 C C      . ALA F  1 3   ? 23.14624  3.82628   132.65719 1.000 42.08390  ? 0   ALA F C      1 
+ATOM   33799 O O      . ALA F  1 3   ? 22.74988  4.16071   133.77143 1.000 44.37957  ? 0   ALA F O      1 
+ATOM   33800 C CB     . ALA F  1 3   ? 21.90935  5.13957   130.91188 1.000 38.35320  ? 0   ALA F CB     1 
+ATOM   33801 H H      . ALA F  1 3   ? 20.33384  3.09063   131.20355 1.000 39.83784  ? 0   ALA F H      1 
+ATOM   33802 H HA     . ALA F  1 3   ? 22.59168  3.21977   130.77940 1.000 46.40865  ? 0   ALA F HA     1 
+ATOM   33803 H HB1    . ALA F  1 3   ? 22.75193  5.53982   130.64588 1.000 46.09504  ? 0   ALA F HB1    1 
+ATOM   33804 H HB2    . ALA F  1 3   ? 21.32356  5.05999   130.14283 1.000 46.09504  ? 0   ALA F HB2    1 
+ATOM   33805 H HB3    . ALA F  1 3   ? 21.48625  5.68272   131.59516 1.000 46.09504  ? 0   ALA F HB3    1 
+ATOM   40648 N N      . ASN G  1 2   ? 64.11091  3.09540   73.59517  1.000 71.30347  ? -1  ASN G N      1 
+ATOM   40649 C CA     . ASN G  1 2   ? 64.76298  2.04614   72.75704  1.000 74.45590  ? -1  ASN G CA     1 
+ATOM   40650 C C      . ASN G  1 2   ? 66.01437  2.60835   72.08015  1.000 73.10638  ? -1  ASN G C      1 
+ATOM   40651 O O      . ASN G  1 2   ? 66.12173  2.62092   70.85277  1.000 74.99986  ? -1  ASN G O      1 
+ATOM   40652 C CB     . ASN G  1 2   ? 63.78534  1.51236   71.71057  1.000 77.05667  ? -1  ASN G CB     1 
+ATOM   40653 C CG     . ASN G  1 2   ? 63.95738  0.02546   71.45643  1.000 78.66544  ? -1  ASN G CG     1 
+ATOM   40654 O OD1    . ASN G  1 2   ? 64.95719  -0.57306  71.85488  1.000 78.93502  ? -1  ASN G OD1    1 
+ATOM   40655 N ND2    . ASN G  1 2   ? 62.98146  -0.57776  70.78642  1.000 78.83566  ? -1  ASN G ND2    1 
+ATOM   40656 H H      . ASN G  1 2   ? 63.38293  2.75767   73.97998  1.000 85.63535  ? -1  ASN G H      1 
+ATOM   40657 H HA     . ASN G  1 2   ? 65.02832  1.30069   73.31811  1.000 89.41828  ? -1  ASN G HA     1 
+ATOM   40658 H HB2    . ASN G  1 2   ? 62.87804  1.66154   72.01952  1.000 92.53921  ? -1  ASN G HB2    1 
+ATOM   40659 H HB3    . ASN G  1 2   ? 63.93164  1.97939   70.87309  1.000 92.53921  ? -1  ASN G HB3    1 
+ATOM   40660 H HD21   . ASN G  1 2   ? 63.03238  -1.41944  70.61736  1.000 94.67399  ? -1  ASN G HD21   1 
+ATOM   40661 H HD22   . ASN G  1 2   ? 62.29885  -0.12654  70.52178  1.000 94.67399  ? -1  ASN G HD22   1 
+ATOM   40662 N N      . ALA G  1 3   ? 66.96114  3.07043   72.89320  1.000 67.58394  ? 0   ALA G N      1 
+ATOM   40663 C CA     . ALA G  1 3   ? 68.20238  3.65099   72.39968  1.000 61.67393  ? 0   ALA G CA     1 
+ATOM   40664 C C      . ALA G  1 3   ? 69.15719  3.79227   73.57427  1.000 54.89175  ? 0   ALA G C      1 
+ATOM   40665 O O      . ALA G  1 3   ? 68.72245  4.07326   74.69349  1.000 52.95160  ? 0   ALA G O      1 
+ATOM   40666 C CB     . ALA G  1 3   ? 67.95751  5.01320   71.73957  1.000 60.79168  ? 0   ALA G CB     1 
+ATOM   40667 H H      . ALA G  1 3   ? 66.90560  3.05797   73.75132  1.000 81.17193  ? 0   ALA G H      1 
+ATOM   40668 H HA     . ALA G  1 3   ? 68.60376  3.06640   71.73783  1.000 74.07991  ? 0   ALA G HA     1 
+ATOM   40669 H HB1    . ALA G  1 3   ? 68.80325  5.36730   71.42298  1.000 73.02121  ? 0   ALA G HB1    1 
+ATOM   40670 H HB2    . ALA G  1 3   ? 67.34744  4.89787   70.99431  1.000 73.02121  ? 0   ALA G HB2    1 
+ATOM   40671 H HB3    . ALA G  1 3   ? 67.57054  5.61605   72.39358  1.000 73.02121  ? 0   ALA G HB3    1 
+ATOM   47366 N N      . ALA H  1 3   ? 88.49003  54.00584  73.68653  1.000 49.16996  ? 0   ALA H N      1 
+ATOM   47367 C CA     . ALA H  1 3   ? 87.12831  53.64675  73.19427  1.000 51.60598  ? 0   ALA H CA     1 
+ATOM   47368 C C      . ALA H  1 3   ? 86.11987  53.66189  74.34253  1.000 51.79052  ? 0   ALA H C      1 
+ATOM   47369 O O      . ALA H  1 3   ? 86.47723  53.41591  75.49204  1.000 54.19865  ? 0   ALA H O      1 
+ATOM   47370 C CB     . ALA H  1 3   ? 87.15462  52.27832  72.51842  1.000 50.71971  ? 0   ALA H CB     1 
+ATOM   47371 H H      . ALA H  1 3   ? 88.71819  54.80601  73.37068  1.000 59.07515  ? 0   ALA H H      1 
+ATOM   47372 H HA     . ALA H  1 3   ? 86.84313  54.29825  72.53463  1.000 61.99838  ? 0   ALA H HA     1 
+ATOM   47373 H HB1    . ALA H  1 3   ? 86.26386  52.06739  72.19757  1.000 60.93484  ? 0   ALA H HB1    1 
+ATOM   47374 H HB2    . ALA H  1 3   ? 87.77639  52.30547  71.77440  1.000 60.93484  ? 0   ALA H HB2    1 
+ATOM   47375 H HB3    . ALA H  1 3   ? 87.43994  51.61278  73.16383  1.000 60.93484  ? 0   ALA H HB3    1 
+HETATM 54199 F F      . AF2 I  2 .   ? 20.16104  -20.72543 -10.38350 1.000 36.14532  ? 501 AF2 A F      1 
+HETATM 54200 P P      . AF2 I  2 .   ? 26.58851  -18.48821 -11.35977 1.000 47.31649  ? 501 AF2 A P      1 
+HETATM 54201 N N1     . AF2 I  2 .   ? 19.45060  -16.78863 -14.42238 1.000 34.83616  ? 501 AF2 A N1     1 
+HETATM 54202 C C2     . AF2 I  2 .   ? 20.14787  -17.92442 -14.12687 1.000 35.72209  ? 501 AF2 A C2     1 
+HETATM 54203 N N3     . AF2 I  2 .   ? 20.49596  -18.20138 -12.83482 1.000 34.13470  ? 501 AF2 A N3     1 
+HETATM 54204 C C4     . AF2 I  2 .   ? 20.17022  -17.38890 -11.84734 1.000 30.51962  ? 501 AF2 A C4     1 
+HETATM 54205 C C5     . AF2 I  2 .   ? 19.46850  -16.25032 -12.14819 1.000 31.41300  ? 501 AF2 A C5     1 
+HETATM 54206 C C6     . AF2 I  2 .   ? 19.11452  -15.96392 -13.44978 1.000 37.29853  ? 501 AF2 A C6     1 
+HETATM 54207 N N6     . AF2 I  2 .   ? 18.37763  -14.83432 -14.02020 1.000 43.48313  ? 501 AF2 A N6     1 
+HETATM 54208 N N7     . AF2 I  2 .   ? 19.23843  -15.56940 -11.02164 1.000 30.18985  ? 501 AF2 A N7     1 
+HETATM 54209 C C8     . AF2 I  2 .   ? 19.78432  -16.25978 -10.00802 1.000 30.33216  ? 501 AF2 A C8     1 
+HETATM 54210 N N9     . AF2 I  2 .   ? 20.35240  -17.37849 -10.52017 1.000 31.11942  ? 501 AF2 A N9     1 
+HETATM 54211 C "C1'"  . AF2 I  2 .   ? 21.08626  -18.51219 -9.88356  1.000 34.24787  ? 501 AF2 A "C1'"  1 
+HETATM 54212 O OP2    . AF2 I  2 .   ? 26.61170  -18.54163 -12.89855 1.000 48.58166  ? 501 AF2 A OP2    1 
+HETATM 54213 C "C2'"  . AF2 I  2 .   ? 21.29157  -19.90999 -10.59696 1.000 34.67579  ? 501 AF2 A "C2'"  1 
+HETATM 54214 O OP1    . AF2 I  2 .   ? 26.46146  -17.03974 -10.86975 1.000 51.37036  ? 501 AF2 A OP1    1 
+HETATM 54215 C "C3'"  . AF2 I  2 .   ? 22.30750  -20.40865 -9.91671  1.000 40.71000  ? 501 AF2 A "C3'"  1 
+HETATM 54216 O "O3'"  . AF2 I  2 .   ? 21.86505  -20.72056 -8.50693  1.000 44.54619  ? 501 AF2 A "O3'"  1 
+HETATM 54217 C "C4'"  . AF2 I  2 .   ? 23.28307  -19.23942 -9.83235  1.000 39.36314  ? 501 AF2 A "C4'"  1 
+HETATM 54218 O "O4'"  . AF2 I  2 .   ? 22.30869  -18.05527 -9.57925  1.000 34.95556  ? 501 AF2 A "O4'"  1 
+HETATM 54219 C "C5'"  . AF2 I  2 .   ? 24.02609  -19.05645 -11.01595 1.000 45.78128  ? 501 AF2 A "C5'"  1 
+HETATM 54220 O "O5'"  . AF2 I  2 .   ? 25.29995  -19.45313 -10.76704 1.000 49.49835  ? 501 AF2 A "O5'"  1 
+HETATM 54221 H H2     . AF2 I  2 .   ? 20.38781  -18.51307 -14.80570 1.000 42.93771  ? 501 AF2 A H2     1 
+HETATM 54222 H H8     . AF2 I  2 .   ? 19.77539  -16.01507 -9.11084  1.000 36.46979  ? 501 AF2 A H8     1 
+HETATM 54223 H "H5'"  . AF2 I  2 .   ? 23.64839  -19.59269 -11.73058 1.000 55.00873  ? 501 AF2 A "H5'"  1 
+HETATM 54224 H "H5'A" . AF2 I  2 .   ? 24.01706  -18.12079 -11.27160 1.000 55.00873  ? 501 AF2 A "H5'A" 1 
+HETATM 54225 H "H1'"  . AF2 I  2 .   ? 20.52109  -18.80164 -9.15028  1.000 41.16864  ? 501 AF2 A "H1'"  1 
+HETATM 54226 H "H2'"  . AF2 I  2 .   ? 21.46874  -19.81995 -11.54638 1.000 41.68215  ? 501 AF2 A "H2'"  1 
+HETATM 54227 H "H3'"  . AF2 I  2 .   ? 22.67727  -21.18572 -10.36430 1.000 48.92319  ? 501 AF2 A "H3'"  1 
+HETATM 54228 H "H4'"  . AF2 I  2 .   ? 23.92398  -19.35764 -9.11390  1.000 47.30697  ? 501 AF2 A "H4'"  1 
+HETATM 54229 H HN6    . AF2 I  2 .   ? 18.08609  -14.20853 -13.50601 1.000 52.25095  ? 501 AF2 A HN6    1 
+HETATM 54230 H HN6A   . AF2 I  2 .   ? 18.23177  -14.79891 -14.86639 1.000 52.25095  ? 501 AF2 A HN6A   1 
+HETATM 54231 F F      . AF2 J  2 .   ? 34.27354  -24.66789 -12.94048 1.000 40.14808  ? 502 AF2 A F      1 
+HETATM 54232 P P      . AF2 J  2 .   ? 30.99044  -27.22396 -8.07639  1.000 40.90720  ? 502 AF2 A P      1 
+HETATM 54233 N N1     . AF2 J  2 .   ? 39.58256  -25.21912 -10.22982 1.000 31.62302  ? 502 AF2 A N1     1 
+HETATM 54234 C C2     . AF2 J  2 .   ? 38.41110  -25.90278 -10.03985 1.000 32.75906  ? 502 AF2 A C2     1 
+HETATM 54235 N N3     . AF2 J  2 .   ? 37.19922  -25.28889 -10.23533 1.000 34.34984  ? 502 AF2 A N3     1 
+HETATM 54236 C C4     . AF2 J  2 .   ? 37.14127  -24.02192 -10.61151 1.000 32.85632  ? 502 AF2 A C4     1 
+HETATM 54237 C C5     . AF2 J  2 .   ? 38.32096  -23.34322 -10.80149 1.000 33.24908  ? 502 AF2 A C5     1 
+HETATM 54238 C C6     . AF2 J  2 .   ? 39.53939  -23.95602 -10.60573 1.000 35.80432  ? 502 AF2 A C6     1 
+HETATM 54239 N N6     . AF2 J  2 .   ? 40.90542  -23.44245 -10.74203 1.000 41.48458  ? 502 AF2 A N6     1 
+HETATM 54240 N N7     . AF2 J  2 .   ? 38.05038  -22.09074 -11.17547 1.000 33.78376  ? 502 AF2 A N7     1 
+HETATM 54241 C C8     . AF2 J  2 .   ? 36.71795  -21.95580 -11.22855 1.000 33.73962  ? 502 AF2 A C8     1 
+HETATM 54242 N N9     . AF2 J  2 .   ? 36.16553  -23.14496 -10.89249 1.000 33.83137  ? 502 AF2 A N9     1 
+HETATM 54243 C "C1'"  . AF2 J  2 .   ? 34.74340  -23.54192 -10.78927 1.000 34.83706  ? 502 AF2 A "C1'"  1 
+HETATM 54244 O OP2    . AF2 J  2 .   ? 31.51951  -27.39775 -6.63752  1.000 41.27263  ? 502 AF2 A OP2    1 
+HETATM 54245 C "C2'"  . AF2 J  2 .   ? 34.18209  -24.82810 -11.55295 1.000 35.78016  ? 502 AF2 A "C2'"  1 
+HETATM 54246 O OP1    . AF2 J  2 .   ? 29.47119  -27.40953 -8.13527  1.000 45.60802  ? 502 AF2 A OP1    1 
+HETATM 54247 C "C3'"  . AF2 J  2 .   ? 32.91874  -24.78977 -11.15913 1.000 36.30784  ? 502 AF2 A "C3'"  1 
+HETATM 54248 O "O3'"  . AF2 J  2 .   ? 32.18725  -23.67731 -11.88095 1.000 36.51088  ? 502 AF2 A "O3'"  1 
+HETATM 54249 C "C4'"  . AF2 J  2 .   ? 32.97109  -24.36858 -9.67986  1.000 39.01815  ? 502 AF2 A "C4'"  1 
+HETATM 54250 O "O4'"  . AF2 J  2 .   ? 34.37153  -23.73167 -9.53180  1.000 36.31319  ? 502 AF2 A "O4'"  1 
+HETATM 54251 C "C5'"  . AF2 J  2 .   ? 32.79201  -25.45877 -8.79490  1.000 42.82665  ? 502 AF2 A "C5'"  1 
+HETATM 54252 O "O5'"  . AF2 J  2 .   ? 31.46117  -25.70860 -8.72040  1.000 43.51412  ? 502 AF2 A "O5'"  1 
+HETATM 54253 H H2     . AF2 J  2 .   ? 38.43482  -26.79399 -9.77514  1.000 39.38206  ? 502 AF2 A H2     1 
+HETATM 54254 H H8     . AF2 J  2 .   ? 36.25319  -21.18297 -11.45578 1.000 40.55873  ? 502 AF2 A H8     1 
+HETATM 54255 H "H5'"  . AF2 J  2 .   ? 33.25554  -26.24073 -9.13340  1.000 51.46317  ? 502 AF2 A "H5'"  1 
+HETATM 54256 H "H5'A" . AF2 J  2 .   ? 33.13445  -25.23261 -7.91599  1.000 51.46317  ? 502 AF2 A "H5'A" 1 
+HETATM 54257 H "H1'"  . AF2 J  2 .   ? 34.30721  -22.79994 -11.23660 1.000 41.87566  ? 502 AF2 A "H1'"  1 
+HETATM 54258 H "H2'"  . AF2 J  2 .   ? 34.64055  -25.64960 -11.31661 1.000 43.00739  ? 502 AF2 A "H2'"  1 
+HETATM 54259 H "H3'"  . AF2 J  2 .   ? 32.51555  -25.66172 -11.29346 1.000 43.64060  ? 502 AF2 A "H3'"  1 
+HETATM 54260 H "H4'"  . AF2 J  2 .   ? 32.27552  -23.71982 -9.48960  1.000 46.89298  ? 502 AF2 A "H4'"  1 
+HETATM 54261 H HN6    . AF2 J  2 .   ? 41.03544  -22.62138 -10.96981 1.000 49.85270  ? 502 AF2 A HN6    1 
+HETATM 54262 H HN6A   . AF2 J  2 .   ? 41.57830  -23.95614 -10.59231 1.000 49.85270  ? 502 AF2 A HN6A   1 
+HETATM 54263 F F      . AF2 K  2 .   ? 29.43120  -18.31658 -12.46829 1.000 34.41115  ? 503 AF2 A F      1 
+HETATM 54264 P P      . AF2 K  2 .   ? 30.80190  -23.94370 -12.65589 1.000 37.11023  ? 503 AF2 A P      1 
+HETATM 54265 N N1     . AF2 K  2 .   ? 34.63107  -16.61788 -10.23209 1.000 42.01432  ? 503 AF2 A N1     1 
+HETATM 54266 C C2     . AF2 K  2 .   ? 33.35886  -16.46800 -9.75734  1.000 40.20665  ? 503 AF2 A C2     1 
+HETATM 54267 N N3     . AF2 K  2 .   ? 32.41556  -17.42039 -10.01993 1.000 38.29426  ? 503 AF2 A N3     1 
+HETATM 54268 C C4     . AF2 K  2 .   ? 32.72514  -18.49183 -10.72856 1.000 33.43314  ? 503 AF2 A C4     1 
+HETATM 54269 C C5     . AF2 K  2 .   ? 34.00146  -18.64072 -11.20063 1.000 32.28872  ? 503 AF2 A C5     1 
+HETATM 54270 C C6     . AF2 K  2 .   ? 34.95503  -17.68232 -10.94071 1.000 37.58688  ? 503 AF2 A C6     1 
+HETATM 54271 N N6     . AF2 K  2 .   ? 36.36860  -17.59293 -11.31506 1.000 42.88549  ? 503 AF2 A N6     1 
+HETATM 54272 N N7     . AF2 K  2 .   ? 34.07783  -19.78998 -11.88111 1.000 31.04012  ? 503 AF2 A N7     1 
+HETATM 54273 C C8     . AF2 K  2 .   ? 32.86600  -20.37634 -11.84917 1.000 31.38042  ? 503 AF2 A C8     1 
+HETATM 54274 N N9     . AF2 K  2 .   ? 32.04697  -19.56904 -11.14451 1.000 31.64298  ? 503 AF2 A N9     1 
+HETATM 54275 C "C1'"  . AF2 K  2 .   ? 30.62869  -19.60113 -10.72752 1.000 36.20041  ? 503 AF2 A "C1'"  1 
+HETATM 54276 O OP2    . AF2 K  2 .   ? 31.10353  -24.03809 -14.16446 1.000 38.09562  ? 503 AF2 A OP2    1 
+HETATM 54277 C "C2'"  . AF2 K  2 .   ? 29.67747  -19.62642 -12.00950 1.000 36.21674  ? 503 AF2 A "C2'"  1 
+HETATM 54278 O OP1    . AF2 K  2 .   ? 30.12600  -25.22091 -12.13970 1.000 36.33449  ? 503 AF2 A OP1    1 
+HETATM 54279 C "C3'"  . AF2 K  2 .   ? 28.57423  -20.18061 -11.55558 1.000 41.31849  ? 503 AF2 A "C3'"  1 
+HETATM 54280 O "O3'"  . AF2 K  2 .   ? 27.81759  -19.14849 -10.76285 1.000 43.44304  ? 503 AF2 A "O3'"  1 
+HETATM 54281 C "C4'"  . AF2 K  2 .   ? 29.02599  -21.26834 -10.58532 1.000 40.76149  ? 503 AF2 A "C4'"  1 
+HETATM 54282 O "O4'"  . AF2 K  2 .   ? 30.41022  -20.74351 -10.11367 1.000 42.35819  ? 503 AF2 A "O4'"  1 
+HETATM 54283 C "C5'"  . AF2 K  2 .   ? 29.09771  -22.55023 -11.19027 1.000 40.51885  ? 503 AF2 A "C5'"  1 
+HETATM 54284 O "O5'"  . AF2 K  2 .   ? 29.85085  -22.54947 -12.30991 1.000 41.71089  ? 503 AF2 A "O5'"  1 
+HETATM 54285 H H2     . AF2 K  2 .   ? 33.13298  -15.71846 -9.25528  1.000 48.31917  ? 503 AF2 A H2     1 
+HETATM 54286 H H8     . AF2 K  2 .   ? 32.63446  -21.18783 -12.24003 1.000 37.72770  ? 503 AF2 A H8     1 
+HETATM 54287 H "H5'"  . AF2 K  2 .   ? 29.48598  -23.17350 -10.55648 1.000 48.69382  ? 503 AF2 A "H5'"  1 
+HETATM 54288 H "H5'A" . AF2 K  2 .   ? 28.20040  -22.83745 -11.42101 1.000 48.69382  ? 503 AF2 A "H5'A" 1 
+HETATM 54289 H "H1'"  . AF2 K  2 .   ? 30.40132  -18.84122 -10.16919 1.000 43.51169  ? 503 AF2 A "H1'"  1 
+HETATM 54290 H "H2'"  . AF2 K  2 .   ? 30.06191  -20.14740 -12.73177 1.000 43.53128  ? 503 AF2 A "H2'"  1 
+HETATM 54291 H "H3'"  . AF2 K  2 .   ? 28.05872  -20.55553 -12.28673 1.000 49.65338  ? 503 AF2 A "H3'"  1 
+HETATM 54292 H "H4'"  . AF2 K  2 .   ? 28.41411  -21.35144 -9.83726  1.000 48.98498  ? 503 AF2 A "H4'"  1 
+HETATM 54293 H HN6    . AF2 K  2 .   ? 36.72848  -18.21798 -11.78487 1.000 51.53379  ? 503 AF2 A HN6    1 
+HETATM 54294 H HN6A   . AF2 K  2 .   ? 36.84266  -16.92042 -11.06425 1.000 51.53379  ? 503 AF2 A HN6A   1 
+HETATM 54295 F F      . AF2 L  2 .   ? 18.92134  -24.52215 -12.08047 1.000 32.35552  ? 501 AF2 B F      1 
+HETATM 54296 P P      . AF2 L  2 .   ? 22.69835  -21.74908 -7.59521  1.000 43.16620  ? 501 AF2 B P      1 
+HETATM 54297 N N1     . AF2 L  2 .   ? 14.11565  -24.03986 -8.46800  1.000 32.11214  ? 501 AF2 B N1     1 
+HETATM 54298 C C2     . AF2 L  2 .   ? 15.30583  -23.36249 -8.42033  1.000 33.56957  ? 501 AF2 B C2     1 
+HETATM 54299 N N3     . AF2 L  2 .   ? 16.46777  -23.95803 -8.84207  1.000 33.77764  ? 501 AF2 B N3     1 
+HETATM 54300 C C4     . AF2 L  2 .   ? 16.45882  -25.19768 -9.30028  1.000 29.66556  ? 501 AF2 B C4     1 
+HETATM 54301 C C5     . AF2 L  2 .   ? 15.26285  -25.87197 -9.34680  1.000 30.47364  ? 501 AF2 B C5     1 
+HETATM 54302 C C6     . AF2 L  2 .   ? 14.09198  -25.27630 -8.92456  1.000 31.34820  ? 501 AF2 B C6     1 
+HETATM 54303 N N6     . AF2 L  2 .   ? 12.71649  -25.77886 -8.87138  1.000 35.51081  ? 501 AF2 B N6     1 
+HETATM 54304 N N7     . AF2 L  2 .   ? 15.47153  -27.09653 -9.84057  1.000 28.50277  ? 501 AF2 B N7     1 
+HETATM 54305 C C8     . AF2 L  2 .   ? 16.77998  -27.21587 -10.10753 1.000 30.85607  ? 501 AF2 B C8     1 
+HETATM 54306 N N9     . AF2 L  2 .   ? 17.37800  -26.04421 -9.78342  1.000 28.69110  ? 501 AF2 B N9     1 
+HETATM 54307 C "C1'"  . AF2 L  2 .   ? 18.79376  -25.61742 -9.86512  1.000 32.41305  ? 501 AF2 B "C1'"  1 
+HETATM 54308 O OP2    . AF2 L  2 .   ? 22.41792  -21.49101 -6.10333  1.000 38.69481  ? 501 AF2 B OP2    1 
+HETATM 54309 C "C2'"  . AF2 L  2 .   ? 19.18009  -24.31991 -10.72079 1.000 32.97033  ? 501 AF2 B "C2'"  1 
+HETATM 54310 O OP1    . AF2 L  2 .   ? 24.19231  -21.60377 -7.91642  1.000 48.67044  ? 501 AF2 B OP1    1 
+HETATM 54311 C "C3'"  . AF2 L  2 .   ? 20.48521  -24.28036 -10.49555 1.000 35.15101  ? 501 AF2 B "C3'"  1 
+HETATM 54312 O "O3'"  . AF2 L  2 .   ? 21.16084  -25.37383 -11.29239 1.000 36.20962  ? 501 AF2 B "O3'"  1 
+HETATM 54313 C "C4'"  . AF2 L  2 .   ? 20.62957  -24.63931 -9.00942  1.000 33.79128  ? 501 AF2 B "C4'"  1 
+HETATM 54314 O "O4'"  . AF2 L  2 .   ? 19.31970  -25.38805 -8.67469  1.000 32.26934  ? 501 AF2 B "O4'"  1 
+HETATM 54315 C "C5'"  . AF2 L  2 .   ? 20.79469  -23.49282 -8.19138  1.000 36.31951  ? 501 AF2 B "C5'"  1 
+HETATM 54316 O "O5'"  . AF2 L  2 .   ? 22.12720  -23.28626 -8.09340  1.000 41.85887  ? 501 AF2 B "O5'"  1 
+HETATM 54317 H H2     . AF2 L  2 .   ? 15.32852  -22.49001 -8.09917  1.000 40.35468  ? 501 AF2 B H2     1 
+HETATM 54318 H H8     . AF2 L  2 .   ? 17.20368  -27.96797 -10.45354 1.000 37.09848  ? 501 AF2 B H8     1 
+HETATM 54319 H "H5'"  . AF2 L  2 .   ? 20.36635  -22.72386 -8.59896  1.000 43.65460  ? 501 AF2 B "H5'"  1 
+HETATM 54320 H "H5'A" . AF2 L  2 .   ? 20.41515  -23.64884 -7.31245  1.000 43.65460  ? 501 AF2 B "H5'A" 1 
+HETATM 54321 H "H1'"  . AF2 L  2 .   ? 19.20678  -26.35937 -10.33397 1.000 38.96686  ? 501 AF2 B "H1'"  1 
+HETATM 54322 H "H2'"  . AF2 L  2 .   ? 18.71039  -23.51855 -10.44131 1.000 39.63559  ? 501 AF2 B "H2'"  1 
+HETATM 54323 H "H3'"  . AF2 L  2 .   ? 20.83928  -23.40047 -10.69884 1.000 42.25241  ? 501 AF2 B "H3'"  1 
+HETATM 54324 H "H4'"  . AF2 L  2 .   ? 21.39745  -25.21743 -8.87892  1.000 40.62074  ? 501 AF2 B "H4'"  1 
+HETATM 54325 H HN6    . AF2 L  2 .   ? 12.08262  -25.27881 -8.57590  1.000 42.68416  ? 501 AF2 B HN6    1 
+HETATM 54326 H HN6A   . AF2 L  2 .   ? 12.54257  -26.58213 -9.13074  1.000 42.68416  ? 501 AF2 B HN6A   1 
+HETATM 54327 F F      . AF2 M  2 .   ? 23.73054  -30.50356 -12.29813 1.000 40.53671  ? 502 AF2 B F      1 
+HETATM 54328 P P      . AF2 M  2 .   ? 22.42689  -25.06373 -12.23500 1.000 36.62946  ? 502 AF2 B P      1 
+HETATM 54329 N N1     . AF2 M  2 .   ? 18.92243  -32.48797 -9.05128  1.000 35.42449  ? 502 AF2 B N1     1 
+HETATM 54330 C C2     . AF2 M  2 .   ? 20.25590  -32.57005 -8.76080  1.000 32.26710  ? 502 AF2 B C2     1 
+HETATM 54331 N N3     . AF2 M  2 .   ? 21.12103  -31.61270 -9.20953  1.000 33.08512  ? 502 AF2 B N3     1 
+HETATM 54332 C C4     . AF2 M  2 .   ? 20.68457  -30.59453 -9.93157  1.000 35.23946  ? 502 AF2 B C4     1 
+HETATM 54333 C C5     . AF2 M  2 .   ? 19.34988  -30.51183 -10.22325 1.000 35.49828  ? 502 AF2 B C5     1 
+HETATM 54334 C C6     . AF2 M  2 .   ? 18.47327  -31.47651 -9.77210  1.000 36.06307  ? 502 AF2 B C6     1 
+HETATM 54335 N N6     . AF2 M  2 .   ? 17.02552  -31.61288 -9.94169  1.000 36.02681  ? 502 AF2 B N6     1 
+HETATM 54336 N N7     . AF2 M  2 .   ? 19.13774  -29.41154 -10.95672 1.000 35.28522  ? 502 AF2 B N7     1 
+HETATM 54337 C C8     . AF2 M  2 .   ? 20.32221  -28.79275 -11.13561 1.000 35.40845  ? 502 AF2 B C8     1 
+HETATM 54338 N N9     . AF2 M  2 .   ? 21.26063  -29.52897 -10.51030 1.000 36.99616  ? 502 AF2 B N9     1 
+HETATM 54339 C "C1'"  . AF2 M  2 .   ? 22.72115  -29.43085 -10.30063 1.000 43.38088  ? 502 AF2 B "C1'"  1 
+HETATM 54340 O OP2    . AF2 M  2 .   ? 21.97664  -25.10965 -13.70928 1.000 40.16457  ? 502 AF2 B OP2    1 
+HETATM 54341 C "C2'"  . AF2 M  2 .   ? 23.51419  -29.25893 -11.67604 1.000 43.78525  ? 502 AF2 B "C2'"  1 
+HETATM 54342 O OP1    . AF2 M  2 .   ? 23.03562  -23.70467 -11.87428 1.000 30.89739  ? 502 AF2 B OP1    1 
+HETATM 54343 C "C3'"  . AF2 M  2 .   ? 24.65013  -28.73704 -11.27496 1.000 42.48063  ? 502 AF2 B "C3'"  1 
+HETATM 54344 O "O3'"  . AF2 M  2 .   ? 25.40353  -29.80553 -10.52745 1.000 43.20247  ? 502 AF2 B "O3'"  1 
+HETATM 54345 C "C4'"  . AF2 M  2 .   ? 24.27804  -27.69952 -10.21461 1.000 42.69261  ? 502 AF2 B "C4'"  1 
+HETATM 54346 O "O4'"  . AF2 M  2 .   ? 22.96437  -28.31315 -9.63870  1.000 46.84043  ? 502 AF2 B "O4'"  1 
+HETATM 54347 C "C5'"  . AF2 M  2 .   ? 24.11210  -26.38411 -10.70511 1.000 38.66707  ? 502 AF2 B "C5'"  1 
+HETATM 54348 O "O5'"  . AF2 M  2 .   ? 23.51490  -26.35288 -11.91149 1.000 34.76547  ? 502 AF2 B "O5'"  1 
+HETATM 54349 H H2     . AF2 M  2 .   ? 20.57799  -33.28089 -8.25496  1.000 38.79172  ? 502 AF2 B H2     1 
+HETATM 54350 H H8     . AF2 M  2 .   ? 20.46686  -28.00264 -11.60434 1.000 42.56134  ? 502 AF2 B H8     1 
+HETATM 54351 H "H5'"  . AF2 M  2 .   ? 23.56693  -25.88403 -10.07772 1.000 46.47168  ? 502 AF2 B "H5'"  1 
+HETATM 54352 H "H5'A" . AF2 M  2 .   ? 24.98480  -25.96769 -10.78177 1.000 46.47168  ? 502 AF2 B "H5'A" 1 
+HETATM 54353 H "H1'"  . AF2 M  2 .   ? 23.05153  -30.22123 -9.84560  1.000 52.12825  ? 502 AF2 B "H1'"  1 
+HETATM 54354 H "H2'"  . AF2 M  2 .   ? 23.04181  -28.68339 -12.29774 1.000 52.61350  ? 502 AF2 B "H2'"  1 
+HETATM 54355 H "H3'"  . AF2 M  2 .   ? 25.12353  -28.34890 -12.02739 1.000 51.04795  ? 502 AF2 B "H3'"  1 
+HETATM 54356 H "H4'"  . AF2 M  2 .   ? 24.97333  -27.62295 -9.54259  1.000 51.30233  ? 502 AF2 B "H4'"  1 
+HETATM 54357 H HN6    . AF2 M  2 .   ? 16.59299  -31.03125 -10.40529 1.000 43.30337  ? 502 AF2 B HN6    1 
+HETATM 54358 H HN6A   . AF2 M  2 .   ? 16.60248  -32.26266 -9.57352  1.000 43.30337  ? 502 AF2 B HN6A   1 
+HETATM 54359 F F      . AF2 N  2 .   ? 33.13646  -28.17986 -11.19789 1.000 41.62003  ? 503 AF2 B F      1 
+HETATM 54360 P P      . AF2 N  2 .   ? 26.67346  -30.53703 -11.18428 1.000 42.51547  ? 503 AF2 B P      1 
+HETATM 54361 N N1     . AF2 N  2 .   ? 33.43871  -32.29348 -15.24604 1.000 45.06533  ? 503 AF2 B N1     1 
+HETATM 54362 C C2     . AF2 N  2 .   ? 32.76082  -31.14075 -14.92541 1.000 42.02391  ? 503 AF2 B C2     1 
+HETATM 54363 N N3     . AF2 N  2 .   ? 32.56205  -30.78274 -13.60905 1.000 39.06527  ? 503 AF2 B N3     1 
+HETATM 54364 C C4     . AF2 N  2 .   ? 33.02386  -31.54917 -12.63828 1.000 42.54509  ? 503 AF2 B C4     1 
+HETATM 54365 C C5     . AF2 N  2 .   ? 33.69428  -32.68655 -12.97395 1.000 46.35790  ? 503 AF2 B C5     1 
+HETATM 54366 C C6     . AF2 N  2 .   ? 33.90132  -33.05518 -14.27905 1.000 40.72709  ? 503 AF2 B C6     1 
+HETATM 54367 N N6     . AF2 N  2 .   ? 34.57819  -34.23949 -14.80796 1.000 43.66903  ? 503 AF2 B N6     1 
+HETATM 54368 N N7     . AF2 N  2 .   ? 34.08559  -33.33365 -11.87431 1.000 43.29322  ? 503 AF2 B N7     1 
+HETATM 54369 C C8     . AF2 N  2 .   ? 33.67412  -32.61679 -10.81812 1.000 42.01803  ? 503 AF2 B C8     1 
+HETATM 54370 N N9     . AF2 N  2 .   ? 33.05019  -31.52420 -11.29469 1.000 31.29266  ? 503 AF2 B N9     1 
+HETATM 54371 C "C1'"  . AF2 N  2 .   ? 32.38697  -30.41349 -10.58073 1.000 40.26785  ? 503 AF2 B "C1'"  1 
+HETATM 54372 O OP2    . AF2 N  2 .   ? 26.65130  -32.02135 -10.77866 1.000 51.91036  ? 503 AF2 B OP2    1 
+HETATM 54373 C "C2'"  . AF2 N  2 .   ? 32.01995  -29.04068 -11.24095 1.000 37.59200  ? 503 AF2 B "C2'"  1 
+HETATM 54374 O OP1    . AF2 N  2 .   ? 26.66831  -30.37472 -12.70427 1.000 41.67036  ? 503 AF2 B OP1    1 
+HETATM 54375 C "C3'"  . AF2 N  2 .   ? 31.10546  -28.62250 -10.38580 1.000 35.98751  ? 503 AF2 B "C3'"  1 
+HETATM 54376 O "O3'"  . AF2 N  2 .   ? 31.71180  -28.28051 -9.04355  1.000 38.94478  ? 503 AF2 B "O3'"  1 
+HETATM 54377 C "C4'"  . AF2 N  2 .   ? 30.22521  -29.85287 -10.12699 1.000 37.48492  ? 503 AF2 B "C4'"  1 
+HETATM 54378 O "O4'"  . AF2 N  2 .   ? 31.25647  -31.00155 -10.18618 1.000 39.36174  ? 503 AF2 B "O4'"  1 
+HETATM 54379 C "C5'"  . AF2 N  2 .   ? 29.20322  -29.98692 -11.09767 1.000 38.88685  ? 503 AF2 B "C5'"  1 
+HETATM 54380 O "O5'"  . AF2 N  2 .   ? 28.01825  -29.73169 -10.49161 1.000 38.48926  ? 503 AF2 B "O5'"  1 
+HETATM 54381 H H2     . AF2 N  2 .   ? 32.43187  -30.59501 -15.60281 1.000 50.49989  ? 503 AF2 B H2     1 
+HETATM 54382 H H8     . AF2 N  2 .   ? 33.79632  -32.83294 -9.92188  1.000 50.49283  ? 503 AF2 B H8     1 
+HETATM 54383 H "H5'"  . AF2 N  2 .   ? 29.34635  -29.35318 -11.81794 1.000 46.73542  ? 503 AF2 B "H5'"  1 
+HETATM 54384 H "H5'A" . AF2 N  2 .   ? 29.20182  -30.88923 -11.45364 1.000 46.73542  ? 503 AF2 B "H5'A" 1 
+HETATM 54385 H "H1'"  . AF2 N  2 .   ? 33.00364  -30.04115 -9.93114  1.000 48.39261  ? 503 AF2 B "H1'"  1 
+HETATM 54386 H "H2'"  . AF2 N  2 .   ? 31.70405  -29.11288 -12.15522 1.000 45.18160  ? 503 AF2 B "H2'"  1 
+HETATM 54387 H "H3'"  . AF2 N  2 .   ? 30.63931  -27.87068 -10.78374 1.000 43.25621  ? 503 AF2 B "H3'"  1 
+HETATM 54388 H "H4'"  . AF2 N  2 .   ? 29.79088  -29.81686 -9.26041  1.000 45.05310  ? 503 AF2 B "H4'"  1 
+HETATM 54389 H HN6    . AF2 N  2 .   ? 34.90943  -34.81698 -14.25844 1.000 52.47403  ? 503 AF2 B HN6    1 
+HETATM 54390 H HN6A   . AF2 N  2 .   ? 34.63041  -34.37098 -15.65279 1.000 52.47403  ? 503 AF2 B HN6A   1 
+HETATM 54391 S S      . SO4 O  3 .   ? 29.76361  -24.37146 61.74324  1.000 82.69342  ? 504 SO4 B S      1 
+HETATM 54392 O O1     . SO4 O  3 .   ? 30.74048  -24.55289 60.67279  1.000 84.62581  ? 504 SO4 B O1     1 
+HETATM 54393 O O2     . SO4 O  3 .   ? 28.43364  -24.20018 61.16439  1.000 83.05530  ? 504 SO4 B O2     1 
+HETATM 54394 O O3     . SO4 O  3 .   ? 29.76876  -25.54570 62.61116  1.000 81.94868  ? 504 SO4 B O3     1 
+HETATM 54395 O O4     . SO4 O  3 .   ? 30.11121  -23.18770 62.52380  1.000 79.93832  ? 504 SO4 B O4     1 
+HETATM 54396 F F      . AF2 P  2 .   ? 82.90844  -28.38874 47.93663  1.000 40.94266  ? 501 AF2 C F      1 
+HETATM 54397 P P      . AF2 P  2 .   ? 76.57403  -30.53844 47.13159  1.000 45.19225  ? 501 AF2 C P      1 
+HETATM 54398 N N1     . AF2 P  2 .   ? 83.68357  -32.38286 44.02053  1.000 39.94689  ? 501 AF2 C N1     1 
+HETATM 54399 C C2     . AF2 P  2 .   ? 82.99606  -31.24226 44.32641  1.000 39.81879  ? 501 AF2 C C2     1 
+HETATM 54400 N N3     . AF2 P  2 .   ? 82.67944  -30.95662 45.62592  1.000 37.20591  ? 501 AF2 C N3     1 
+HETATM 54401 C C4     . AF2 P  2 .   ? 83.02509  -31.76660 46.60694  1.000 33.60502  ? 501 AF2 C C4     1 
+HETATM 54402 C C5     . AF2 P  2 .   ? 83.71594  -32.91079 46.29502  1.000 34.41790  ? 501 AF2 C C5     1 
+HETATM 54403 C C6     . AF2 P  2 .   ? 84.03799  -33.20618 44.98853  1.000 36.83751  ? 501 AF2 C C6     1 
+HETATM 54404 N N6     . AF2 P  2 .   ? 84.75564  -34.33997 44.40449  1.000 38.09512  ? 501 AF2 C N6     1 
+HETATM 54405 N N7     . AF2 P  2 .   ? 83.96996  -33.58707 47.42057  1.000 35.13446  ? 501 AF2 C N7     1 
+HETATM 54406 C C8     . AF2 P  2 .   ? 83.44931  -32.88756 48.44209  1.000 32.86112  ? 501 AF2 C C8     1 
+HETATM 54407 N N9     . AF2 P  2 .   ? 82.87199  -31.76856 47.93692  1.000 33.71312  ? 501 AF2 C N9     1 
+HETATM 54408 C "C1'"  . AF2 P  2 .   ? 82.16020  -30.62557 48.58160  1.000 38.59959  ? 501 AF2 C "C1'"  1 
+HETATM 54409 O OP2    . AF2 P  2 .   ? 76.62542  -30.45678 45.59565  1.000 42.69043  ? 501 AF2 C OP2    1 
+HETATM 54410 C "C2'"  . AF2 P  2 .   ? 81.81214  -29.27210 47.84339  1.000 38.48416  ? 501 AF2 C "C2'"  1 
+HETATM 54411 O OP1    . AF2 P  2 .   ? 76.56427  -32.00203 47.59300  1.000 49.14954  ? 501 AF2 C OP1    1 
+HETATM 54412 C "C3'"  . AF2 P  2 .   ? 80.81717  -28.80711 48.57271  1.000 38.32919  ? 501 AF2 C "C3'"  1 
+HETATM 54413 O "O3'"  . AF2 P  2 .   ? 81.31347  -28.42919 49.94750  1.000 41.65594  ? 501 AF2 C "O3'"  1 
+HETATM 54414 C "C4'"  . AF2 P  2 .   ? 79.92090  -30.02817 48.76164  1.000 42.27799  ? 501 AF2 C "C4'"  1 
+HETATM 54415 O "O4'"  . AF2 P  2 .   ? 80.99571  -31.12562 49.02635  1.000 41.42488  ? 501 AF2 C "O4'"  1 
+HETATM 54416 C "C5'"  . AF2 P  2 .   ? 79.14004  -30.34081 47.63693  1.000 44.93913  ? 501 AF2 C "C5'"  1 
+HETATM 54417 O "O5'"  . AF2 P  2 .   ? 77.93873  -29.72719 47.77540  1.000 47.06315  ? 501 AF2 C "O5'"  1 
+HETATM 54418 H H2     . AF2 P  2 .   ? 82.74159  -30.65679 43.65012  1.000 47.85375  ? 501 AF2 C H2     1 
+HETATM 54419 H H8     . AF2 P  2 .   ? 83.47834  -33.12681 49.34032  1.000 39.50455  ? 501 AF2 C H8     1 
+HETATM 54420 H "H5'"  . AF2 P  2 .   ? 79.57881  -30.02312 46.83229  1.000 53.99815  ? 501 AF2 C "H5'"  1 
+HETATM 54421 H "H5'A" . AF2 P  2 .   ? 79.01247  -31.30073 47.58063  1.000 53.99815  ? 501 AF2 C "H5'A" 1 
+HETATM 54422 H "H1'"  . AF2 P  2 .   ? 82.79067  -30.26607 49.22516  1.000 46.39070  ? 501 AF2 C "H1'"  1 
+HETATM 54423 H "H2'"  . AF2 P  2 .   ? 81.56588  -29.40780 46.91503  1.000 46.25218  ? 501 AF2 C "H2'"  1 
+HETATM 54424 H "H3'"  . AF2 P  2 .   ? 80.38530  -28.06486 48.12164  1.000 46.06623  ? 501 AF2 C "H3'"  1 
+HETATM 54425 H "H4'"  . AF2 P  2 .   ? 79.30046  -29.90300 49.49668  1.000 50.80479  ? 501 AF2 C "H4'"  1 
+HETATM 54426 H HN6    . AF2 P  2 .   ? 85.06025  -34.96419 44.91253  1.000 45.78534  ? 501 AF2 C HN6    1 
+HETATM 54427 H HN6A   . AF2 P  2 .   ? 84.88180  -34.37695 43.55481  1.000 45.78534  ? 501 AF2 C HN6A   1 
+HETATM 54428 F F      . AF2 Q  2 .   ? 68.80647  -24.58802 45.34607  1.000 40.43676  ? 502 AF2 C F      1 
+HETATM 54429 P P      . AF2 Q  2 .   ? 72.16866  -21.89105 50.25562  1.000 43.39304  ? 502 AF2 C P      1 
+HETATM 54430 N N1     . AF2 Q  2 .   ? 63.69737  -24.00132 48.30371  1.000 38.83472  ? 502 AF2 C N1     1 
+HETATM 54431 C C2     . AF2 Q  2 .   ? 64.88228  -23.33239 48.47151  1.000 39.75985  ? 502 AF2 C C2     1 
+HETATM 54432 N N3     . AF2 Q  2 .   ? 66.07849  -23.95357 48.21716  1.000 38.40499  ? 502 AF2 C N3     1 
+HETATM 54433 C C4     . AF2 Q  2 .   ? 66.10510  -25.21009 47.80664  1.000 35.85790  ? 502 AF2 C C4     1 
+HETATM 54434 C C5     . AF2 Q  2 .   ? 64.91499  -25.87525 47.63961  1.000 37.79965  ? 502 AF2 C C5     1 
+HETATM 54435 C C6     . AF2 Q  2 .   ? 63.71109  -25.25544 47.89347  1.000 37.91356  ? 502 AF2 C C6     1 
+HETATM 54436 N N6     . AF2 Q  2 .   ? 62.33490  -25.74962 47.79458  1.000 42.22094  ? 502 AF2 C N6     1 
+HETATM 54437 N N7     . AF2 Q  2 .   ? 65.16292  -27.12014 47.22323  1.000 35.95523  ? 502 AF2 C N7     1 
+HETATM 54438 C C8     . AF2 Q  2 .   ? 66.49236  -27.26274 47.11931  1.000 35.19348  ? 502 AF2 C C8     1 
+HETATM 54439 N N9     . AF2 Q  2 .   ? 67.06120  -26.08598 47.47156  1.000 35.74232  ? 502 AF2 C N9     1 
+HETATM 54440 C "C1'"  . AF2 Q  2 .   ? 68.48079  -25.67632 47.54504  1.000 39.62289  ? 502 AF2 C "C1'"  1 
+HETATM 54441 O OP2    . AF2 Q  2 .   ? 71.54834  -21.84316 51.66372  1.000 41.23631  ? 502 AF2 C OP2    1 
+HETATM 54442 C "C2'"  . AF2 Q  2 .   ? 68.95352  -24.38384 46.72334  1.000 40.65623  ? 502 AF2 C "C2'"  1 
+HETATM 54443 O OP1    . AF2 Q  2 .   ? 73.68970  -21.71096 50.31263  1.000 49.93870  ? 502 AF2 C OP1    1 
+HETATM 54444 C "C3'"  . AF2 Q  2 .   ? 70.23185  -24.36007 47.06272  1.000 40.95458  ? 502 AF2 C "C3'"  1 
+HETATM 54445 O "O3'"  . AF2 Q  2 .   ? 70.95285  -25.44482 46.29432  1.000 42.99121  ? 502 AF2 C "O3'"  1 
+HETATM 54446 C "C4'"  . AF2 Q  2 .   ? 70.25819  -24.75427 48.54227  1.000 42.01471  ? 502 AF2 C "C4'"  1 
+HETATM 54447 O "O4'"  . AF2 Q  2 .   ? 68.89208  -25.43757 48.77456  1.000 41.01699  ? 502 AF2 C "O4'"  1 
+HETATM 54448 C "C5'"  . AF2 Q  2 .   ? 70.41680  -23.63127 49.39029  1.000 46.27530  ? 502 AF2 C "C5'"  1 
+HETATM 54449 O "O5'"  . AF2 Q  2 .   ? 71.73729  -23.33668 49.44856  1.000 48.92385  ? 502 AF2 C "O5'"  1 
+HETATM 54450 H H2     . AF2 Q  2 .   ? 64.87723  -22.44848 48.76061  1.000 47.78301  ? 502 AF2 C H2     1 
+HETATM 54451 H H8     . AF2 Q  2 .   ? 66.94420  -28.03085 46.85334  1.000 42.30337  ? 502 AF2 C H8     1 
+HETATM 54452 H "H5'"  . AF2 Q  2 .   ? 69.92773  -22.87447 49.03116  1.000 55.60155  ? 502 AF2 C "H5'"  1 
+HETATM 54453 H "H5'A" . AF2 Q  2 .   ? 70.08789  -23.83924 50.27881  1.000 55.60155  ? 502 AF2 C "H5'A" 1 
+HETATM 54454 H "H1'"  . AF2 Q  2 .   ? 68.93252  -26.43356 47.14077  1.000 47.61866  ? 502 AF2 C "H1'"  1 
+HETATM 54455 H "H2'"  . AF2 Q  2 .   ? 68.47319  -23.57437 46.95774  1.000 48.85868  ? 502 AF2 C "H2'"  1 
+HETATM 54456 H "H3'"  . AF2 Q  2 .   ? 70.60742  -23.47753 46.91787  1.000 49.21669  ? 502 AF2 C "H3'"  1 
+HETATM 54457 H "H4'"  . AF2 Q  2 .   ? 70.98592  -25.37330 48.70992  1.000 50.48885  ? 502 AF2 C "H4'"  1 
+HETATM 54458 H HN6    . AF2 Q  2 .   ? 62.18631  -26.56163 47.54902  1.000 50.73633  ? 502 AF2 C HN6    1 
+HETATM 54459 H HN6A   . AF2 Q  2 .   ? 61.67455  -25.23231 47.98321  1.000 50.73633  ? 502 AF2 C HN6A   1 
+HETATM 54460 F F      . AF2 R  2 .   ? 73.81409  -30.73783 45.96016  1.000 41.92967  ? 503 AF2 C F      1 
+HETATM 54461 P P      . AF2 R  2 .   ? 72.38453  -25.17537 45.61412  1.000 41.49422  ? 503 AF2 C P      1 
+HETATM 54462 N N1     . AF2 R  2 .   ? 68.49953  -32.51102 48.13103  1.000 43.99130  ? 503 AF2 C N1     1 
+HETATM 54463 C C2     . AF2 R  2 .   ? 69.75356  -32.62540 48.66614  1.000 42.94100  ? 503 AF2 C C2     1 
+HETATM 54464 N N3     . AF2 R  2 .   ? 70.70633  -31.67702 48.40658  1.000 41.79183  ? 503 AF2 C N3     1 
+HETATM 54465 C C4     . AF2 R  2 .   ? 70.43140  -30.63804 47.63668  1.000 42.20631  ? 503 AF2 C C4     1 
+HETATM 54466 C C5     . AF2 R  2 .   ? 69.17688  -30.52471 47.10077  1.000 42.54331  ? 503 AF2 C C5     1 
+HETATM 54467 C C6     . AF2 R  2 .   ? 68.21434  -31.47816 47.36022  1.000 42.20775  ? 503 AF2 C C6     1 
+HETATM 54468 N N6     . AF2 R  2 .   ? 66.82213  -31.58718 46.91869  1.000 41.93533  ? 503 AF2 C N6     1 
+HETATM 54469 N N7     . AF2 R  2 .   ? 69.12524  -29.40823 46.36215  1.000 42.18419  ? 503 AF2 C N7     1 
+HETATM 54470 C C8     . AF2 R  2 .   ? 70.33109  -28.80967 46.42181  1.000 42.08806  ? 503 AF2 C C8     1 
+HETATM 54471 N N9     . AF2 R  2 .   ? 71.12383  -29.57321 47.20138  1.000 42.55513  ? 503 AF2 C N9     1 
+HETATM 54472 C "C1'"  . AF2 R  2 .   ? 72.52638  -29.49667 47.67277  1.000 45.66444  ? 503 AF2 C "C1'"  1 
+HETATM 54473 O OP2    . AF2 R  2 .   ? 72.20552  -25.11496 44.08544  1.000 41.61896  ? 503 AF2 C OP2    1 
+HETATM 54474 C "C2'"  . AF2 R  2 .   ? 73.52084  -29.43866 46.42370  1.000 43.28894  ? 503 AF2 C "C2'"  1 
+HETATM 54475 O OP1    . AF2 R  2 .   ? 72.99096  -23.87757 46.16486  1.000 40.38037  ? 503 AF2 C OP1    1 
+HETATM 54476 C "C3'"  . AF2 R  2 .   ? 74.58961  -28.84066 46.89427  1.000 44.09049  ? 503 AF2 C "C3'"  1 
+HETATM 54477 O "O3'"  . AF2 R  2 .   ? 75.39626  -29.79104 47.73643  1.000 45.43052  ? 503 AF2 C "O3'"  1 
+HETATM 54478 C "C4'"  . AF2 R  2 .   ? 74.06750  -27.76811 47.85350  1.000 44.54180  ? 503 AF2 C "C4'"  1 
+HETATM 54479 O "O4'"  . AF2 R  2 .   ? 72.69248  -28.34817 48.29192  1.000 48.17189  ? 503 AF2 C "O4'"  1 
+HETATM 54480 C "C5'"  . AF2 R  2 .   ? 73.95599  -26.48889 47.25665  1.000 42.54209  ? 503 AF2 C "C5'"  1 
+HETATM 54481 O "O5'"  . AF2 R  2 .   ? 73.32504  -26.54015 46.06598  1.000 42.78880  ? 503 AF2 C "O5'"  1 
+HETATM 54482 H H2     . AF2 R  2 .   ? 69.96209  -33.35072 49.20958  1.000 51.60040  ? 503 AF2 C H2     1 
+HETATM 54483 H H8     . AF2 R  2 .   ? 70.57425  -28.01568 46.00304  1.000 50.57687  ? 503 AF2 C H8     1 
+HETATM 54484 H "H5'"  . AF2 R  2 .   ? 73.45435  -25.90814 47.84994  1.000 51.12170  ? 503 AF2 C "H5'"  1 
+HETATM 54485 H "H5'A" . AF2 R  2 .   ? 74.84561  -26.12646 47.12209  1.000 51.12170  ? 503 AF2 C "H5'A" 1 
+HETATM 54486 H "H1'"  . AF2 R  2 .   ? 72.75322  -30.24892 48.24160  1.000 54.86852  ? 503 AF2 C "H1'"  1 
+HETATM 54487 H "H2'"  . AF2 R  2 .   ? 73.14109  -28.92538 45.69347  1.000 52.01792  ? 503 AF2 C "H2'"  1 
+HETATM 54488 H "H3'"  . AF2 R  2 .   ? 75.09351  -28.47416 46.15086  1.000 52.97978  ? 503 AF2 C "H3'"  1 
+HETATM 54489 H "H4'"  . AF2 R  2 .   ? 74.66189  -27.66294 48.61281  1.000 53.52136  ? 503 AF2 C "H4'"  1 
+HETATM 54490 H HN6    . AF2 R  2 .   ? 66.48989  -30.98548 46.40050  1.000 50.39359  ? 503 AF2 C HN6    1 
+HETATM 54491 H HN6A   . AF2 R  2 .   ? 66.33518  -32.24686 47.17748  1.000 50.39359  ? 503 AF2 C HN6A   1 
+HETATM 54492 S S      . SO4 S  3 .   ? 73.45677  -24.38702 120.63910 1.000 66.78962  ? 504 SO4 C S      1 
+HETATM 54493 O O1     . SO4 S  3 .   ? 74.42603  -23.32978 120.36840 1.000 63.34738  ? 504 SO4 C O1     1 
+HETATM 54494 O O2     . SO4 S  3 .   ? 72.90924  -24.87973 119.37790 1.000 68.79712  ? 504 SO4 C O2     1 
+HETATM 54495 O O3     . SO4 S  3 .   ? 74.11713  -25.48046 121.34653 1.000 65.25910  ? 504 SO4 C O3     1 
+HETATM 54496 O O4     . SO4 S  3 .   ? 72.37202  -23.85804 121.46239 1.000 68.83835  ? 504 SO4 C O4     1 
+HETATM 54497 F F      . AF2 T  2 .   ? 84.14151  -24.69326 46.33178  1.000 49.06900  ? 501 AF2 D F      1 
+HETATM 54498 P P      . AF2 T  2 .   ? 80.46982  -27.43033 50.88621  1.000 45.53564  ? 501 AF2 D P      1 
+HETATM 54499 N N1     . AF2 T  2 .   ? 88.99143  -25.24996 49.88247  1.000 26.69241  ? 501 AF2 D N1     1 
+HETATM 54500 C C2     . AF2 T  2 .   ? 87.79139  -25.90415 49.94412  1.000 32.32323  ? 501 AF2 D C2     1 
+HETATM 54501 N N3     . AF2 T  2 .   ? 86.63604  -25.28741 49.53539  1.000 33.78912  ? 501 AF2 D N3     1 
+HETATM 54502 C C4     . AF2 T  2 .   ? 86.66511  -24.04768 49.07352  1.000 29.99135  ? 501 AF2 D C4     1 
+HETATM 54503 C C5     . AF2 T  2 .   ? 87.87389  -23.39439 49.01201  1.000 29.71255  ? 501 AF2 D C5     1 
+HETATM 54504 C C6     . AF2 T  2 .   ? 89.03776  -24.01531 49.42378  1.000 29.73737  ? 501 AF2 D C6     1 
+HETATM 54505 N N6     . AF2 T  2 .   ? 90.43115  -23.55840 49.46958  1.000 32.83901  ? 501 AF2 D N6     1 
+HETATM 54506 N N7     . AF2 T  2 .   ? 87.67904  -22.16569 48.51976  1.000 29.87508  ? 501 AF2 D N7     1 
+HETATM 54507 C C8     . AF2 T  2 .   ? 86.36872  -22.02592 48.26619  1.000 29.24134  ? 501 AF2 D C8     1 
+HETATM 54508 N N9     . AF2 T  2 .   ? 85.75395  -23.18563 48.59836  1.000 30.71954  ? 501 AF2 D N9     1 
+HETATM 54509 C "C1'"  . AF2 T  2 .   ? 84.32815  -23.58626 48.53493  1.000 34.77068  ? 501 AF2 D "C1'"  1 
+HETATM 54510 O OP2    . AF2 T  2 .   ? 80.78085  -27.69763 52.37131  1.000 47.99770  ? 501 AF2 D OP2    1 
+HETATM 54511 C "C2'"  . AF2 T  2 .   ? 83.90335  -24.88306 47.70012  1.000 41.52269  ? 501 AF2 D "C2'"  1 
+HETATM 54512 O OP1    . AF2 T  2 .   ? 78.97209  -27.60132 50.59719  1.000 51.48662  ? 501 AF2 D OP1    1 
+HETATM 54513 C "C3'"  . AF2 T  2 .   ? 82.60535  -24.89591 47.94860  1.000 36.79332  ? 501 AF2 D "C3'"  1 
+HETATM 54514 O "O3'"  . AF2 T  2 .   ? 81.95175  -23.76658 47.18420  1.000 36.26042  ? 501 AF2 D "O3'"  1 
+HETATM 54515 C "C4'"  . AF2 T  2 .   ? 82.48788  -24.53584 49.43581  1.000 35.75222  ? 501 AF2 D "C4'"  1 
+HETATM 54516 O "O4'"  . AF2 T  2 .   ? 83.80926  -23.78524 49.73389  1.000 35.17224  ? 501 AF2 D "O4'"  1 
+HETATM 54517 C "C5'"  . AF2 T  2 .   ? 82.33678  -25.66836 50.27272  1.000 39.05421  ? 501 AF2 D "C5'"  1 
+HETATM 54518 O "O5'"  . AF2 T  2 .   ? 81.00582  -25.87620 50.40712  1.000 40.73097  ? 501 AF2 D "O5'"  1 
+HETATM 54519 H H2     . AF2 T  2 .   ? 87.75622  -26.77593 50.26609  1.000 38.85907  ? 501 AF2 D H2     1 
+HETATM 54520 H H8     . AF2 T  2 .   ? 85.95410  -21.26750 47.92299  1.000 35.16081  ? 501 AF2 D H8     1 
+HETATM 54521 H "H5'"  . AF2 T  2 .   ? 82.75528  -26.44352 49.86667  1.000 46.93625  ? 501 AF2 D "H5'"  1 
+HETATM 54522 H "H5'A" . AF2 T  2 .   ? 82.73653  -25.49983 51.14030  1.000 46.93625  ? 501 AF2 D "H5'A" 1 
+HETATM 54523 H "H1'"  . AF2 T  2 .   ? 83.92672  -22.84375 48.05697  1.000 41.79601  ? 501 AF2 D "H1'"  1 
+HETATM 54524 H "H2'"  . AF2 T  2 .   ? 84.36209  -25.69139 47.97770  1.000 49.89842  ? 501 AF2 D "H2'"  1 
+HETATM 54525 H "H3'"  . AF2 T  2 .   ? 82.23156  -25.76716 47.74337  1.000 44.22318  ? 501 AF2 D "H3'"  1 
+HETATM 54526 H "H4'"  . AF2 T  2 .   ? 81.71770  -23.96326 49.57675  1.000 42.97386  ? 501 AF2 D "H4'"  1 
+HETATM 54527 H HN6    . AF2 T  2 .   ? 91.04175  -24.07632 49.78121  1.000 39.47801  ? 501 AF2 D HN6    1 
+HETATM 54528 H HN6A   . AF2 T  2 .   ? 90.64103  -22.77031 49.18799  1.000 39.47801  ? 501 AF2 D HN6A   1 
+HETATM 54529 F F      . AF2 U  2 .   ? 79.43515  -18.60508 45.99283  1.000 43.46725  ? 502 AF2 D F      1 
+HETATM 54530 P P      . AF2 U  2 .   ? 80.74679  -24.02808 46.15316  1.000 37.62912  ? 502 AF2 D P      1 
+HETATM 54531 N N1     . AF2 U  2 .   ? 84.25913  -16.60766 49.20388  1.000 36.11490  ? 502 AF2 D N1     1 
+HETATM 54532 C C2     . AF2 U  2 .   ? 82.92831  -16.49561 49.49783  1.000 32.78365  ? 502 AF2 D C2     1 
+HETATM 54533 N N3     . AF2 U  2 .   ? 82.04478  -17.44806 49.07206  1.000 33.96989  ? 502 AF2 D N3     1 
+HETATM 54534 C C4     . AF2 U  2 .   ? 82.46016  -18.49223 48.37494  1.000 35.64889  ? 502 AF2 D C4     1 
+HETATM 54535 C C5     . AF2 U  2 .   ? 83.79191  -18.60675 48.08346  1.000 34.45751  ? 502 AF2 D C5     1 
+HETATM 54536 C C6     . AF2 U  2 .   ? 84.68586  -17.64643 48.50916  1.000 38.29991  ? 502 AF2 D C6     1 
+HETATM 54537 N N6     . AF2 U  2 .   ? 86.13472  -17.53491 48.33502  1.000 40.14018  ? 502 AF2 D N6     1 
+HETATM 54538 N N7     . AF2 U  2 .   ? 83.98184  -19.73002 47.37839  1.000 36.87301  ? 502 AF2 D N7     1 
+HETATM 54539 C C8     . AF2 U  2 .   ? 82.78741  -20.33093 47.21655  1.000 36.35123  ? 502 AF2 D C8     1 
+HETATM 54540 N N9     . AF2 U  2 .   ? 81.86409  -19.56143 47.82632  1.000 37.58897  ? 502 AF2 D N9     1 
+HETATM 54541 C "C1'"  . AF2 U  2 .   ? 80.40215  -19.63233 48.03593  1.000 37.08521  ? 502 AF2 D "C1'"  1 
+HETATM 54542 O OP2    . AF2 U  2 .   ? 81.30269  -23.96312 44.71830  1.000 41.17036  ? 502 AF2 D OP2    1 
+HETATM 54543 C "C2'"  . AF2 U  2 .   ? 79.64196  -19.83744 46.64404  1.000 40.97316  ? 502 AF2 D "C2'"  1 
+HETATM 54544 O OP1    . AF2 U  2 .   ? 80.07434  -25.37841 46.43448  1.000 36.38073  ? 502 AF2 D OP1    1 
+HETATM 54545 C "C3'"  . AF2 U  2 .   ? 78.49623  -20.35002 47.03354  1.000 36.22200  ? 502 AF2 D "C3'"  1 
+HETATM 54546 O "O3'"  . AF2 U  2 .   ? 77.73668  -19.23508 47.69554  1.000 35.60146  ? 502 AF2 D "O3'"  1 
+HETATM 54547 C "C4'"  . AF2 U  2 .   ? 78.84968  -21.35816 48.11877  1.000 38.22938  ? 502 AF2 D "C4'"  1 
+HETATM 54548 O "O4'"  . AF2 U  2 .   ? 80.13261  -20.71947 48.73006  1.000 39.86061  ? 502 AF2 D "O4'"  1 
+HETATM 54549 C "C5'"  . AF2 U  2 .   ? 79.05770  -22.67741 47.64424  1.000 40.98718  ? 502 AF2 D "C5'"  1 
+HETATM 54550 O "O5'"  . AF2 U  2 .   ? 79.67048  -22.72008 46.44245  1.000 40.93994  ? 502 AF2 D "O5'"  1 
+HETATM 54551 H H2     . AF2 U  2 .   ? 82.62065  -15.76873 49.98965  1.000 39.41157  ? 502 AF2 D H2     1 
+HETATM 54552 H H8     . AF2 U  2 .   ? 82.62712  -21.12934 46.76739  1.000 43.69267  ? 502 AF2 D H8     1 
+HETATM 54553 H "H5'"  . AF2 U  2 .   ? 79.60793  -23.15357 48.28566  1.000 49.25582  ? 502 AF2 D "H5'"  1 
+HETATM 54554 H "H5'A" . AF2 U  2 .   ? 78.19658  -23.11678 47.56471  1.000 49.25582  ? 502 AF2 D "H5'A" 1 
+HETATM 54555 H "H1'"  . AF2 U  2 .   ? 80.07283  -18.83108 48.47234  1.000 44.57345  ? 502 AF2 D "H1'"  1 
+HETATM 54556 H "H2'"  . AF2 U  2 .   ? 80.12924  -20.42517 46.04568  1.000 49.23899  ? 502 AF2 D "H2'"  1 
+HETATM 54557 H "H3'"  . AF2 U  2 .   ? 78.02705  -20.77749 46.30003  1.000 43.53760  ? 502 AF2 D "H3'"  1 
+HETATM 54558 H "H4'"  . AF2 U  2 .   ? 78.13554  -21.43416 48.77079  1.000 45.94645  ? 502 AF2 D "H4'"  1 
+HETATM 54559 H HN6    . AF2 U  2 .   ? 86.55917  -18.13800 47.89062  1.000 48.23941  ? 502 AF2 D HN6    1 
+HETATM 54560 H HN6A   . AF2 U  2 .   ? 86.56346  -16.87354 48.67843  1.000 48.23941  ? 502 AF2 D HN6A   1 
+HETATM 54561 F F      . AF2 V  2 .   ? 70.01386  -20.83154 47.24702  1.000 47.44135  ? 503 AF2 D F      1 
+HETATM 54562 P P      . AF2 V  2 .   ? 76.49696  -18.53771 46.95853  1.000 36.89868  ? 503 AF2 D P      1 
+HETATM 54563 N N1     . AF2 V  2 .   ? 69.80215  -17.02049 43.00377  1.000 39.58391  ? 503 AF2 D N1     1 
+HETATM 54564 C C2     . AF2 V  2 .   ? 70.48676  -18.12740 43.42117  1.000 36.57309  ? 503 AF2 D C2     1 
+HETATM 54565 N N3     . AF2 V  2 .   ? 70.66306  -18.36755 44.75679  1.000 35.71287  ? 503 AF2 D N3     1 
+HETATM 54566 C C4     . AF2 V  2 .   ? 70.17751  -17.54393 45.66968  1.000 35.45758  ? 503 AF2 D C4     1 
+HETATM 54567 C C5     . AF2 V  2 .   ? 69.49088  -16.43479 45.24536  1.000 35.51576  ? 503 AF2 D C5     1 
+HETATM 54568 C C6     . AF2 V  2 .   ? 69.31155  -16.18646 43.90195  1.000 39.66980  ? 503 AF2 D C6     1 
+HETATM 54569 N N6     . AF2 V  2 .   ? 68.62724  -15.09083 43.21369  1.000 42.22702  ? 503 AF2 D N6     1 
+HETATM 54570 N N7     . AF2 V  2 .   ? 69.08819  -15.73648 46.30977  1.000 33.29107  ? 503 AF2 D N7     1 
+HETATM 54571 C C8     . AF2 V  2 .   ? 69.50521  -16.38461 47.40742  1.000 35.17645  ? 503 AF2 D C8     1 
+HETATM 54572 N N9     . AF2 V  2 .   ? 70.16942  -17.49706 47.01033  1.000 35.22014  ? 503 AF2 D N9     1 
+HETATM 54573 C "C1'"  . AF2 V  2 .   ? 70.83948  -18.58769 47.77827  1.000 36.54101  ? 503 AF2 D "C1'"  1 
+HETATM 54574 O OP2    . AF2 V  2 .   ? 76.42095  -17.06263 47.40008  1.000 45.56047  ? 503 AF2 D OP2    1 
+HETATM 54575 C "C2'"  . AF2 V  2 .   ? 71.15530  -20.00490 47.15298  1.000 41.87212  ? 503 AF2 D "C2'"  1 
+HETATM 54576 O OP1    . AF2 V  2 .   ? 76.66105  -18.67049 45.44273  1.000 43.04880  ? 503 AF2 D OP1    1 
+HETATM 54577 C "C3'"  . AF2 V  2 .   ? 72.09242  -20.45414 47.96472  1.000 39.07422  ? 503 AF2 D "C3'"  1 
+HETATM 54578 O "O3'"  . AF2 V  2 .   ? 71.52492  -20.74318 49.33161  1.000 42.81677  ? 503 AF2 D "O3'"  1 
+HETATM 54579 C "C4'"  . AF2 V  2 .   ? 73.02285  -19.25483 48.13702  1.000 33.48463  ? 503 AF2 D "C4'"  1 
+HETATM 54580 O "O4'"  . AF2 V  2 .   ? 72.00358  -18.08689 48.20981  1.000 33.21104  ? 503 AF2 D "O4'"  1 
+HETATM 54581 C "C5'"  . AF2 V  2 .   ? 73.91666  -19.08903 47.06287  1.000 34.41293  ? 503 AF2 D "C5'"  1 
+HETATM 54582 O "O5'"  . AF2 V  2 .   ? 75.14653  -19.43852 47.50779  1.000 37.50801  ? 503 AF2 D "O5'"  1 
+HETATM 54583 H H2     . AF2 V  2 .   ? 70.83523  -18.72145 42.79622  1.000 43.95890  ? 503 AF2 D H2     1 
+HETATM 54584 H H8     . AF2 V  2 .   ? 69.36438  -16.11900 48.28749  1.000 42.28294  ? 503 AF2 D H8     1 
+HETATM 54585 H "H5'"  . AF2 V  2 .   ? 73.65803  -19.66065 46.32310  1.000 41.36672  ? 503 AF2 D "H5'"  1 
+HETATM 54586 H "H5'A" . AF2 V  2 .   ? 73.92079  -18.16341 46.77286  1.000 41.36672  ? 503 AF2 D "H5'A" 1 
+HETATM 54587 H "H1'"  . AF2 V  2 .   ? 70.19624  -18.86537 48.44912  1.000 43.92041  ? 503 AF2 D "H1'"  1 
+HETATM 54588 H "H2'"  . AF2 V  2 .   ? 71.45022  -19.95036 46.23051  1.000 50.31774  ? 503 AF2 D "H2'"  1 
+HETATM 54589 H "H3'"  . AF2 V  2 .   ? 72.51611  -21.23458 47.57447  1.000 46.96026  ? 503 AF2 D "H3'"  1 
+HETATM 54590 H "H4'"  . AF2 V  2 .   ? 73.55942  -19.33638 48.94098  1.000 40.25276  ? 503 AF2 D "H4'"  1 
+HETATM 54591 H HN6    . AF2 V  2 .   ? 68.25117  -14.46616 43.67097  1.000 50.74362  ? 503 AF2 D HN6    1 
+HETATM 54592 H HN6A   . AF2 V  2 .   ? 68.59416  -15.07503 42.35484  1.000 50.74362  ? 503 AF2 D HN6A   1 
+HETATM 54593 F F      . AF2 W  2 .   ? 39.30848  32.52657  151.17055 1.000 39.76706  ? 501 AF2 E F      1 
+HETATM 54594 P P      . AF2 W  2 .   ? 32.98025  34.75158  152.29874 1.000 43.04171  ? 501 AF2 E P      1 
+HETATM 54595 N N1     . AF2 W  2 .   ? 39.96351  36.31773  155.31470 1.000 38.35283  ? 501 AF2 E N1     1 
+HETATM 54596 C C2     . AF2 W  2 .   ? 39.31565  35.17730  154.94409 1.000 37.01558  ? 501 AF2 E C2     1 
+HETATM 54597 N N3     . AF2 W  2 .   ? 39.00538  34.96470  153.63274 1.000 37.86973  ? 501 AF2 E N3     1 
+HETATM 54598 C C4     . AF2 W  2 .   ? 39.31737  35.83886  152.69720 1.000 37.31020  ? 501 AF2 E C4     1 
+HETATM 54599 C C5     . AF2 W  2 .   ? 39.97004  36.98431  153.07302 1.000 38.38859  ? 501 AF2 E C5     1 
+HETATM 54600 C C6     . AF2 W  2 .   ? 40.28595  37.20732  154.39683 1.000 39.72321  ? 501 AF2 E C6     1 
+HETATM 54601 N N6     . AF2 W  2 .   ? 40.96874  38.32178  155.05397 1.000 46.86036  ? 501 AF2 E N6     1 
+HETATM 54602 N N7     . AF2 W  2 .   ? 40.19460  37.73160  151.98873 1.000 35.96683  ? 501 AF2 E N7     1 
+HETATM 54603 C C8     . AF2 W  2 .   ? 39.68889  37.07439  150.93222 1.000 37.64810  ? 501 AF2 E C8     1 
+HETATM 54604 N N9     . AF2 W  2 .   ? 39.15547  35.91000  151.37002 1.000 35.43066  ? 501 AF2 E N9     1 
+HETATM 54605 C "C1'"  . AF2 W  2 .   ? 38.47781  34.77845  150.66780 1.000 40.02064  ? 501 AF2 E "C1'"  1 
+HETATM 54606 O OP2    . AF2 W  2 .   ? 32.95237  34.75345  153.83661 1.000 42.45491  ? 501 AF2 E OP2    1 
+HETATM 54607 C "C2'"  . AF2 W  2 .   ? 38.20267  33.38435  151.37050 1.000 39.80470  ? 501 AF2 E "C2'"  1 
+HETATM 54608 O OP1    . AF2 W  2 .   ? 33.04880  36.19055  151.76663 1.000 45.63389  ? 501 AF2 E OP1    1 
+HETATM 54609 C "C3'"  . AF2 W  2 .   ? 37.16926  32.93658  150.68081 1.000 42.95129  ? 501 AF2 E "C3'"  1 
+HETATM 54610 O "O3'"  . AF2 W  2 .   ? 37.62894  32.61133  149.28064 1.000 42.98565  ? 501 AF2 E "O3'"  1 
+HETATM 54611 C "C4'"  . AF2 W  2 .   ? 36.24988  34.14952  150.59435 1.000 38.81522  ? 501 AF2 E "C4'"  1 
+HETATM 54612 O "O4'"  . AF2 W  2 .   ? 37.29509  35.25073  150.24540 1.000 38.28678  ? 501 AF2 E "O4'"  1 
+HETATM 54613 C "C5'"  . AF2 W  2 .   ? 35.57044  34.45576  151.78955 1.000 43.15510  ? 501 AF2 E "C5'"  1 
+HETATM 54614 O "O5'"  . AF2 W  2 .   ? 34.34538  33.86688  151.74466 1.000 45.73285  ? 501 AF2 E "O5'"  1 
+HETATM 54615 H H2     . AF2 W  2 .   ? 39.08422  34.54284  155.58347 1.000 44.48989  ? 501 AF2 E H2     1 
+HETATM 54616 H H8     . AF2 W  2 .   ? 39.70191  37.36747  150.04970 1.000 45.24891  ? 501 AF2 E H8     1 
+HETATM 54617 H "H5'"  . AF2 W  2 .   ? 36.06914  34.11459  152.54837 1.000 51.85732  ? 501 AF2 E "H5'"  1 
+HETATM 54618 H "H5'A" . AF2 W  2 .   ? 35.46798  35.41671  151.87299 1.000 51.85732  ? 501 AF2 E "H5'A" 1 
+HETATM 54619 H "H1'"  . AF2 W  2 .   ? 39.10032  34.47559  149.98834 1.000 48.09597  ? 501 AF2 E "H1'"  1 
+HETATM 54620 H "H2'"  . AF2 W  2 .   ? 38.01549  33.47118  152.31830 1.000 47.83684  ? 501 AF2 E "H2'"  1 
+HETATM 54621 H "H3'"  . AF2 W  2 .   ? 36.74912  32.17869  151.11669 1.000 51.61274  ? 501 AF2 E "H3'"  1 
+HETATM 54622 H "H4'"  . AF2 W  2 .   ? 35.56079  34.02298  149.92350 1.000 46.64946  ? 501 AF2 E "H4'"  1 
+HETATM 54623 H HN6    . AF2 W  2 .   ? 41.26093  38.98308  154.58697 1.000 56.30363  ? 501 AF2 E HN6    1 
+HETATM 54624 H HN6A   . AF2 W  2 .   ? 41.08772  38.30903  155.90479 1.000 56.30363  ? 501 AF2 E HN6A   1 
+HETATM 54625 F F      . AF2 X  2 .   ? 25.40549  28.21767  153.73303 1.000 35.05651  ? 502 AF2 E F      1 
+HETATM 54626 P P      . AF2 X  2 .   ? 28.48545  25.93952  148.80905 1.000 47.73189  ? 502 AF2 E P      1 
+HETATM 54627 N N1     . AF2 X  2 .   ? 20.14903  27.93077  151.08052 1.000 31.08763  ? 502 AF2 E N1     1 
+HETATM 54628 C C2     . AF2 X  2 .   ? 21.32280  27.22722  150.94644 1.000 33.86430  ? 502 AF2 E C2     1 
+HETATM 54629 N N3     . AF2 X  2 .   ? 22.54604  27.82847  151.16208 1.000 34.31430  ? 502 AF2 E N3     1 
+HETATM 54630 C C4     . AF2 X  2 .   ? 22.59500  29.10307  151.50091 1.000 36.28623  ? 502 AF2 E C4     1 
+HETATM 54631 C C5     . AF2 X  2 .   ? 21.41821  29.78732  151.63094 1.000 34.64567  ? 502 AF2 E C5     1 
+HETATM 54632 C C6     . AF2 X  2 .   ? 20.19216  29.19627  151.41950 1.000 33.70903  ? 502 AF2 E C6     1 
+HETATM 54633 N N6     . AF2 X  2 .   ? 18.83626  29.74729  151.49371 1.000 34.42997  ? 502 AF2 E N6     1 
+HETATM 54634 N N7     . AF2 X  2 .   ? 21.66379  31.05090  151.97668 1.000 35.12342  ? 502 AF2 E N7     1 
+HETATM 54635 C C8     . AF2 X  2 .   ? 22.99548  31.19350  152.07303 1.000 34.12380  ? 502 AF2 E C8     1 
+HETATM 54636 N N9     . AF2 X  2 .   ? 23.55334  30.00206  151.79569 1.000 36.78857  ? 502 AF2 E N9     1 
+HETATM 54637 C "C1'"  . AF2 X  2 .   ? 24.98778  29.62979  151.75812 1.000 35.90427  ? 502 AF2 E "C1'"  1 
+HETATM 54638 O OP2    . AF2 X  2 .   ? 27.96513  25.68094  147.38143 1.000 50.04468  ? 502 AF2 E OP2    1 
+HETATM 54639 C "C2'"  . AF2 X  2 .   ? 25.53147  28.25749  152.33851 1.000 35.12725  ? 502 AF2 E "C2'"  1 
+HETATM 54640 O OP1    . AF2 X  2 .   ? 30.00120  25.74356  148.87106 1.000 49.53036  ? 502 AF2 E OP1    1 
+HETATM 54641 C "C3'"  . AF2 X  2 .   ? 26.79788  28.39886  151.98856 1.000 36.08773  ? 502 AF2 E "C3'"  1 
+HETATM 54642 O "O3'"  . AF2 X  2 .   ? 27.44659  29.55830  152.71239 1.000 36.15962  ? 502 AF2 E "O3'"  1 
+HETATM 54643 C "C4'"  . AF2 X  2 .   ? 26.72903  28.86454  150.52024 1.000 39.56769  ? 502 AF2 E "C4'"  1 
+HETATM 54644 O "O4'"  . AF2 X  2 .   ? 25.40709  29.67443  150.49792 1.000 36.64769  ? 502 AF2 E "O4'"  1 
+HETATM 54645 C "C5'"  . AF2 X  2 .   ? 26.75252  27.78626  149.59690 1.000 49.39652  ? 502 AF2 E "C5'"  1 
+HETATM 54646 O "O5'"  . AF2 X  2 .   ? 28.06123  27.49963  149.38353 1.000 52.24983  ? 502 AF2 E "O5'"  1 
+HETATM 54647 H H2     . AF2 X  2 .   ? 21.29405  26.32929  150.70602 1.000 40.70836  ? 502 AF2 E H2     1 
+HETATM 54648 H H8     . AF2 X  2 .   ? 23.45139  31.97400  152.29181 1.000 41.01976  ? 502 AF2 E H8     1 
+HETATM 54649 H "H5'"  . AF2 X  2 .   ? 26.29726  27.01448  149.96838 1.000 59.34702  ? 502 AF2 E "H5'"  1 
+HETATM 54650 H "H5'A" . AF2 X  2 .   ? 26.32690  28.04577  148.76479 1.000 59.34702  ? 502 AF2 E "H5'A" 1 
+HETATM 54651 H "H1'"  . AF2 X  2 .   ? 25.39818  30.25446  152.37640 1.000 43.15632  ? 502 AF2 E "H1'"  1 
+HETATM 54652 H "H2'"  . AF2 X  2 .   ? 25.09560  27.46731  151.98281 1.000 42.22389  ? 502 AF2 E "H2'"  1 
+HETATM 54653 H "H3'"  . AF2 X  2 .   ? 27.25407  27.55608  152.13859 1.000 43.37647  ? 502 AF2 E "H3'"  1 
+HETATM 54654 H "H4'"  . AF2 X  2 .   ? 27.48132  29.42992  150.28508 1.000 47.55243  ? 502 AF2 E "H4'"  1 
+HETATM 54655 H HN6    . AF2 X  2 .   ? 18.71725  30.57929  151.69759 1.000 41.38716  ? 502 AF2 E HN6    1 
+HETATM 54656 H HN6A   . AF2 X  2 .   ? 18.15903  29.25079  151.32043 1.000 41.38716  ? 502 AF2 E HN6A   1 
+HETATM 54657 F F      . AF2 Y  2 .   ? 30.06506  34.79866  153.34738 1.000 36.15858  ? 503 AF2 E F      1 
+HETATM 54658 P P      . AF2 Y  2 .   ? 28.76649  29.35129  153.60616 1.000 34.70407  ? 503 AF2 E P      1 
+HETATM 54659 N N1     . AF2 Y  2 .   ? 24.84862  36.44511  151.27477 1.000 37.09540  ? 503 AF2 E N1     1 
+HETATM 54660 C C2     . AF2 Y  2 .   ? 26.08542  36.66593  150.71680 1.000 35.93638  ? 503 AF2 E C2     1 
+HETATM 54661 N N3     . AF2 Y  2 .   ? 27.10882  35.76258  150.89489 1.000 32.20837  ? 503 AF2 E N3     1 
+HETATM 54662 C C4     . AF2 Y  2 .   ? 26.89280  34.67374  151.61240 1.000 30.25208  ? 503 AF2 E C4     1 
+HETATM 54663 C C5     . AF2 Y  2 .   ? 25.66170  34.47494  152.15509 1.000 29.00371  ? 503 AF2 E C5     1 
+HETATM 54664 C C6     . AF2 Y  2 .   ? 24.63402  35.36406  151.98762 1.000 35.73141  ? 503 AF2 E C6     1 
+HETATM 54665 N N6     . AF2 Y  2 .   ? 23.25870  35.29763  152.49299 1.000 40.52832  ? 503 AF2 E N6     1 
+HETATM 54666 N N7     . AF2 Y  2 .   ? 25.63986  33.32870  152.83452 1.000 29.23032  ? 503 AF2 E N7     1 
+HETATM 54667 C C8     . AF2 Y  2 .   ? 26.86046  32.77645  152.73698 1.000 29.75850  ? 503 AF2 E C8     1 
+HETATM 54668 N N9     . AF2 Y  2 .   ? 27.61380  33.60452  151.98576 1.000 30.95637  ? 503 AF2 E N9     1 
+HETATM 54669 C "C1'"  . AF2 Y  2 .   ? 29.01254  33.54236  151.52641 1.000 35.00710  ? 503 AF2 E "C1'"  1 
+HETATM 54670 O OP2    . AF2 Y  2 .   ? 28.36005  29.46590  155.08588 1.000 36.81542  ? 503 AF2 E OP2    1 
+HETATM 54671 C "C2'"  . AF2 Y  2 .   ? 29.91011  33.49257  152.85723 1.000 35.45889  ? 503 AF2 E "C2'"  1 
+HETATM 54672 O OP1    . AF2 Y  2 .   ? 29.42154  28.00101  153.30721 1.000 32.85354  ? 503 AF2 E OP1    1 
+HETATM 54673 C "C3'"  . AF2 Y  2 .   ? 31.02667  32.96953  152.42207 1.000 39.31593  ? 503 AF2 E "C3'"  1 
+HETATM 54674 O "O3'"  . AF2 Y  2 .   ? 31.78446  34.01122  151.64492 1.000 41.62480  ? 503 AF2 E "O3'"  1 
+HETATM 54675 C "C4'"  . AF2 Y  2 .   ? 30.59474  31.87697  151.43577 1.000 41.18592  ? 503 AF2 E "C4'"  1 
+HETATM 54676 O "O4'"  . AF2 Y  2 .   ? 29.22760  32.40743  150.92061 1.000 41.88183  ? 503 AF2 E "O4'"  1 
+HETATM 54677 C "C5'"  . AF2 Y  2 .   ? 30.48319  30.59389  152.03279 1.000 39.75061  ? 503 AF2 E "C5'"  1 
+HETATM 54678 O "O5'"  . AF2 Y  2 .   ? 29.77796  30.67077  153.17388 1.000 39.61488  ? 503 AF2 E "O5'"  1 
+HETATM 54679 H H2     . AF2 Y  2 .   ? 26.23455  37.43337  150.21312 1.000 43.19485  ? 503 AF2 E H2     1 
+HETATM 54680 H H8     . AF2 Y  2 .   ? 27.13639  31.97324  153.11595 1.000 35.78139  ? 503 AF2 E H8     1 
+HETATM 54681 H "H5'"  . AF2 Y  2 .   ? 30.03188  29.99277  151.41970 1.000 47.77193  ? 503 AF2 E "H5'"  1 
+HETATM 54682 H "H5'A" . AF2 Y  2 .   ? 31.36987  30.25306  152.22908 1.000 47.77193  ? 503 AF2 E "H5'A" 1 
+HETATM 54683 H "H1'"  . AF2 Y  2 .   ? 29.25576  34.27254  150.93599 1.000 42.07971  ? 503 AF2 E "H1'"  1 
+HETATM 54684 H "H2'"  . AF2 Y  2 .   ? 29.54212  32.94073  153.56501 1.000 42.62187  ? 503 AF2 E "H2'"  1 
+HETATM 54685 H "H3'"  . AF2 Y  2 .   ? 31.54125  32.60661  153.15990 1.000 47.25031  ? 503 AF2 E "H3'"  1 
+HETATM 54686 H "H4'"  . AF2 Y  2 .   ? 31.23712  31.79187  150.71396 1.000 49.49430  ? 503 AF2 E "H4'"  1 
+HETATM 54687 H HN6    . AF2 Y  2 .   ? 23.01795  34.61873  152.97118 1.000 48.70518  ? 503 AF2 E HN6    1 
+HETATM 54688 H HN6A   . AF2 Y  2 .   ? 22.69030  35.91284  152.30990 1.000 48.70518  ? 503 AF2 E HN6A   1 
+HETATM 54689 F F      . AF2 Z  2 .   ? 40.65010  28.76189  152.90639 1.000 34.90596  ? 501 AF2 F F      1 
+HETATM 54690 P P      . AF2 Z  2 .   ? 36.85104  31.51727  148.40017 1.000 40.88025  ? 501 AF2 F P      1 
+HETATM 54691 N N1     . AF2 Z  2 .   ? 45.39622  29.21536  149.35861 1.000 26.29036  ? 501 AF2 F N1     1 
+HETATM 54692 C C2     . AF2 Z  2 .   ? 44.19871  29.87667  149.28967 1.000 28.90036  ? 501 AF2 F C2     1 
+HETATM 54693 N N3     . AF2 Z  2 .   ? 43.04169  29.26892  149.70393 1.000 27.65386  ? 501 AF2 F N3     1 
+HETATM 54694 C C4     . AF2 Z  2 .   ? 43.06282  28.03666  150.17678 1.000 28.61143  ? 501 AF2 F C4     1 
+HETATM 54695 C C5     . AF2 Z  2 .   ? 44.26358  27.37599  150.24663 1.000 29.51323  ? 501 AF2 F C5     1 
+HETATM 54696 C C6     . AF2 Z  2 .   ? 45.43007  27.98534  149.82963 1.000 29.82810  ? 501 AF2 F C6     1 
+HETATM 54697 N N6     . AF2 Z  2 .   ? 46.81504  27.50891  149.79741 1.000 38.09076  ? 501 AF2 F N6     1 
+HETATM 54698 N N7     . AF2 Z  2 .   ? 44.05682  26.15513  150.75310 1.000 29.34891  ? 501 AF2 F N7     1 
+HETATM 54699 C C8     . AF2 Z  2 .   ? 42.74425  26.02780  151.00461 1.000 29.04974  ? 501 AF2 F C8     1 
+HETATM 54700 N N9     . AF2 Z  2 .   ? 42.14427  27.19059  150.65430 1.000 29.21393  ? 501 AF2 F N9     1 
+HETATM 54701 C "C1'"  . AF2 Z  2 .   ? 40.73201  27.62746  150.70193 1.000 34.79549  ? 501 AF2 F "C1'"  1 
+HETATM 54702 O OP2    . AF2 Z  2 .   ? 37.22469  31.67269  146.91424 1.000 42.54572  ? 501 AF2 F OP2    1 
+HETATM 54703 C "C2'"  . AF2 Z  2 .   ? 40.36441  28.93970  151.55068 1.000 36.91916  ? 501 AF2 F "C2'"  1 
+HETATM 54704 O OP1    . AF2 Z  2 .   ? 35.34204  31.69198  148.62174 1.000 42.99942  ? 501 AF2 F OP1    1 
+HETATM 54705 C "C3'"  . AF2 Z  2 .   ? 39.05661  28.97283  151.33678 1.000 39.97389  ? 501 AF2 F "C3'"  1 
+HETATM 54706 O "O3'"  . AF2 Z  2 .   ? 38.40270  27.88012  152.15056 1.000 42.17908  ? 501 AF2 F "O3'"  1 
+HETATM 54707 C "C4'"  . AF2 Z  2 .   ? 38.90126  28.60631  149.85264 1.000 33.51996  ? 501 AF2 F "C4'"  1 
+HETATM 54708 O "O4'"  . AF2 Z  2 .   ? 40.21894  27.87154  149.51087 1.000 34.47296  ? 501 AF2 F "O4'"  1 
+HETATM 54709 C "C5'"  . AF2 Z  2 .   ? 38.71743  29.74846  149.03323 1.000 35.89737  ? 501 AF2 F "C5'"  1 
+HETATM 54710 O "O5'"  . AF2 Z  2 .   ? 37.39315  30.02228  149.03843 1.000 36.44149  ? 501 AF2 F "O5'"  1 
+HETATM 54711 H H2     . AF2 Z  2 .   ? 44.16796  30.74548  148.95934 1.000 34.75163  ? 501 AF2 F H2     1 
+HETATM 54712 H H8     . AF2 Z  2 .   ? 42.32126  25.27772  151.35585 1.000 34.93088  ? 501 AF2 F H8     1 
+HETATM 54713 H "H5'"  . AF2 Z  2 .   ? 39.21384  30.50095  149.39134 1.000 43.14804  ? 501 AF2 F "H5'"  1 
+HETATM 54714 H "H5'A" . AF2 Z  2 .   ? 39.01499  29.56315  148.12878 1.000 43.14804  ? 501 AF2 F "H5'A" 1 
+HETATM 54715 H "H1'"  . AF2 Z  2 .   ? 40.30129  26.88120  151.14745 1.000 41.82578  ? 501 AF2 F "H1'"  1 
+HETATM 54716 H "H2'"  . AF2 Z  2 .   ? 40.83018  29.73905  151.25912 1.000 44.37418  ? 501 AF2 F "H2'"  1 
+HETATM 54717 H "H3'"  . AF2 Z  2 .   ? 38.69523  29.85093  151.53491 1.000 48.03986  ? 501 AF2 F "H3'"  1 
+HETATM 54718 H "H4'"  . AF2 Z  2 .   ? 38.13865  28.01965  149.72956 1.000 40.29515  ? 501 AF2 F "H4'"  1 
+HETATM 54719 H HN6    . AF2 Z  2 .   ? 47.44152  28.01896  149.50487 1.000 45.78010  ? 501 AF2 F HN6    1 
+HETATM 54720 H HN6A   . AF2 Z  2 .   ? 47.00140  26.71246  150.06939 1.000 45.78010  ? 501 AF2 F HN6A   1 
+HETATM 54721 F F      . AF2 AA 2 .   ? 35.78054  22.72872  153.29937 1.000 41.98762  ? 502 AF2 F F      1 
+HETATM 54722 P P      . AF2 AA 2 .   ? 37.15110  28.18794  153.11193 1.000 40.84351  ? 502 AF2 F P      1 
+HETATM 54723 N N1     . AF2 AA 2 .   ? 40.62565  20.74968  150.01723 1.000 40.40184  ? 502 AF2 F N1     1 
+HETATM 54724 C C2     . AF2 AA 2 .   ? 39.29191  20.67743  149.72416 1.000 35.86343  ? 502 AF2 F C2     1 
+HETATM 54725 N N3     . AF2 AA 2 .   ? 38.43144  21.62967  150.19389 1.000 36.04141  ? 502 AF2 F N3     1 
+HETATM 54726 C C4     . AF2 AA 2 .   ? 38.87131  22.63163  150.93760 1.000 37.52710  ? 502 AF2 F C4     1 
+HETATM 54727 C C5     . AF2 AA 2 .   ? 40.20624  22.70561  151.23199 1.000 37.25521  ? 502 AF2 F C5     1 
+HETATM 54728 C C6     . AF2 AA 2 .   ? 41.07966  21.74698  150.75870 1.000 39.73965  ? 502 AF2 F C6     1 
+HETATM 54729 N N6     . AF2 AA 2 .   ? 42.52702  21.60067  150.92500 1.000 35.65798  ? 502 AF2 F N6     1 
+HETATM 54730 N N7     . AF2 AA 2 .   ? 40.41899  23.79173  151.98611 1.000 35.56885  ? 502 AF2 F N7     1 
+HETATM 54731 C C8     . AF2 AA 2 .   ? 39.23513  24.40922  152.17647 1.000 37.09474  ? 502 AF2 F C8     1 
+HETATM 54732 N N9     . AF2 AA 2 .   ? 38.29403  23.68571  151.53648 1.000 38.60248  ? 502 AF2 F N9     1 
+HETATM 54733 C "C1'"  . AF2 AA 2 .   ? 36.83143  23.77583  151.31826 1.000 41.72597  ? 502 AF2 F "C1'"  1 
+HETATM 54734 O OP2    . AF2 AA 2 .   ? 37.63502  28.19327  154.57550 1.000 41.59731  ? 502 AF2 F OP2    1 
+HETATM 54735 C "C2'"  . AF2 AA 2 .   ? 36.00983  23.96966  152.67277 1.000 42.14046  ? 502 AF2 F "C2'"  1 
+HETATM 54736 O OP1    . AF2 AA 2 .   ? 36.51011  29.52525  152.72662 1.000 40.25699  ? 502 AF2 F OP1    1 
+HETATM 54737 C "C3'"  . AF2 AA 2 .   ? 34.87678  24.49032  152.25378 1.000 40.28057  ? 502 AF2 F "C3'"  1 
+HETATM 54738 O "O3'"  . AF2 AA 2 .   ? 34.08467  23.40889  151.56971 1.000 40.00187  ? 502 AF2 F "O3'"  1 
+HETATM 54739 C "C4'"  . AF2 AA 2 .   ? 35.27427  25.49642  151.17385 1.000 43.13164  ? 502 AF2 F "C4'"  1 
+HETATM 54740 O "O4'"  . AF2 AA 2 .   ? 36.59481  24.87656  150.62591 1.000 46.03899  ? 502 AF2 F "O4'"  1 
+HETATM 54741 C "C5'"  . AF2 AA 2 .   ? 35.44108  26.82130  151.64874 1.000 41.21325  ? 502 AF2 F "C5'"  1 
+HETATM 54742 O "O5'"  . AF2 AA 2 .   ? 36.08130  26.87149  152.83451 1.000 39.88448  ? 502 AF2 F "O5'"  1 
+HETATM 54743 H H2     . AF2 AA 2 .   ? 38.96711  19.97863  149.20350 1.000 43.10731  ? 502 AF2 F H2     1 
+HETATM 54744 H H8     . AF2 AA 2 .   ? 39.09183  25.19062  152.65998 1.000 44.58489  ? 502 AF2 F H8     1 
+HETATM 54745 H "H5'"  . AF2 AA 2 .   ? 35.95699  27.32271  150.99810 1.000 49.52710  ? 502 AF2 F "H5'"  1 
+HETATM 54746 H "H5'A" . AF2 AA 2 .   ? 34.56629  27.22722  151.75300 1.000 49.52710  ? 502 AF2 F "H5'A" 1 
+HETATM 54747 H "H1'"  . AF2 AA 2 .   ? 36.50944  22.97004  150.88474 1.000 50.14236  ? 502 AF2 F "H1'"  1 
+HETATM 54748 H "H2'"  . AF2 AA 2 .   ? 36.47132  24.55629  153.29228 1.000 50.63974  ? 502 AF2 F "H2'"  1 
+HETATM 54749 H "H3'"  . AF2 AA 2 .   ? 34.40380  24.91205  152.98818 1.000 48.40788  ? 502 AF2 F "H3'"  1 
+HETATM 54750 H "H4'"  . AF2 AA 2 .   ? 34.59196  25.55318  150.48674 1.000 51.82916  ? 502 AF2 F "H4'"  1 
+HETATM 54751 H HN6    . AF2 AA 2 .   ? 42.96315  22.17837  151.38962 1.000 42.86077  ? 502 AF2 F HN6    1 
+HETATM 54752 H HN6A   . AF2 AA 2 .   ? 42.94449  20.94586  150.56020 1.000 42.86077  ? 502 AF2 F HN6A   1 
+HETATM 54753 F F      . AF2 BA 2 .   ? 26.16695  24.87188  151.80148 1.000 45.96355  ? 503 AF2 F F      1 
+HETATM 54754 P P      . AF2 BA 2 .   ? 32.76651  22.79626  152.24941 1.000 43.45805  ? 503 AF2 F P      1 
+HETATM 54755 N N1     . AF2 BA 2 .   ? 26.22431  21.02772  156.09220 1.000 46.22249  ? 503 AF2 F N1     1 
+HETATM 54756 C C2     . AF2 BA 2 .   ? 26.91135  22.14440  155.70174 1.000 41.33711  ? 503 AF2 F C2     1 
+HETATM 54757 N N3     . AF2 BA 2 .   ? 27.08348  22.42020  154.37243 1.000 39.86772  ? 503 AF2 F N3     1 
+HETATM 54758 C C4     . AF2 BA 2 .   ? 26.58989  21.62283  153.44116 1.000 40.81052  ? 503 AF2 F C4     1 
+HETATM 54759 C C5     . AF2 BA 2 .   ? 25.90074  20.50447  153.83869 1.000 42.79417  ? 503 AF2 F C5     1 
+HETATM 54760 C C6     . AF2 BA 2 .   ? 25.72620  20.21924  155.17483 1.000 45.66384  ? 503 AF2 F C6     1 
+HETATM 54761 N N6     . AF2 BA 2 .   ? 25.04343  19.10782  155.83805 1.000 48.05808  ? 503 AF2 F N6     1 
+HETATM 54762 N N7     . AF2 BA 2 .   ? 25.49069  19.83656  152.75663 1.000 41.89760  ? 503 AF2 F N7     1 
+HETATM 54763 C C8     . AF2 BA 2 .   ? 25.90687  20.51345  151.67424 1.000 41.88238  ? 503 AF2 F C8     1 
+HETATM 54764 N N9     . AF2 BA 2 .   ? 26.57558  21.61397  152.10009 1.000 40.57529  ? 503 AF2 F N9     1 
+HETATM 54765 C "C1'"  . AF2 BA 2 .   ? 27.24820  22.72153  151.36475 1.000 37.71843  ? 503 AF2 F "C1'"  1 
+HETATM 54766 O OP2    . AF2 BA 2 .   ? 32.56608  21.35967  151.72802 1.000 49.30063  ? 503 AF2 F OP2    1 
+HETATM 54767 C "C2'"  . AF2 BA 2 .   ? 27.37753  24.17399  151.98373 1.000 40.23013  ? 503 AF2 F "C2'"  1 
+HETATM 54768 O OP1    . AF2 BA 2 .   ? 32.90631  22.83664  153.77449 1.000 40.16003  ? 503 AF2 F OP1    1 
+HETATM 54769 C "C3'"  . AF2 BA 2 .   ? 28.31154  24.70471  151.21797 1.000 42.15033  ? 503 AF2 F "C3'"  1 
+HETATM 54770 O "O3'"  . AF2 BA 2 .   ? 27.75098  24.94153  149.83663 1.000 48.65995  ? 503 AF2 F "O3'"  1 
+HETATM 54771 C "C4'"  . AF2 BA 2 .   ? 29.35994  23.60353  151.09859 1.000 40.39070  ? 503 AF2 F "C4'"  1 
+HETATM 54772 O "O4'"  . AF2 BA 2 .   ? 28.48666  22.32164  151.07307 1.000 38.66221  ? 503 AF2 F "O4'"  1 
+HETATM 54773 C "C5'"  . AF2 BA 2 .   ? 30.25478  23.58451  152.19019 1.000 44.52784  ? 503 AF2 F "C5'"  1 
+HETATM 54774 O "O5'"  . AF2 BA 2 .   ? 31.50391  23.83139  151.72352 1.000 45.60685  ? 503 AF2 F "O5'"  1 
+HETATM 54775 H H2     . AF2 BA 2 .   ? 27.26401  22.72028  156.34118 1.000 49.67573  ? 503 AF2 F H2     1 
+HETATM 54776 H H8     . AF2 BA 2 .   ? 25.76303  20.27200  150.78772 1.000 50.33005  ? 503 AF2 F H8     1 
+HETATM 54777 H "H5'"  . AF2 BA 2 .   ? 30.00539  24.26839  152.83130 1.000 53.50461  ? 503 AF2 F "H5'"  1 
+HETATM 54778 H "H5'A" . AF2 BA 2 .   ? 30.23281  22.71412  152.61779 1.000 53.50461  ? 503 AF2 F "H5'A" 1 
+HETATM 54779 H "H1'"  . AF2 BA 2 .   ? 26.67050  22.91156  150.60907 1.000 45.33331  ? 503 AF2 F "H1'"  1 
+HETATM 54780 H "H2'"  . AF2 BA 2 .   ? 27.61854  24.16572  152.92327 1.000 48.34735  ? 503 AF2 F "H2'"  1 
+HETATM 54781 H "H3'"  . AF2 BA 2 .   ? 28.66257  25.51616  151.61700 1.000 50.65159  ? 503 AF2 F "H3'"  1 
+HETATM 54782 H "H4'"  . AF2 BA 2 .   ? 29.88386  23.70821  150.28900 1.000 48.54004  ? 503 AF2 F "H4'"  1 
+HETATM 54783 H HN6    . AF2 BA 2 .   ? 24.66384  18.49534  155.36726 1.000 57.74089  ? 503 AF2 F HN6    1 
+HETATM 54784 H HN6A   . AF2 BA 2 .   ? 25.01879  19.06680  156.69678 1.000 57.74089  ? 503 AF2 F HN6A   1 
+HETATM 54785 S S      . SO4 CA 3 .   ? 29.96201  28.86109  79.14803  1.000 71.91021  ? 504 SO4 F S      1 
+HETATM 54786 O O1     . SO4 CA 3 .   ? 29.69732  30.09040  78.40640  1.000 66.77996  ? 504 SO4 F O1     1 
+HETATM 54787 O O2     . SO4 CA 3 .   ? 29.59128  27.71003  78.33020  1.000 66.99170  ? 504 SO4 F O2     1 
+HETATM 54788 O O3     . SO4 CA 3 .   ? 31.38378  28.78689  79.47679  1.000 73.11727  ? 504 SO4 F O3     1 
+HETATM 54789 O O4     . SO4 CA 3 .   ? 29.17672  28.85608  80.38012  1.000 76.87165  ? 504 SO4 F O4     1 
+HETATM 54790 F F      . AF2 DA 2 .   ? 70.07942  24.95887  92.83085  1.000 38.81461  ? 501 AF2 G F      1 
+HETATM 54791 P P      . AF2 DA 2 .   ? 76.45589  22.77221  93.85454  1.000 47.26996  ? 501 AF2 G P      1 
+HETATM 54792 N N1     . AF2 DA 2 .   ? 69.42887  21.09879  96.95568  1.000 41.07385  ? 501 AF2 G N1     1 
+HETATM 54793 C C2     . AF2 DA 2 .   ? 70.06854  22.25603  96.60981  1.000 38.95242  ? 501 AF2 G C2     1 
+HETATM 54794 N N3     . AF2 DA 2 .   ? 70.39662  22.49904  95.30551  1.000 36.02107  ? 501 AF2 G N3     1 
+HETATM 54795 C C4     . AF2 DA 2 .   ? 70.10845  21.63223  94.35383  1.000 33.88516  ? 501 AF2 G C4     1 
+HETATM 54796 C C5     . AF2 DA 2 .   ? 69.46635  20.47107  94.70557  1.000 34.84368  ? 501 AF2 G C5     1 
+HETATM 54797 C C6     . AF2 DA 2 .   ? 69.13214  20.21778  96.01978  1.000 36.91933  ? 501 AF2 G C6     1 
+HETATM 54798 N N6     . AF2 DA 2 .   ? 68.45609  19.07949  96.64642  1.000 35.60300  ? 501 AF2 G N6     1 
+HETATM 54799 N N7     . AF2 DA 2 .   ? 69.26666  19.73499  93.60757  1.000 34.89062  ? 501 AF2 G N7     1 
+HETATM 54800 C C8     . AF2 DA 2 .   ? 69.77323  20.41301  92.56378  1.000 34.54835  ? 501 AF2 G C8     1 
+HETATM 54801 N N9     . AF2 DA 2 .   ? 70.28898  21.57949  93.02594  1.000 33.16981  ? 501 AF2 G N9     1 
+HETATM 54802 C "C1'"  . AF2 DA 2 .   ? 70.95836  22.72478  92.33678  1.000 39.70192  ? 501 AF2 G "C1'"  1 
+HETATM 54803 O OP2    . AF2 DA 2 .   ? 76.37450  22.77534  95.39044  1.000 44.25560  ? 501 AF2 G OP2    1 
+HETATM 54804 C "C2'"  . AF2 DA 2 .   ? 71.20989  24.13306  93.01449  1.000 38.21852  ? 501 AF2 G "C2'"  1 
+HETATM 54805 O OP1    . AF2 DA 2 .   ? 76.39210  21.33667  93.31751  1.000 47.73825  ? 501 AF2 G OP1    1 
+HETATM 54806 C "C3'"  . AF2 DA 2 .   ? 72.21373  24.61399  92.30508  1.000 38.67657  ? 501 AF2 G "C3'"  1 
+HETATM 54807 O "O3'"  . AF2 DA 2 .   ? 71.76751  24.90934  90.89458  1.000 39.79192  ? 501 AF2 G "O3'"  1 
+HETATM 54808 C "C4'"  . AF2 DA 2 .   ? 73.17225  23.42688  92.21923  1.000 42.94532  ? 501 AF2 G "C4'"  1 
+HETATM 54809 O "O4'"  . AF2 DA 2 .   ? 72.16046  22.27393  91.93674  1.000 42.37267  ? 501 AF2 G "O4'"  1 
+HETATM 54810 C "C5'"  . AF2 DA 2 .   ? 73.90011  23.20574  93.40095  1.000 47.05074  ? 501 AF2 G "C5'"  1 
+HETATM 54811 O "O5'"  . AF2 DA 2 .   ? 75.15537  23.69275  93.22092  1.000 49.25108  ? 501 AF2 G "O5'"  1 
+HETATM 54812 H H2     . AF2 DA 2 .   ? 70.28243  22.88221  97.26330  1.000 46.81410  ? 501 AF2 G H2     1 
+HETATM 54813 H H8     . AF2 DA 2 .   ? 69.77159  20.13284  91.67699  1.000 41.52922  ? 501 AF2 G H8     1 
+HETATM 54814 H "H5'"  . AF2 DA 2 .   ? 73.47412  23.66547  94.14128  1.000 56.53208  ? 501 AF2 G "H5'"  1 
+HETATM 54815 H "H5'A" . AF2 DA 2 .   ? 73.94210  22.25510  93.58911  1.000 56.53208  ? 501 AF2 G "H5'A" 1 
+HETATM 54816 H "H1'"  . AF2 DA 2 .   ? 70.32603  23.01113  91.65923  1.000 47.71350  ? 501 AF2 G "H1'"  1 
+HETATM 54817 H "H2'"  . AF2 DA 2 .   ? 71.42115  24.05264  93.95778  1.000 45.93342  ? 501 AF2 G "H2'"  1 
+HETATM 54818 H "H3'"  . AF2 DA 2 .   ? 72.58893  25.39790  92.73589  1.000 46.48308  ? 501 AF2 G "H3'"  1 
+HETATM 54819 H "H4'"  . AF2 DA 2 .   ? 73.83027  23.54192  91.51590  1.000 51.60558  ? 501 AF2 G "H4'"  1 
+HETATM 54820 H HN6    . AF2 DA 2 .   ? 68.19184  18.41740  96.16389  1.000 42.79480  ? 501 AF2 G HN6    1 
+HETATM 54821 H HN6A   . AF2 DA 2 .   ? 68.31612  19.07610  97.49428  1.000 42.79480  ? 501 AF2 G HN6A   1 
+HETATM 54822 F F      . AF2 EA 2 .   ? 84.31499  28.47733  95.56204  1.000 35.57703  ? 502 AF2 G F      1 
+HETATM 54823 P P      . AF2 EA 2 .   ? 81.04397  31.39954  90.60644  1.000 39.74952  ? 502 AF2 G P      1 
+HETATM 54824 N N1     . AF2 EA 2 .   ? 89.55305  29.30809  92.60441  1.000 35.13302  ? 502 AF2 G N1     1 
+HETATM 54825 C C2     . AF2 EA 2 .   ? 88.36691  29.96518  92.41870  1.000 36.73174  ? 502 AF2 G C2     1 
+HETATM 54826 N N3     . AF2 EA 2 .   ? 87.17318  29.33165  92.65536  1.000 36.21716  ? 502 AF2 G N3     1 
+HETATM 54827 C C4     . AF2 EA 2 .   ? 87.14372  28.07742  93.06684  1.000 37.75443  ? 502 AF2 G C4     1 
+HETATM 54828 C C5     . AF2 EA 2 .   ? 88.33646  27.42366  93.25348  1.000 39.28939  ? 502 AF2 G C5     1 
+HETATM 54829 C C6     . AF2 EA 2 .   ? 89.53882  28.05542  93.01645  1.000 37.84163  ? 502 AF2 G C6     1 
+HETATM 54830 N N6     . AF2 EA 2 .   ? 90.91686  27.57519  93.13619  1.000 41.24767  ? 502 AF2 G N6     1 
+HETATM 54831 N N7     . AF2 EA 2 .   ? 88.08846  26.17772  93.66690  1.000 39.53973  ? 502 AF2 G N7     1 
+HETATM 54832 C C8     . AF2 EA 2 .   ? 86.75743  26.02575  93.75009  1.000 38.56541  ? 502 AF2 G C8     1 
+HETATM 54833 N N9     . AF2 EA 2 .   ? 86.18421  27.19732  93.38780  1.000 37.50682  ? 502 AF2 G N9     1 
+HETATM 54834 C "C1'"  . AF2 EA 2 .   ? 84.76049  27.59419  93.28858  1.000 34.67315  ? 502 AF2 G "C1'"  1 
+HETATM 54835 O OP2    . AF2 EA 2 .   ? 81.66818  31.48383  89.20215  1.000 37.86718  ? 502 AF2 G OP2    1 
+HETATM 54836 C "C2'"  . AF2 EA 2 .   ? 84.24018  28.80609  94.20010  1.000 36.46958  ? 502 AF2 G "C2'"  1 
+HETATM 54837 O OP1    . AF2 EA 2 .   ? 79.52214  31.56581  90.54923  1.000 44.26906  ? 502 AF2 G OP1    1 
+HETATM 54838 C "C3'"  . AF2 EA 2 .   ? 82.98102  28.88436  93.80657  1.000 36.71197  ? 502 AF2 G "C3'"  1 
+HETATM 54839 O "O3'"  . AF2 EA 2 .   ? 82.18339  27.79014  94.48201  1.000 38.89531  ? 502 AF2 G "O3'"  1 
+HETATM 54840 C "C4'"  . AF2 EA 2 .   ? 83.00064  28.55962  92.30849  1.000 37.19910  ? 502 AF2 G "C4'"  1 
+HETATM 54841 O "O4'"  . AF2 EA 2 .   ? 84.39396  27.93459  92.07094  1.000 34.89558  ? 502 AF2 G "O4'"  1 
+HETATM 54842 C "C5'"  . AF2 EA 2 .   ? 82.81952  29.71034  91.50457  1.000 41.71767  ? 502 AF2 G "C5'"  1 
+HETATM 54843 O "O5'"  . AF2 EA 2 .   ? 81.49101  29.94440  91.38820  1.000 42.83943  ? 502 AF2 G "O5'"  1 
+HETATM 54844 H H2     . AF2 EA 2 .   ? 88.36782  30.84909  92.12955  1.000 44.14928  ? 502 AF2 G H2     1 
+HETATM 54845 H H8     . AF2 EA 2 .   ? 86.30743  25.25446  94.00993  1.000 46.34969  ? 502 AF2 G H8     1 
+HETATM 54846 H "H5'"  . AF2 EA 2 .   ? 83.24962  30.47334  91.92138  1.000 50.13240  ? 502 AF2 G "H5'"  1 
+HETATM 54847 H "H5'A" . AF2 EA 2 .   ? 83.20233  29.56087  90.62593  1.000 50.13240  ? 502 AF2 G "H5'A" 1 
+HETATM 54848 H "H1'"  . AF2 EA 2 .   ? 84.30352  26.79828  93.60260  1.000 41.67897  ? 502 AF2 G "H1'"  1 
+HETATM 54849 H "H2'"  . AF2 EA 2 .   ? 84.73660  29.62743  94.05918  1.000 43.83469  ? 502 AF2 G "H2'"  1 
+HETATM 54850 H "H3'"  . AF2 EA 2 .   ? 82.63506  29.77331  93.98257  1.000 44.12556  ? 502 AF2 G "H3'"  1 
+HETATM 54851 H "H4'"  . AF2 EA 2 .   ? 82.29701  27.92473  92.10180  1.000 44.71011  ? 502 AF2 G "H4'"  1 
+HETATM 54852 H HN6    . AF2 EA 2 .   ? 91.06885  26.76538  93.38779  1.000 49.56840  ? 502 AF2 G HN6    1 
+HETATM 54853 H HN6A   . AF2 EA 2 .   ? 91.57474  28.09748  92.95316  1.000 49.56840  ? 502 AF2 G HN6A   1 
+HETATM 54854 F F      . AF2 FA 2 .   ? 79.28161  22.45356  94.98903  1.000 42.78885  ? 503 AF2 G F      1 
+HETATM 54855 P P      . AF2 FA 2 .   ? 80.84663  28.12182  95.31219  1.000 40.56389  ? 503 AF2 G P      1 
+HETATM 54856 N N1     . AF2 FA 2 .   ? 84.57467  20.83444  92.72792  1.000 38.06056  ? 503 AF2 G N1     1 
+HETATM 54857 C C2     . AF2 FA 2 .   ? 83.30700  20.73665  92.22346  1.000 36.14926  ? 503 AF2 G C2     1 
+HETATM 54858 N N3     . AF2 FA 2 .   ? 82.36310  21.67450  92.53956  1.000 36.29249  ? 503 AF2 G N3     1 
+HETATM 54859 C C4     . AF2 FA 2 .   ? 82.65987  22.69066  93.33024  1.000 36.59396  ? 503 AF2 G C4     1 
+HETATM 54860 C C5     . AF2 FA 2 .   ? 83.92813  22.79259  93.83300  1.000 37.60554  ? 503 AF2 G C5     1 
+HETATM 54861 C C6     . AF2 FA 2 .   ? 84.88310  21.84574  93.51907  1.000 36.20427  ? 503 AF2 G C6     1 
+HETATM 54862 N N6     . AF2 FA 2 .   ? 86.28797  21.71908  93.91045  1.000 36.51082  ? 503 AF2 G N6     1 
+HETATM 54863 N N7     . AF2 FA 2 .   ? 83.99601  23.88936  94.59835  1.000 36.79552  ? 503 AF2 G N7     1 
+HETATM 54864 C C8     . AF2 FA 2 .   ? 82.78770  24.48653  94.58778  1.000 36.61655  ? 503 AF2 G C8     1 
+HETATM 54865 N N9     . AF2 FA 2 .   ? 81.97607  23.73897  93.81207  1.000 36.74872  ? 503 AF2 G N9     1 
+HETATM 54866 C "C1'"  . AF2 FA 2 .   ? 80.56179  23.81199  93.37173  1.000 44.47828  ? 503 AF2 G "C1'"  1 
+HETATM 54867 O OP2    . AF2 FA 2 .   ? 81.20343  28.26277  96.80306  1.000 40.28473  ? 503 AF2 G OP2    1 
+HETATM 54868 C "C2'"  . AF2 FA 2 .   ? 79.57183  23.78389  94.62229  1.000 43.11376  ? 503 AF2 G "C2'"  1 
+HETATM 54869 O OP1    . AF2 FA 2 .   ? 80.19975  29.40286  94.76709  1.000 43.53685  ? 503 AF2 G OP1    1 
+HETATM 54870 C "C3'"  . AF2 FA 2 .   ? 78.49484  24.39850  94.19512  1.000 45.41488  ? 503 AF2 G "C3'"  1 
+HETATM 54871 O "O3'"  . AF2 FA 2 .   ? 77.69134  23.48081  93.31306  1.000 47.25947  ? 503 AF2 G "O3'"  1 
+HETATM 54872 C "C4'"  . AF2 FA 2 .   ? 78.99246  25.52284  93.28259  1.000 46.40773  ? 503 AF2 G "C4'"  1 
+HETATM 54873 O "O4'"  . AF2 FA 2 .   ? 80.37451  24.98843  92.80940  1.000 48.76287  ? 503 AF2 G "O4'"  1 
+HETATM 54874 C "C5'"  . AF2 FA 2 .   ? 79.06874  26.78017  93.93269  1.000 43.00231  ? 503 AF2 G "C5'"  1 
+HETATM 54875 O "O5'"  . AF2 FA 2 .   ? 79.83798  26.75633  95.04031  1.000 40.70921  ? 503 AF2 G "O5'"  1 
+HETATM 54876 H H2     . AF2 FA 2 .   ? 83.08366  20.02943  91.66233  1.000 43.45031  ? 503 AF2 G H2     1 
+HETATM 54877 H H8     . AF2 FA 2 .   ? 82.55452  25.26935  95.03244  1.000 44.01106  ? 503 AF2 G H8     1 
+HETATM 54878 H "H5'"  . AF2 FA 2 .   ? 79.44206  27.42693  93.31363  1.000 51.67397  ? 503 AF2 G "H5'"  1 
+HETATM 54879 H "H5'A" . AF2 FA 2 .   ? 78.17309  27.05242  94.18685  1.000 51.67397  ? 503 AF2 G "H5'A" 1 
+HETATM 54880 H "H1'"  . AF2 FA 2 .   ? 80.33843  23.07971  92.77610  1.000 53.44513  ? 503 AF2 G "H1'"  1 
+HETATM 54881 H "H2'"  . AF2 FA 2 .   ? 79.95265  24.25162  95.38196  1.000 51.80771  ? 503 AF2 G "H2'"  1 
+HETATM 54882 H "H3'"  . AF2 FA 2 .   ? 77.99870  24.72573  94.96172  1.000 54.56906  ? 503 AF2 G "H3'"  1 
+HETATM 54883 H "H4'"  . AF2 FA 2 .   ? 78.39704  25.65033  92.52752  1.000 55.76047  ? 503 AF2 G "H4'"  1 
+HETATM 54884 H HN6    . AF2 FA 2 .   ? 86.64316  22.30646  94.42970  1.000 43.88418  ? 503 AF2 G HN6    1 
+HETATM 54885 H HN6A   . AF2 FA 2 .   ? 86.76064  21.06174  93.61997  1.000 43.88418  ? 503 AF2 G HN6A   1 
+HETATM 54886 S S      . SO4 GA 3 .   ? 79.68230  29.01677  20.39016  1.000 72.33058  ? 504 SO4 G S      1 
+HETATM 54887 O O1     . SO4 GA 3 .   ? 80.34403  29.77932  19.33556  1.000 72.96686  ? 504 SO4 G O1     1 
+HETATM 54888 O O2     . SO4 GA 3 .   ? 79.30446  27.70374  19.87440  1.000 68.38765  ? 504 SO4 G O2     1 
+HETATM 54889 O O3     . SO4 GA 3 .   ? 80.59407  28.85483  21.51976  1.000 75.80044  ? 504 SO4 G O3     1 
+HETATM 54890 O O4     . SO4 GA 3 .   ? 78.48494  29.72776  20.82612  1.000 71.23743  ? 504 SO4 G O4     1 
+HETATM 54891 F F      . AF2 HA 2 .   ? 68.96233  28.60632  94.58813  1.000 45.98543  ? 501 AF2 H F      1 
+HETATM 54892 P P      . AF2 HA 2 .   ? 72.61376  25.90068  89.95161  1.000 42.59603  ? 501 AF2 H P      1 
+HETATM 54893 N N1     . AF2 HA 2 .   ? 64.28481  27.96473  90.96763  1.000 30.47451  ? 501 AF2 H N1     1 
+HETATM 54894 C C2     . AF2 HA 2 .   ? 65.50952  27.35094  90.93857  1.000 31.42742  ? 501 AF2 H C2     1 
+HETATM 54895 N N3     . AF2 HA 2 .   ? 66.62925  28.01121  91.37250  1.000 28.19968  ? 501 AF2 H N3     1 
+HETATM 54896 C C4     . AF2 HA 2 .   ? 66.54043  29.25067  91.82503  1.000 30.40079  ? 501 AF2 H C4     1 
+HETATM 54897 C C5     . AF2 HA 2 .   ? 65.31124  29.86459  91.85512  1.000 29.99851  ? 501 AF2 H C5     1 
+HETATM 54898 C C6     . AF2 HA 2 .   ? 64.18236  29.20085  91.41827  1.000 32.03672  ? 501 AF2 H C6     1 
+HETATM 54899 N N6     . AF2 HA 2 .   ? 62.77955  29.61467  91.33999  1.000 35.74619  ? 501 AF2 H N6     1 
+HETATM 54900 N N7     . AF2 HA 2 .   ? 65.45438  31.10276  92.34618  1.000 30.58048  ? 501 AF2 H N7     1 
+HETATM 54901 C C8     . AF2 HA 2 .   ? 66.75357  31.28640  92.63002  1.000 30.56865  ? 501 AF2 H C8     1 
+HETATM 54902 N N9     . AF2 HA 2 .   ? 67.40831  30.14378  92.31644  1.000 29.62173  ? 501 AF2 H N9     1 
+HETATM 54903 C "C1'"  . AF2 HA 2 .   ? 68.83418  29.75591  92.40197  1.000 34.14152  ? 501 AF2 H "C1'"  1 
+HETATM 54904 O OP2    . AF2 HA 2 .   ? 72.35264  25.58906  88.46491  1.000 44.32452  ? 501 AF2 H OP2    1 
+HETATM 54905 C "C2'"  . AF2 HA 2 .   ? 69.22870  28.43970  93.22401  1.000 38.71416  ? 501 AF2 H "C2'"  1 
+HETATM 54906 O OP1    . AF2 HA 2 .   ? 74.10577  25.77563  90.28824  1.000 48.52565  ? 501 AF2 H OP1    1 
+HETATM 54907 C "C3'"  . AF2 HA 2 .   ? 70.52884  28.41985  92.99527  1.000 36.01091  ? 501 AF2 H "C3'"  1 
+HETATM 54908 O "O3'"  . AF2 HA 2 .   ? 71.18269  29.55747  93.74426  1.000 37.15266  ? 501 AF2 H "O3'"  1 
+HETATM 54909 C "C4'"  . AF2 HA 2 .   ? 70.65050  28.75538  91.50495  1.000 37.08742  ? 501 AF2 H "C4'"  1 
+HETATM 54910 O "O4'"  . AF2 HA 2 .   ? 69.36626  29.57107  91.20740  1.000 38.12810  ? 501 AF2 H "O4'"  1 
+HETATM 54911 C "C5'"  . AF2 HA 2 .   ? 70.72840  27.61003  90.67477  1.000 36.99180  ? 501 AF2 H "C5'"  1 
+HETATM 54912 O "O5'"  . AF2 HA 2 .   ? 72.03776  27.45781  90.37137  1.000 38.32203  ? 501 AF2 H "O5'"  1 
+HETATM 54913 H H2     . AF2 HA 2 .   ? 65.58370  26.47952  90.62231  1.000 37.78410  ? 501 AF2 H H2     1 
+HETATM 54914 H H8     . AF2 HA 2 .   ? 67.13681  32.05849  92.97916  1.000 36.75358  ? 501 AF2 H H8     1 
+HETATM 54915 H "H5'"  . AF2 HA 2 .   ? 70.40041  26.82830  91.14617  1.000 44.46135  ? 501 AF2 H "H5'"  1 
+HETATM 54916 H "H5'A" . AF2 HA 2 .   ? 70.21010  27.74342  89.86578  1.000 44.46135  ? 501 AF2 H "H5'A" 1 
+HETATM 54917 H "H1'"  . AF2 HA 2 .   ? 69.23695  30.49022  92.89132  1.000 41.04103  ? 501 AF2 H "H1'"  1 
+HETATM 54918 H "H2'"  . AF2 HA 2 .   ? 68.76861  27.63896  92.92729  1.000 46.52819  ? 501 AF2 H "H2'"  1 
+HETATM 54919 H "H3'"  . AF2 HA 2 .   ? 70.90109  27.55380  93.22391  1.000 43.28429  ? 501 AF2 H "H3'"  1 
+HETATM 54920 H "H4'"  . AF2 HA 2 .   ? 71.45116  29.28216  91.35544  1.000 44.57610  ? 501 AF2 H "H4'"  1 
+HETATM 54921 H HN6    . AF2 HA 2 .   ? 62.18639  29.07505  91.03008  1.000 42.96663  ? 501 AF2 H HN6    1 
+HETATM 54922 H HN6A   . AF2 HA 2 .   ? 62.54573  30.40173  91.60306  1.000 42.96663  ? 501 AF2 H HN6A   1 
+HETATM 54923 F F      . AF2 IA 2 .   ? 73.82381  34.71212  94.90076  1.000 50.83161  ? 502 AF2 H F      1 
+HETATM 54924 P P      . AF2 IA 2 .   ? 72.40233  29.30581  94.76051  1.000 34.19036  ? 502 AF2 H P      1 
+HETATM 54925 N N1     . AF2 IA 2 .   ? 68.83442  36.57659  91.80802  1.000 35.82339  ? 502 AF2 H N1     1 
+HETATM 54926 C C2     . AF2 IA 2 .   ? 70.15196  36.72432  91.47747  1.000 34.33458  ? 502 AF2 H C2     1 
+HETATM 54927 N N3     . AF2 IA 2 .   ? 71.07062  35.79962  91.88845  1.000 36.92953  ? 502 AF2 H N3     1 
+HETATM 54928 C C4     . AF2 IA 2 .   ? 70.69890  34.75505  92.60919  1.000 39.77433  ? 502 AF2 H C4     1 
+HETATM 54929 C C5     . AF2 IA 2 .   ? 69.37797  34.60842  92.93977  1.000 39.17318  ? 502 AF2 H C5     1 
+HETATM 54930 C C6     . AF2 IA 2 .   ? 68.44823  35.53885  92.52633  1.000 37.08156  ? 502 AF2 H C6     1 
+HETATM 54931 N N6     . AF2 IA 2 .   ? 67.00074  35.62302  92.73356  1.000 39.29982  ? 502 AF2 H N6     1 
+HETATM 54932 N N7     . AF2 IA 2 .   ? 69.23818  33.48970  93.66306  1.000 41.89484  ? 502 AF2 H N7     1 
+HETATM 54933 C C8     . AF2 IA 2 .   ? 70.45420  32.92292  93.79787  1.000 40.89900  ? 502 AF2 H C8     1 
+HETATM 54934 N N9     . AF2 IA 2 .   ? 71.33923  33.70996  93.15287  1.000 42.48661  ? 502 AF2 H N9     1 
+HETATM 54935 C "C1'"  . AF2 IA 2 .   ? 72.79717  33.67999  92.89999  1.000 43.47176  ? 502 AF2 H "C1'"  1 
+HETATM 54936 O OP2    . AF2 IA 2 .   ? 71.86416  29.39086  96.20236  1.000 42.26636  ? 502 AF2 H OP2    1 
+HETATM 54937 C "C2'"  . AF2 IA 2 .   ? 73.60247  33.47438  94.26617  1.000 46.00917  ? 502 AF2 H "C2'"  1 
+HETATM 54938 O OP1    . AF2 IA 2 .   ? 73.05946  27.94602  94.48446  1.000 35.21793  ? 502 AF2 H OP1    1 
+HETATM 54939 C "C3'"  . AF2 IA 2 .   ? 74.73811  32.96050  93.85247  1.000 39.49172  ? 502 AF2 H "C3'"  1 
+HETATM 54940 O "O3'"  . AF2 IA 2 .   ? 75.49746  34.07070  93.18004  1.000 36.65199  ? 502 AF2 H "O3'"  1 
+HETATM 54941 C "C4'"  . AF2 IA 2 .   ? 74.35070  31.95231  92.77763  1.000 40.97121  ? 502 AF2 H "C4'"  1 
+HETATM 54942 O "O4'"  . AF2 IA 2 .   ? 73.07282  32.61395  92.17661  1.000 43.26690  ? 502 AF2 H "O4'"  1 
+HETATM 54943 C "C5'"  . AF2 IA 2 .   ? 74.10776  30.63693  93.24988  1.000 39.00777  ? 502 AF2 H "C5'"  1 
+HETATM 54944 O "O5'"  . AF2 IA 2 .   ? 73.47967  30.60867  94.44340  1.000 37.78460  ? 502 AF2 H "O5'"  1 
+HETATM 54945 H H2     . AF2 IA 2 .   ? 70.42635  37.45499  90.97178  1.000 41.27269  ? 502 AF2 H H2     1 
+HETATM 54946 H H8     . AF2 IA 2 .   ? 70.64891  32.13476  94.25151  1.000 49.15000  ? 502 AF2 H H8     1 
+HETATM 54947 H "H5'"  . AF2 IA 2 .   ? 73.55514  30.17273  92.60178  1.000 46.88052  ? 502 AF2 H "H5'"  1 
+HETATM 54948 H "H5'A" . AF2 IA 2 .   ? 74.95794  30.17873  93.34014  1.000 46.88052  ? 502 AF2 H "H5'A" 1 
+HETATM 54949 H "H1'"  . AF2 IA 2 .   ? 73.09490  34.49626  92.46876  1.000 52.23730  ? 502 AF2 H "H1'"  1 
+HETATM 54950 H "H2'"  . AF2 IA 2 .   ? 73.13646  32.88322  94.87794  1.000 55.28220  ? 502 AF2 H "H2'"  1 
+HETATM 54951 H "H3'"  . AF2 IA 2 .   ? 75.22328  32.53217  94.57499  1.000 47.46126  ? 502 AF2 H "H3'"  1 
+HETATM 54952 H "H4'"  . AF2 IA 2 .   ? 75.06486  31.85936  92.12783  1.000 49.23665  ? 502 AF2 H "H4'"  1 
+HETATM 54953 H HN6    . AF2 IA 2 .   ? 66.59673  35.01539  93.19044  1.000 47.23098  ? 502 AF2 H HN6    1 
+HETATM 54954 H HN6A   . AF2 IA 2 .   ? 66.55192  36.27485  92.39716  1.000 47.23098  ? 502 AF2 H HN6A   1 
+HETATM 54955 F F      . AF2 JA 2 .   ? 83.24702  32.49533  93.60288  1.000 42.41796  ? 503 AF2 H F      1 
+HETATM 54956 P P      . AF2 JA 2 .   ? 76.74572  34.76995  93.90596  1.000 39.65297  ? 503 AF2 H P      1 
+HETATM 54957 N N1     . AF2 JA 2 .   ? 83.32970  36.36978  97.80014  1.000 42.40713  ? 503 AF2 H N1     1 
+HETATM 54958 C C2     . AF2 JA 2 .   ? 82.69775  35.22544  97.40555  1.000 41.95606  ? 503 AF2 H C2     1 
+HETATM 54959 N N3     . AF2 JA 2 .   ? 82.51541  34.96282  96.07581  1.000 44.00500  ? 503 AF2 H N3     1 
+HETATM 54960 C C4     . AF2 JA 2 .   ? 82.94527  35.79788  95.14712  1.000 43.93044  ? 503 AF2 H C4     1 
+HETATM 54961 C C5     . AF2 JA 2 .   ? 83.57881  36.94612  95.54841  1.000 44.38943  ? 503 AF2 H C5     1 
+HETATM 54962 C C6     . AF2 JA 2 .   ? 83.76430  37.21775  96.88744  1.000 42.09887  ? 503 AF2 H C6     1 
+HETATM 54963 N N6     . AF2 JA 2 .   ? 84.39998  38.35261  97.55878  1.000 40.05536  ? 503 AF2 H N6     1 
+HETATM 54964 N N7     . AF2 JA 2 .   ? 83.93033  37.65100  94.46905  1.000 42.42103  ? 503 AF2 H N7     1 
+HETATM 54965 C C8     . AF2 JA 2 .   ? 83.52930  36.96738  93.38529  1.000 44.56455  ? 503 AF2 H C8     1 
+HETATM 54966 N N9     . AF2 JA 2 .   ? 82.92847  35.82759  93.80667  1.000 42.86458  ? 503 AF2 H N9     1 
+HETATM 54967 C "C1'"  . AF2 JA 2 .   ? 82.30316  34.69160  93.06718  1.000 42.48517  ? 503 AF2 H "C1'"  1 
+HETATM 54968 O OP2    . AF2 JA 2 .   ? 76.96639  36.16195  93.28098  1.000 47.35986  ? 503 AF2 H OP2    1 
+HETATM 54969 C "C2'"  . AF2 JA 2 .   ? 82.07164  33.26884  93.72200  1.000 41.62984  ? 503 AF2 H "C2'"  1 
+HETATM 54970 O OP1    . AF2 JA 2 .   ? 76.47916  34.86288  95.41105  1.000 41.12461  ? 503 AF2 H OP1    1 
+HETATM 54971 C "C3'"  . AF2 JA 2 .   ? 81.13170  32.77191  92.94219  1.000 40.80980  ? 503 AF2 H "C3'"  1 
+HETATM 54972 O "O3'"  . AF2 JA 2 .   ? 81.67608  32.53507  91.55439  1.000 43.77807  ? 503 AF2 H "O3'"  1 
+HETATM 54973 C "C4'"  . AF2 JA 2 .   ? 80.13365  33.91995  92.81212  1.000 39.05271  ? 503 AF2 H "C4'"  1 
+HETATM 54974 O "O4'"  . AF2 JA 2 .   ? 81.10679  35.12251  92.64075  1.000 40.60220  ? 503 AF2 H "O4'"  1 
+HETATM 54975 C "C5'"  . AF2 JA 2 .   ? 79.30478  34.08959  93.93542  1.000 38.86410  ? 503 AF2 H "C5'"  1 
+HETATM 54976 O "O5'"  . AF2 JA 2 .   ? 78.05502  33.71270  93.56940  1.000 42.51881  ? 503 AF2 H "O5'"  1 
+HETATM 54977 H H2     . AF2 JA 2 .   ? 82.38945  34.62113  98.04167  1.000 50.41847  ? 503 AF2 H H2     1 
+HETATM 54978 H H8     . AF2 JA 2 .   ? 83.64279  37.22821  92.49986  1.000 53.54865  ? 503 AF2 H H8     1 
+HETATM 54979 H "H5'"  . AF2 JA 2 .   ? 79.61690  33.53439  94.66701  1.000 46.70812  ? 503 AF2 H "H5'"  1 
+HETATM 54980 H "H5'A" . AF2 JA 2 .   ? 79.30259  35.01969  94.21077  1.000 46.70812  ? 503 AF2 H "H5'A" 1 
+HETATM 54981 H "H1'"  . AF2 JA 2 .   ? 82.95037  34.43745  92.39085  1.000 51.05340  ? 503 AF2 H "H1'"  1 
+HETATM 54982 H "H2'"  . AF2 JA 2 .   ? 81.80314  33.31840  94.65278  1.000 50.02700  ? 503 AF2 H "H2'"  1 
+HETATM 54983 H "H3'"  . AF2 JA 2 .   ? 80.76214  31.96654  93.33680  1.000 49.04296  ? 503 AF2 H "H3'"  1 
+HETATM 54984 H "H4'"  . AF2 JA 2 .   ? 79.54031  33.78712  92.05634  1.000 46.93445  ? 503 AF2 H "H4'"  1 
+HETATM 54985 H HN6    . AF2 JA 2 .   ? 84.73844  38.99205  97.09248  1.000 48.13763  ? 503 AF2 H HN6    1 
+HETATM 54986 H HN6A   . AF2 JA 2 .   ? 84.44086  38.37721  98.41663  1.000 48.13763  ? 503 AF2 H HN6A   1 
+HETATM 54987 O O      . HOH KA 4 .   ? 39.34518  -26.68681 53.79376  1.000 29.72001  ? 601 HOH A O      1 
+HETATM 55033 O O      . HOH LA 4 .   ? 50.88601  -26.67169 51.33424  1.000 34.58821  ? 601 HOH B O      1 
+HETATM 55072 O O      . HOH MA 4 .   ? 89.88157  -35.97518 38.98946  1.000 49.17821  ? 601 HOH C O      1 
+HETATM 55114 O O      . HOH NA 4 .   ? 59.12640  -18.81240 100.50205 1.000 41.72976  ? 601 HOH D O      1 
+HETATM 55157 O O      . HOH OA 4 .   ? 59.09308  20.92860  91.55751  1.000 24.19134  ? 601 HOH E O      1 
+HETATM 55196 O O      . HOH PA 4 .   ? 38.68758  47.84899  90.82900  1.000 49.17842  ? 601 HOH F O      1 
+HETATM 55240 O O      . HOH QA 4 .   ? 86.15197  4.17508   79.75993  1.000 32.23585  ? 601 HOH G O      1 
+HETATM 55285 O O      . HOH RA 4 .   ? 86.71035  34.24515  74.33374  1.000 37.73852  ? 601 HOH H O      1 
+# 
+loop_
+_pdbx_poly_seq_scheme.asym_id 
+_pdbx_poly_seq_scheme.entity_id 
+_pdbx_poly_seq_scheme.seq_id 
+_pdbx_poly_seq_scheme.mon_id 
+_pdbx_poly_seq_scheme.ndb_seq_num 
+_pdbx_poly_seq_scheme.pdb_seq_num 
+_pdbx_poly_seq_scheme.auth_seq_num 
+_pdbx_poly_seq_scheme.pdb_mon_id 
+_pdbx_poly_seq_scheme.auth_mon_id 
+_pdbx_poly_seq_scheme.pdb_strand_id 
+_pdbx_poly_seq_scheme.pdb_ins_code 
+_pdbx_poly_seq_scheme.hetero 
+A 1 1   SER 1   -2  ?   ?   ?   A . n 
+A 1 2   ASN 2   -1  -1  ASN ASN A . n 
+A 1 3   ALA 3   0   0   ALA ALA A . n 
+B 1 1   SER 1   -2  ?   ?   ?   B . n 
+B 1 2   ASN 2   -1  ?   ?   ?   B . n 
+B 1 3   ALA 3   0   0   ALA ALA B . n 
+C 1 1   SER 1   -2  ?   ?   ?   C . n 
+C 1 2   ASN 2   -1  -1  ASN ASN C . n 
+C 1 3   ALA 3   0   0   ALA ALA C . n 
+D 1 1   SER 1   -2  ?   ?   ?   D . n 
+D 1 2   ASN 2   -1  ?   ?   ?   D . n 
+D 1 3   ALA 3   0   0   ALA ALA D . n 
+E 1 1   SER 1   -2  ?   ?   ?   E . n 
+E 1 2   ASN 2   -1  -1  ASN ASN E . n 
+E 1 3   ALA 3   0   0   ALA ALA E . n 
+F 1 1   SER 1   -2  ?   ?   ?   F . n 
+F 1 2   ASN 2   -1  ?   ?   ?   F . n 
+F 1 3   ALA 3   0   0   ALA ALA F . n 
+G 1 1   SER 1   -2  ?   ?   ?   G . n 
+G 1 2   ASN 2   -1  -1  ASN ASN G . n 
+G 1 3   ALA 3   0   0   ALA ALA G . n 
+H 1 1   SER 1   -2  ?   ?   ?   H . n 
+H 1 2   ASN 2   -1  ?   ?   ?   H . n 
+H 1 3   ALA 3   0   0   ALA ALA H . n 
+# 
+loop_
+_pdbx_nonpoly_scheme.asym_id 
+_pdbx_nonpoly_scheme.entity_id 
+_pdbx_nonpoly_scheme.mon_id 
+_pdbx_nonpoly_scheme.ndb_seq_num 
+_pdbx_nonpoly_scheme.pdb_seq_num 
+_pdbx_nonpoly_scheme.auth_seq_num 
+_pdbx_nonpoly_scheme.pdb_mon_id 
+_pdbx_nonpoly_scheme.auth_mon_id 
+_pdbx_nonpoly_scheme.pdb_strand_id 
+_pdbx_nonpoly_scheme.pdb_ins_code 
+I  2 AF2 1  501 1   AF2 AF2 A . 
+J  2 AF2 1  502 5   AF2 AF2 A . 
+K  2 AF2 1  503 6   AF2 AF2 A . 
+L  2 AF2 1  501 2   AF2 AF2 B . 
+M  2 AF2 1  502 3   AF2 AF2 B . 
+N  2 AF2 1  503 4   AF2 AF2 B . 
+O  3 SO4 1  504 2   SO4 SO4 B . 
+P  2 AF2 1  501 1   AF2 AF2 C . 
+Q  2 AF2 1  502 5   AF2 AF2 C . 
+R  2 AF2 1  503 6   AF2 AF2 C . 
+S  3 SO4 1  504 3   SO4 SO4 C . 
+T  2 AF2 1  501 2   AF2 AF2 D . 
+U  2 AF2 1  502 3   AF2 AF2 D . 
+V  2 AF2 1  503 4   AF2 AF2 D . 
+W  2 AF2 1  501 1   AF2 AF2 E . 
+X  2 AF2 1  502 5   AF2 AF2 E . 
+Y  2 AF2 1  503 6   AF2 AF2 E . 
+Z  2 AF2 1  501 2   AF2 AF2 F . 
+AA 2 AF2 1  502 3   AF2 AF2 F . 
+BA 2 AF2 1  503 4   AF2 AF2 F . 
+CA 3 SO4 1  504 1   SO4 SO4 F . 
+DA 2 AF2 1  501 1   AF2 AF2 G . 
+EA 2 AF2 1  502 5   AF2 AF2 G . 
+FA 2 AF2 1  503 6   AF2 AF2 G . 
+GA 3 SO4 1  504 4   SO4 SO4 G . 
+HA 2 AF2 1  501 2   AF2 AF2 H . 
+IA 2 AF2 1  502 3   AF2 AF2 H . 
+JA 2 AF2 1  503 4   AF2 AF2 H . 
+KA 4 HOH 1  601 199 HOH HOH A . 
+LA 4 HOH 1  601 165 HOH HOH B . 
+MA 4 HOH 1  601 321 HOH HOH C . 
+NA 4 HOH 1  601 274 HOH HOH D . 
+OA 4 HOH 1  601 188 HOH HOH E . 
+PA 4 HOH 1  601 277 HOH HOH F . 
+QA 4 HOH 1  601 264 HOH HOH G . 
+RA 4 HOH 1  601 91  HOH HOH H . 
+# 
+loop_
+_pdbx_struct_assembly.id 
+_pdbx_struct_assembly.details 
+_pdbx_struct_assembly.method_details 
+_pdbx_struct_assembly.oligomeric_details 
+_pdbx_struct_assembly.oligomeric_count 
+1 author_and_software_defined_assembly PISA dimeric 2 
+2 author_and_software_defined_assembly PISA dimeric 2 
+3 author_and_software_defined_assembly PISA dimeric 2 
+4 author_and_software_defined_assembly PISA dimeric 2 
+# 
+loop_
+_pdbx_struct_assembly_gen.assembly_id 
+_pdbx_struct_assembly_gen.oper_expression 
+_pdbx_struct_assembly_gen.asym_id_list 
+1 1 A,B,I,J,K,L,M,N,O,KA,LA        
+2 1 C,D,P,Q,R,S,T,U,V,MA,NA        
+3 1 E,F,W,X,Y,Z,AA,BA,CA,OA,PA     
+4 1 G,H,DA,EA,FA,GA,HA,IA,JA,QA,RA 
+# 
+_pdbx_struct_oper_list.id                   1 
+_pdbx_struct_oper_list.type                 'identity operation' 
+_pdbx_struct_oper_list.name                 1_555 
+_pdbx_struct_oper_list.symmetry_operation   x,y,z 
+_pdbx_struct_oper_list.matrix[1][1]         1.0000000000 
+_pdbx_struct_oper_list.matrix[1][2]         0.0000000000 
+_pdbx_struct_oper_list.matrix[1][3]         0.0000000000 
+_pdbx_struct_oper_list.vector[1]            0.0000000000 
+_pdbx_struct_oper_list.matrix[2][1]         0.0000000000 
+_pdbx_struct_oper_list.matrix[2][2]         1.0000000000 
+_pdbx_struct_oper_list.matrix[2][3]         0.0000000000 
+_pdbx_struct_oper_list.vector[2]            0.0000000000 
+_pdbx_struct_oper_list.matrix[3][1]         0.0000000000 
+_pdbx_struct_oper_list.matrix[3][2]         0.0000000000 
+_pdbx_struct_oper_list.matrix[3][3]         1.0000000000 
+_pdbx_struct_oper_list.vector[3]            0.0000000000 
+# 
+loop_
+_pdbx_audit_revision_history.ordinal 
+_pdbx_audit_revision_history.data_content_type 
+_pdbx_audit_revision_history.major_revision 
+_pdbx_audit_revision_history.minor_revision 
+_pdbx_audit_revision_history.revision_date 
+1 'Structure model' 1 0 2020-02-26 
+2 'Structure model' 1 1 2020-04-22 
+# 

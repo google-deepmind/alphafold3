@@ -1,0 +1,793 @@
+data_2KQL
+# 
+_entry.id   2KQL 
+# 
+_entity.id                         1 
+_entity.type                       polymer 
+_entity.src_method                 syn 
+_entity.pdbx_description           D-MAUROCALCINE 
+_entity.formula_weight             3869.644 
+_entity.pdbx_number_of_molecules   1 
+_entity.pdbx_ec                    ? 
+_entity.pdbx_mutation              ? 
+_entity.pdbx_fragment              ? 
+_entity.details                    ? 
+# 
+_entity_poly.entity_id                      1 
+_entity_poly.type                           'polypeptide(D)' 
+_entity_poly.nstd_linkage                   no 
+_entity_poly.nstd_monomer                   yes 
+_entity_poly.pdbx_seq_one_letter_code       
+;G(DAS)(DCY)(DLE)(DPR)(DHI)(DLE)(DLY)(DLE)(DCY)(DLY)(DGL)(DSG)(DLY)(DAS)(DCY)
+(DCY)(DSN)(DLY)(DLY)(DCY)(DLY)(DAR)(DAR)G(DTH)(DSG)(DIL)(DGL)(DLY)(DAR)(DCY)
+(DAR)
+;
+_entity_poly.pdbx_seq_one_letter_code_can   GDCLPHLKLCKENKDCCSKKCKRRGTNIEKRCR 
+_entity_poly.pdbx_strand_id                 A 
+_entity_poly.pdbx_target_identifier         ? 
+# 
+loop_
+_entity_poly_seq.entity_id 
+_entity_poly_seq.num 
+_entity_poly_seq.mon_id 
+_entity_poly_seq.hetero 
+1 1  GLY n 
+1 2  DAS n 
+1 3  DCY n 
+1 4  DLE n 
+1 5  DPR n 
+1 6  DHI n 
+1 7  DLE n 
+1 8  DLY n 
+1 9  DLE n 
+1 10 DCY n 
+1 11 DLY n 
+1 12 DGL n 
+1 13 DSG n 
+1 14 DLY n 
+1 15 DAS n 
+1 16 DCY n 
+1 17 DCY n 
+1 18 DSN n 
+1 19 DLY n 
+1 20 DLY n 
+1 21 DCY n 
+1 22 DLY n 
+1 23 DAR n 
+1 24 DAR n 
+1 25 GLY n 
+1 26 DTH n 
+1 27 DSG n 
+1 28 DIL n 
+1 29 DGL n 
+1 30 DLY n 
+1 31 DAR n 
+1 32 DCY n 
+1 33 DAR n 
+# 
+loop_
+_chem_comp.id 
+_chem_comp.type 
+_chem_comp.mon_nstd_flag 
+_chem_comp.name 
+_chem_comp.pdbx_synonyms 
+_chem_comp.formula 
+_chem_comp.formula_weight 
+DAR 'D-peptide linking' . D-ARGININE        ? 'C6 H15 N4 O2 1' 175.209 
+DAS 'D-peptide linking' . 'D-ASPARTIC ACID' ? 'C4 H7 N O4'     133.103 
+DCY 'D-peptide linking' . D-CYSTEINE        ? 'C3 H7 N O2 S'   121.158 
+DGL 'D-peptide linking' . 'D-GLUTAMIC ACID' ? 'C5 H9 N O4'     147.129 
+DHI 'D-peptide linking' . D-HISTIDINE       ? 'C6 H10 N3 O2 1' 156.162 
+DIL 'D-peptide linking' . D-ISOLEUCINE      ? 'C6 H13 N O2'    131.173 
+DLE 'D-peptide linking' . D-LEUCINE         ? 'C6 H13 N O2'    131.173 
+DLY 'D-peptide linking' . D-LYSINE          ? 'C6 H14 N2 O2'   146.188 
+DPR 'D-peptide linking' . D-PROLINE         ? 'C5 H9 N O2'     115.130 
+DSG 'D-peptide linking' . D-ASPARAGINE      ? 'C4 H8 N2 O3'    132.118 
+DSN 'D-peptide linking' . D-SERINE          ? 'C3 H7 N O3'     105.093 
+DTH 'D-peptide linking' . D-THREONINE       ? 'C4 H9 N O3'     119.119 
+GLY 'peptide linking'   y GLYCINE           ? 'C2 H5 N O2'     75.067  
+# 
+_exptl.absorpt_coefficient_mu     ? 
+_exptl.absorpt_correction_T_max   ? 
+_exptl.absorpt_correction_T_min   ? 
+_exptl.absorpt_correction_type    ? 
+_exptl.absorpt_process_details    ? 
+_exptl.crystals_number            ? 
+_exptl.details                    ? 
+_exptl.entry_id                   2KQL 
+_exptl.method                     'SOLUTION NMR' 
+_exptl.method_details             ? 
+# 
+_struct_asym.id                            A 
+_struct_asym.pdbx_blank_PDB_chainid_flag   N 
+_struct_asym.pdbx_modified                 N 
+_struct_asym.entity_id                     1 
+_struct_asym.details                       ? 
+# 
+loop_
+_struct_conn.id 
+_struct_conn.conn_type_id 
+_struct_conn.pdbx_leaving_atom_flag 
+_struct_conn.pdbx_PDB_id 
+_struct_conn.ptnr1_label_asym_id 
+_struct_conn.ptnr1_label_comp_id 
+_struct_conn.ptnr1_label_seq_id 
+_struct_conn.ptnr1_label_atom_id 
+_struct_conn.pdbx_ptnr1_label_alt_id 
+_struct_conn.pdbx_ptnr1_PDB_ins_code 
+_struct_conn.pdbx_ptnr1_standard_comp_id 
+_struct_conn.ptnr1_symmetry 
+_struct_conn.ptnr2_label_asym_id 
+_struct_conn.ptnr2_label_comp_id 
+_struct_conn.ptnr2_label_seq_id 
+_struct_conn.ptnr2_label_atom_id 
+_struct_conn.pdbx_ptnr2_label_alt_id 
+_struct_conn.pdbx_ptnr2_PDB_ins_code 
+_struct_conn.ptnr1_auth_asym_id 
+_struct_conn.ptnr1_auth_comp_id 
+_struct_conn.ptnr1_auth_seq_id 
+_struct_conn.ptnr2_auth_asym_id 
+_struct_conn.ptnr2_auth_comp_id 
+_struct_conn.ptnr2_auth_seq_id 
+_struct_conn.ptnr2_symmetry 
+_struct_conn.pdbx_ptnr3_label_atom_id 
+_struct_conn.pdbx_ptnr3_label_seq_id 
+_struct_conn.pdbx_ptnr3_label_comp_id 
+_struct_conn.pdbx_ptnr3_label_asym_id 
+_struct_conn.pdbx_ptnr3_label_alt_id 
+_struct_conn.pdbx_ptnr3_PDB_ins_code 
+_struct_conn.details 
+_struct_conn.pdbx_dist_value 
+_struct_conn.pdbx_value_order 
+covale1  covale ? ? A GLY 1  C ? ? ? 1_555 A DAS 2  N ? ? A GLY 1  A DAS 2  1_555 ? ? ? ? ? ? ? 1.314 ? 
+covale2  covale ? ? A DAS 2  C ? ? ? 1_555 A DCY 3  N ? ? A DAS 2  A DCY 3  1_555 ? ? ? ? ? ? ? 1.291 ? 
+covale3  covale ? ? A DCY 3  C ? ? ? 1_555 A DLE 4  N ? ? A DCY 3  A DLE 4  1_555 ? ? ? ? ? ? ? 1.309 ? 
+covale4  covale ? ? A DPR 5  C ? ? ? 1_555 A DHI 6  N ? ? A DPR 5  A DHI 6  1_555 ? ? ? ? ? ? ? 1.311 ? 
+covale5  covale ? ? A DHI 6  C ? ? ? 1_555 A DLE 7  N ? ? A DHI 6  A DLE 7  1_555 ? ? ? ? ? ? ? 1.325 ? 
+covale6  covale ? ? A DLE 7  C ? ? ? 1_555 A DLY 8  N ? ? A DLE 7  A DLY 8  1_555 ? ? ? ? ? ? ? 1.319 ? 
+covale7  covale ? ? A DLY 8  C ? ? ? 1_555 A DLE 9  N ? ? A DLY 8  A DLE 9  1_555 ? ? ? ? ? ? ? 1.319 ? 
+covale8  covale ? ? A DLE 9  C ? ? ? 1_555 A DCY 10 N ? ? A DLE 9  A DCY 10 1_555 ? ? ? ? ? ? ? 1.322 ? 
+covale9  covale ? ? A DCY 10 C ? ? ? 1_555 A DLY 11 N ? ? A DCY 10 A DLY 11 1_555 ? ? ? ? ? ? ? 1.313 ? 
+covale10 covale ? ? A DLY 11 C ? ? ? 1_555 A DGL 12 N ? ? A DLY 11 A DGL 12 1_555 ? ? ? ? ? ? ? 1.319 ? 
+covale11 covale ? ? A DGL 12 C ? ? ? 1_555 A DSG 13 N ? ? A DGL 12 A DSG 13 1_555 ? ? ? ? ? ? ? 1.330 ? 
+covale12 covale ? ? A DSG 13 C ? ? ? 1_555 A DLY 14 N ? ? A DSG 13 A DLY 14 1_555 ? ? ? ? ? ? ? 1.317 ? 
+covale13 covale ? ? A DLY 14 C ? ? ? 1_555 A DAS 15 N ? ? A DLY 14 A DAS 15 1_555 ? ? ? ? ? ? ? 1.315 ? 
+covale14 covale ? ? A DAS 15 C ? ? ? 1_555 A DCY 16 N ? ? A DAS 15 A DCY 16 1_555 ? ? ? ? ? ? ? 1.326 ? 
+covale15 covale ? ? A DCY 16 C ? ? ? 1_555 A DCY 17 N ? ? A DCY 16 A DCY 17 1_555 ? ? ? ? ? ? ? 1.319 ? 
+covale16 covale ? ? A DCY 17 C ? ? ? 1_555 A DSN 18 N ? ? A DCY 17 A DSN 18 1_555 ? ? ? ? ? ? ? 1.317 ? 
+covale17 covale ? ? A DSN 18 C ? ? ? 1_555 A DLY 19 N ? ? A DSN 18 A DLY 19 1_555 ? ? ? ? ? ? ? 1.340 ? 
+covale18 covale ? ? A DLY 19 C ? ? ? 1_555 A DLY 20 N ? ? A DLY 19 A DLY 20 1_555 ? ? ? ? ? ? ? 1.316 ? 
+covale19 covale ? ? A DLY 20 C ? ? ? 1_555 A DCY 21 N ? ? A DLY 20 A DCY 21 1_555 ? ? ? ? ? ? ? 1.293 ? 
+covale20 covale ? ? A DCY 21 C ? ? ? 1_555 A DLY 22 N ? ? A DCY 21 A DLY 22 1_555 ? ? ? ? ? ? ? 1.308 ? 
+covale21 covale ? ? A DLY 22 C ? ? ? 1_555 A DAR 23 N ? ? A DLY 22 A DAR 23 1_555 ? ? ? ? ? ? ? 1.309 ? 
+covale22 covale ? ? A DAR 23 C ? ? ? 1_555 A DAR 24 N ? ? A DAR 23 A DAR 24 1_555 ? ? ? ? ? ? ? 1.326 ? 
+covale23 covale ? ? A DAR 24 C ? ? ? 1_555 A GLY 25 N ? ? A DAR 24 A GLY 25 1_555 ? ? ? ? ? ? ? 1.302 ? 
+covale24 covale ? ? A DTH 26 C ? ? ? 1_555 A DSG 27 N ? ? A DTH 26 A DSG 27 1_555 ? ? ? ? ? ? ? 1.320 ? 
+covale25 covale ? ? A DSG 27 C ? ? ? 1_555 A DIL 28 N ? ? A DSG 27 A DIL 28 1_555 ? ? ? ? ? ? ? 1.305 ? 
+covale26 covale ? ? A DIL 28 C ? ? ? 1_555 A DGL 29 N ? ? A DIL 28 A DGL 29 1_555 ? ? ? ? ? ? ? 1.307 ? 
+covale27 covale ? ? A DGL 29 C ? ? ? 1_555 A DLY 30 N ? ? A DGL 29 A DLY 30 1_555 ? ? ? ? ? ? ? 1.313 ? 
+covale28 covale ? ? A DLY 30 C ? ? ? 1_555 A DAR 31 N ? ? A DLY 30 A DAR 31 1_555 ? ? ? ? ? ? ? 1.305 ? 
+covale29 covale ? ? A DAR 31 C ? ? ? 1_555 A DCY 32 N ? ? A DAR 31 A DCY 32 1_555 ? ? ? ? ? ? ? 1.306 ? 
+covale30 covale ? ? A DCY 32 C ? ? ? 1_555 A DAR 33 N ? ? A DCY 32 A DAR 33 1_555 ? ? ? ? ? ? ? 1.311 ? 
+# 
+loop_
+_atom_site.group_PDB 
+_atom_site.id 
+_atom_site.type_symbol 
+_atom_site.label_atom_id 
+_atom_site.label_alt_id 
+_atom_site.label_comp_id 
+_atom_site.label_asym_id 
+_atom_site.label_entity_id 
+_atom_site.label_seq_id 
+_atom_site.pdbx_PDB_ins_code 
+_atom_site.Cartn_x 
+_atom_site.Cartn_y 
+_atom_site.Cartn_z 
+_atom_site.occupancy 
+_atom_site.B_iso_or_equiv 
+_atom_site.pdbx_formal_charge 
+_atom_site.auth_seq_id 
+_atom_site.auth_comp_id 
+_atom_site.auth_asym_id 
+_atom_site.auth_atom_id 
+_atom_site.pdbx_PDB_model_num 
+ATOM   1     N N    . GLY A 1 1  ? 2.325  -1.736  -0.148  1.00 63.52 ? 1  GLY A N    1  
+ATOM   2     C CA   . GLY A 1 1  ? 3.767  -1.857  -0.013  1.00 30.04 ? 1  GLY A CA   1  
+ATOM   3     C C    . GLY A 1 1  ? 4.285  -2.941  -0.896  1.00 73.43 ? 1  GLY A C    1  
+ATOM   4     O O    . GLY A 1 1  ? 3.567  -3.404  -1.789  1.00 14.13 ? 1  GLY A O    1  
+ATOM   5     H H1   . GLY A 1 1  ? 1.880  -2.629  0.140   1.00 0.00  ? 1  GLY A H1   1  
+ATOM   6     H H2   . GLY A 1 1  ? 2.091  -1.587  -1.149  1.00 0.00  ? 1  GLY A H2   1  
+ATOM   7     H H3   . GLY A 1 1  ? 1.945  -0.966  0.436   1.00 0.00  ? 1  GLY A H3   1  
+ATOM   8     H HA2  . GLY A 1 1  ? 4.234  -0.925  -0.291  1.00 10.42 ? 1  GLY A HA2  1  
+ATOM   9     H HA3  . GLY A 1 1  ? 4.009  -2.086  1.014   1.00 31.20 ? 1  GLY A HA3  1  
+HETATM 10    N N    . DAS A 1 2  ? 5.507  -3.362  -0.659  1.00 70.32 ? 2  DAS A N    1  
+HETATM 11    C CA   . DAS A 1 2  ? 6.124  -4.413  -1.449  1.00 14.44 ? 2  DAS A CA   1  
+HETATM 12    C C    . DAS A 1 2  ? 6.447  -3.887  -2.826  1.00 24.14 ? 2  DAS A C    1  
+HETATM 13    O O    . DAS A 1 2  ? 7.032  -2.806  -2.962  1.00 35.34 ? 2  DAS A O    1  
+HETATM 14    C CB   . DAS A 1 2  ? 7.394  -4.936  -0.767  1.00 22.11 ? 2  DAS A CB   1  
+HETATM 15    C CG   . DAS A 1 2  ? 8.062  -6.054  -1.541  1.00 3.35  ? 2  DAS A CG   1  
+HETATM 16    O OD1  . DAS A 1 2  ? 8.990  -5.787  -2.318  1.00 20.34 ? 2  DAS A OD1  1  
+HETATM 17    O OD2  . DAS A 1 2  ? 7.670  -7.235  -1.366  1.00 60.52 ? 2  DAS A OD2  1  
+HETATM 18    H H    . DAS A 1 2  ? 6.023  -2.953  0.067   1.00 32.22 ? 2  DAS A H    1  
+HETATM 19    H HA   . DAS A 1 2  ? 5.408  -5.216  -1.536  1.00 60.34 ? 2  DAS A HA   1  
+HETATM 20    H HB2  . DAS A 1 2  ? 8.102  -4.125  -0.679  1.00 44.43 ? 2  DAS A HB2  1  
+HETATM 21    H HB3  . DAS A 1 2  ? 7.144  -5.299  0.218   1.00 44.11 ? 2  DAS A HB3  1  
+HETATM 22    N N    . DCY A 1 3  ? 6.044  -4.595  -3.828  1.00 33.24 ? 3  DCY A N    1  
+HETATM 23    C CA   . DCY A 1 3  ? 6.292  -4.166  -5.174  1.00 13.32 ? 3  DCY A CA   1  
+HETATM 24    C C    . DCY A 1 3  ? 7.416  -4.982  -5.776  1.00 52.21 ? 3  DCY A C    1  
+HETATM 25    O O    . DCY A 1 3  ? 7.661  -6.123  -5.350  1.00 13.52 ? 3  DCY A O    1  
+HETATM 26    C CB   . DCY A 1 3  ? 5.007  -4.251  -6.022  1.00 61.34 ? 3  DCY A CB   1  
+HETATM 27    S SG   . DCY A 1 3  ? 4.249  -5.912  -6.121  1.00 54.32 ? 3  DCY A SG   1  
+HETATM 28    H H    . DCY A 1 3  ? 5.591  -5.453  -3.680  1.00 72.21 ? 3  DCY A H    1  
+HETATM 29    H HA   . DCY A 1 3  ? 6.615  -3.137  -5.131  1.00 43.02 ? 3  DCY A HA   1  
+HETATM 30    H HB2  . DCY A 1 3  ? 4.268  -3.584  -5.605  1.00 35.42 ? 3  DCY A HB2  1  
+HETATM 31    H HB3  . DCY A 1 3  ? 5.236  -3.932  -7.030  1.00 74.14 ? 3  DCY A HB3  1  
+HETATM 32    N N    . DLE A 1 4  ? 8.119  -4.401  -6.715  1.00 70.22 ? 4  DLE A N    1  
+HETATM 33    C CA   . DLE A 1 4  ? 9.199  -5.081  -7.395  1.00 15.43 ? 4  DLE A CA   1  
+HETATM 34    C CB   . DLE A 1 4  ? 10.108 -4.059  -8.085  1.00 12.41 ? 4  DLE A CB   1  
+HETATM 35    C CG   . DLE A 1 4  ? 10.615 -2.913  -7.201  1.00 41.23 ? 4  DLE A CG   1  
+HETATM 36    C CD1  . DLE A 1 4  ? 11.471 -3.431  -6.061  1.00 43.11 ? 4  DLE A CD1  1  
+HETATM 37    C CD2  . DLE A 1 4  ? 11.371 -1.889  -8.024  1.00 73.40 ? 4  DLE A CD2  1  
+HETATM 38    C C    . DLE A 1 4  ? 8.595  -6.049  -8.422  1.00 73.15 ? 4  DLE A C    1  
+HETATM 39    O O    . DLE A 1 4  ? 7.941  -5.615  -9.377  1.00 2.42  ? 4  DLE A O    1  
+HETATM 40    H H    . DLE A 1 4  ? 7.905  -3.473  -6.962  1.00 72.03 ? 4  DLE A H    1  
+HETATM 41    H HA   . DLE A 1 4  ? 9.771  -5.617  -6.653  1.00 63.31 ? 4  DLE A HA   1  
+HETATM 42    H HB2  . DLE A 1 4  ? 10.971 -4.590  -8.459  1.00 11.13 ? 4  DLE A HB2  1  
+HETATM 43    H HB3  . DLE A 1 4  ? 9.591  -3.629  -8.929  1.00 24.21 ? 4  DLE A HB3  1  
+HETATM 44    H HG   . DLE A 1 4  ? 9.761  -2.423  -6.759  1.00 73.43 ? 4  DLE A HG   1  
+HETATM 45    H HD11 . DLE A 1 4  ? 12.313 -3.974  -6.461  1.00 61.02 ? 4  DLE A HD11 1  
+HETATM 46    H HD12 . DLE A 1 4  ? 10.880 -4.085  -5.436  1.00 72.35 ? 4  DLE A HD12 1  
+HETATM 47    H HD13 . DLE A 1 4  ? 11.828 -2.599  -5.473  1.00 74.10 ? 4  DLE A HD13 1  
+HETATM 48    H HD21 . DLE A 1 4  ? 10.719 -1.478  -8.781  1.00 52.32 ? 4  DLE A HD21 1  
+HETATM 49    H HD22 . DLE A 1 4  ? 12.219 -2.362  -8.497  1.00 50.41 ? 4  DLE A HD22 1  
+HETATM 50    H HD23 . DLE A 1 4  ? 11.716 -1.095  -7.379  1.00 12.33 ? 4  DLE A HD23 1  
+HETATM 51    N N    . DPR A 1 5  ? 8.752  -7.368  -8.232  1.00 34.14 ? 5  DPR A N    1  
+HETATM 52    C CA   . DPR A 1 5  ? 8.128  -8.361  -9.096  1.00 63.41 ? 5  DPR A CA   1  
+HETATM 53    C CB   . DPR A 1 5  ? 8.290  -9.684  -8.322  1.00 41.31 ? 5  DPR A CB   1  
+HETATM 54    C CG   . DPR A 1 5  ? 8.852  -9.302  -6.993  1.00 12.42 ? 5  DPR A CG   1  
+HETATM 55    C CD   . DPR A 1 5  ? 9.565  -8.010  -7.198  1.00 2.32  ? 5  DPR A CD   1  
+HETATM 56    C C    . DPR A 1 5  ? 8.812  -8.463  -10.448 1.00 5.45  ? 5  DPR A C    1  
+HETATM 57    O O    . DPR A 1 5  ? 9.834  -7.826  -10.696 1.00 63.30 ? 5  DPR A O    1  
+HETATM 58    H HA   . DPR A 1 5  ? 7.078  -8.156  -9.243  1.00 43.12 ? 5  DPR A HA   1  
+HETATM 59    H HB2  . DPR A 1 5  ? 7.329  -10.165 -8.222  1.00 55.02 ? 5  DPR A HB2  1  
+HETATM 60    H HB3  . DPR A 1 5  ? 8.963  -10.331 -8.863  1.00 72.54 ? 5  DPR A HB3  1  
+HETATM 61    H HG2  . DPR A 1 5  ? 8.051  -9.176  -6.281  1.00 31.34 ? 5  DPR A HG2  1  
+HETATM 62    H HG3  . DPR A 1 5  ? 9.536  -10.062 -6.650  1.00 43.02 ? 5  DPR A HG3  1  
+HETATM 63    H HD2  . DPR A 1 5  ? 9.604  -7.449  -6.277  1.00 24.41 ? 5  DPR A HD2  1  
+HETATM 64    H HD3  . DPR A 1 5  ? 10.563 -8.197  -7.563  1.00 40.41 ? 5  DPR A HD3  1  
+HETATM 65    N N    . DHI A 1 6  ? 8.256  -9.274  -11.315 1.00 40.40 ? 6  DHI A N    1  
+HETATM 66    C CA   . DHI A 1 6  ? 8.836  -9.455  -12.622 1.00 30.31 ? 6  DHI A CA   1  
+HETATM 67    C C    . DHI A 1 6  ? 10.070 -10.340 -12.501 1.00 54.21 ? 6  DHI A C    1  
+HETATM 68    O O    . DHI A 1 6  ? 10.075 -11.283 -11.701 1.00 24.41 ? 6  DHI A O    1  
+HETATM 69    C CB   . DHI A 1 6  ? 7.815  -9.993  -13.660 1.00 61.12 ? 6  DHI A CB   1  
+HETATM 70    C CG   . DHI A 1 6  ? 7.360  -11.421 -13.498 1.00 53.41 ? 6  DHI A CG   1  
+HETATM 71    N ND1  . DHI A 1 6  ? 7.327  -12.308 -14.545 1.00 2.11  ? 6  DHI A ND1  1  
+HETATM 72    C CD2  . DHI A 1 6  ? 6.896  -12.099 -12.425 1.00 72.20 ? 6  DHI A CD2  1  
+HETATM 73    C CE1  . DHI A 1 6  ? 6.870  -13.462 -14.122 1.00 3.44  ? 6  DHI A CE1  1  
+HETATM 74    N NE2  . DHI A 1 6  ? 6.602  -13.363 -12.843 1.00 65.21 ? 6  DHI A NE2  1  
+HETATM 75    H H    . DHI A 1 6  ? 7.453  -9.764  -11.047 1.00 50.30 ? 6  DHI A H    1  
+HETATM 76    H HA   . DHI A 1 6  ? 9.172  -8.477  -12.937 1.00 70.31 ? 6  DHI A HA   1  
+HETATM 77    H HB2  . DHI A 1 6  ? 6.931  -9.376  -13.616 1.00 14.22 ? 6  DHI A HB2  1  
+HETATM 78    H HB3  . DHI A 1 6  ? 8.248  -9.892  -14.644 1.00 22.32 ? 6  DHI A HB3  1  
+HETATM 79    H HD1  . DHI A 1 6  ? 7.574  -12.109 -15.479 1.00 74.52 ? 6  DHI A HD1  1  
+HETATM 80    H HD2  . DHI A 1 6  ? 6.783  -11.703 -11.427 1.00 2.34  ? 6  DHI A HD2  1  
+HETATM 81    H HE1  . DHI A 1 6  ? 6.750  -14.347 -14.727 1.00 73.14 ? 6  DHI A HE1  1  
+HETATM 82    H HE2  . DHI A 1 6  ? 5.968  -13.959 -12.380 1.00 0.00  ? 6  DHI A HE2  1  
+HETATM 83    N N    . DLE A 1 7  ? 11.099 -9.996  -13.262 1.00 2.43  ? 7  DLE A N    1  
+HETATM 84    C CA   . DLE A 1 7  ? 12.417 -10.640 -13.258 1.00 55.44 ? 7  DLE A CA   1  
+HETATM 85    C CB   . DLE A 1 7  ? 12.371 -12.196 -13.375 1.00 62.51 ? 7  DLE A CB   1  
+HETATM 86    C CG   . DLE A 1 7  ? 12.032 -12.813 -14.761 1.00 73.10 ? 7  DLE A CG   1  
+HETATM 87    C CD1  . DLE A 1 7  ? 10.634 -12.470 -15.234 1.00 34.52 ? 7  DLE A CD1  1  
+HETATM 88    C CD2  . DLE A 1 7  ? 13.054 -12.394 -15.797 1.00 45.10 ? 7  DLE A CD2  1  
+HETATM 89    C C    . DLE A 1 7  ? 13.228 -10.184 -12.044 1.00 35.10 ? 7  DLE A C    1  
+HETATM 90    O O    . DLE A 1 7  ? 14.198 -10.836 -11.642 1.00 23.43 ? 7  DLE A O    1  
+HETATM 91    H H    . DLE A 1 7  ? 10.977 -9.203  -13.833 1.00 74.34 ? 7  DLE A H    1  
+HETATM 92    H HA   . DLE A 1 7  ? 12.932 -10.247 -14.122 1.00 51.41 ? 7  DLE A HA   1  
+HETATM 93    H HB2  . DLE A 1 7  ? 13.334 -12.578 -13.072 1.00 54.40 ? 7  DLE A HB2  1  
+HETATM 94    H HB3  . DLE A 1 7  ? 11.635 -12.550 -12.668 1.00 20.21 ? 7  DLE A HB3  1  
+HETATM 95    H HG   . DLE A 1 7  ? 12.074 -13.889 -14.676 1.00 32.51 ? 7  DLE A HG   1  
+HETATM 96    H HD11 . DLE A 1 7  ? 10.538 -11.398 -15.319 1.00 62.42 ? 7  DLE A HD11 1  
+HETATM 97    H HD12 . DLE A 1 7  ? 9.912  -12.840 -14.520 1.00 50.05 ? 7  DLE A HD12 1  
+HETATM 98    H HD13 . DLE A 1 7  ? 10.457 -12.925 -16.196 1.00 31.13 ? 7  DLE A HD13 1  
+HETATM 99    H HD21 . DLE A 1 7  ? 12.811 -12.859 -16.741 1.00 1.03  ? 7  DLE A HD21 1  
+HETATM 100   H HD22 . DLE A 1 7  ? 14.036 -12.707 -15.477 1.00 45.41 ? 7  DLE A HD22 1  
+HETATM 101   H HD23 . DLE A 1 7  ? 13.037 -11.321 -15.914 1.00 64.14 ? 7  DLE A HD23 1  
+HETATM 102   N N    . DLY A 1 8  ? 12.885 -9.026  -11.515 1.00 2.53  ? 8  DLY A N    1  
+HETATM 103   C CA   . DLY A 1 8  ? 13.573 -8.512  -10.339 1.00 0.41  ? 8  DLY A CA   1  
+HETATM 104   C C    . DLY A 1 8  ? 14.081 -7.100  -10.649 1.00 52.34 ? 8  DLY A C    1  
+HETATM 105   O O    . DLY A 1 8  ? 13.718 -6.539  -11.670 1.00 13.43 ? 8  DLY A O    1  
+HETATM 106   C CB   . DLY A 1 8  ? 12.612 -8.492  -9.135  1.00 32.33 ? 8  DLY A CB   1  
+HETATM 107   C CG   . DLY A 1 8  ? 13.275 -8.415  -7.754  1.00 2.42  ? 8  DLY A CG   1  
+HETATM 108   C CD   . DLY A 1 8  ? 14.059 -9.686  -7.439  1.00 14.24 ? 8  DLY A CD   1  
+HETATM 109   C CE   . DLY A 1 8  ? 14.641 -9.653  -6.030  1.00 33.44 ? 8  DLY A CE   1  
+HETATM 110   N NZ   . DLY A 1 8  ? 15.341 -10.908 -5.691  1.00 53.21 ? 8  DLY A NZ   1  
+HETATM 111   H H    . DLY A 1 8  ? 12.182 -8.475  -11.934 1.00 15.24 ? 8  DLY A H    1  
+HETATM 112   H HA   . DLY A 1 8  ? 14.410 -9.159  -10.129 1.00 15.45 ? 8  DLY A HA   1  
+HETATM 113   H HB2  . DLY A 1 8  ? 11.976 -7.624  -9.233  1.00 2.24  ? 8  DLY A HB2  1  
+HETATM 114   H HB3  . DLY A 1 8  ? 11.998 -9.380  -9.171  1.00 3.41  ? 8  DLY A HB3  1  
+HETATM 115   H HG2  . DLY A 1 8  ? 13.948 -7.572  -7.730  1.00 32.44 ? 8  DLY A HG2  1  
+HETATM 116   H HG3  . DLY A 1 8  ? 12.518 -8.278  -6.996  1.00 3.21  ? 8  DLY A HG3  1  
+HETATM 117   H HD2  . DLY A 1 8  ? 13.395 -10.534 -7.519  1.00 25.05 ? 8  DLY A HD2  1  
+HETATM 118   H HD3  . DLY A 1 8  ? 14.865 -9.794  -8.150  1.00 31.22 ? 8  DLY A HD3  1  
+HETATM 119   H HE2  . DLY A 1 8  ? 15.343 -8.834  -5.962  1.00 20.54 ? 8  DLY A HE2  1  
+HETATM 120   H HE3  . DLY A 1 8  ? 13.839 -9.493  -5.326  1.00 62.41 ? 8  DLY A HE3  1  
+HETATM 121   H HZ1  . DLY A 1 8  ? 16.146 -11.076 -6.326  1.00 2.51  ? 8  DLY A HZ1  1  
+HETATM 122   H HZ2  . DLY A 1 8  ? 14.700 -11.725 -5.765  1.00 10.13 ? 8  DLY A HZ2  1  
+HETATM 123   H HZ3  . DLY A 1 8  ? 15.696 -10.887 -4.715  1.00 14.22 ? 8  DLY A HZ3  1  
+HETATM 124   N N    . DLE A 1 9  ? 14.942 -6.574  -9.799  1.00 41.54 ? 9  DLE A N    1  
+HETATM 125   C CA   . DLE A 1 9  ? 15.503 -5.221  -9.933  1.00 32.41 ? 9  DLE A CA   1  
+HETATM 126   C CB   . DLE A 1 9  ? 16.485 -4.935  -8.758  1.00 35.43 ? 9  DLE A CB   1  
+HETATM 127   C CG   . DLE A 1 9  ? 16.069 -5.390  -7.317  1.00 3.44  ? 9  DLE A CG   1  
+HETATM 128   C CD1  . DLE A 1 9  ? 17.176 -5.103  -6.323  1.00 2.14  ? 9  DLE A CD1  1  
+HETATM 129   C CD2  . DLE A 1 9  ? 14.775 -4.745  -6.838  1.00 50.42 ? 9  DLE A CD2  1  
+HETATM 130   C C    . DLE A 1 9  ? 14.447 -4.096  -10.081 1.00 0.35  ? 9  DLE A C    1  
+HETATM 131   O O    . DLE A 1 9  ? 13.349 -4.186  -9.545  1.00 11.35 ? 9  DLE A O    1  
+HETATM 132   H H    . DLE A 1 9  ? 15.244 -7.119  -9.044  1.00 32.54 ? 9  DLE A H    1  
+HETATM 133   H HA   . DLE A 1 9  ? 16.081 -5.230  -10.845 1.00 11.04 ? 9  DLE A HA   1  
+HETATM 134   H HB2  . DLE A 1 9  ? 17.425 -5.412  -8.991  1.00 75.05 ? 9  DLE A HB2  1  
+HETATM 135   H HB3  . DLE A 1 9  ? 16.654 -3.868  -8.731  1.00 10.52 ? 9  DLE A HB3  1  
+HETATM 136   H HG   . DLE A 1 9  ? 15.935 -6.461  -7.329  1.00 34.15 ? 9  DLE A HG   1  
+HETATM 137   H HD11 . DLE A 1 9  ? 16.869 -5.434  -5.342  1.00 42.32 ? 9  DLE A HD11 1  
+HETATM 138   H HD12 . DLE A 1 9  ? 17.369 -4.040  -6.293  1.00 50.21 ? 9  DLE A HD12 1  
+HETATM 139   H HD13 . DLE A 1 9  ? 18.074 -5.626  -6.615  1.00 22.24 ? 9  DLE A HD13 1  
+HETATM 140   H HD21 . DLE A 1 9  ? 13.972 -5.026  -7.503  1.00 53.12 ? 9  DLE A HD21 1  
+HETATM 141   H HD22 . DLE A 1 9  ? 14.880 -3.670  -6.834  1.00 71.35 ? 9  DLE A HD22 1  
+HETATM 142   H HD23 . DLE A 1 9  ? 14.546 -5.089  -5.841  1.00 61.31 ? 9  DLE A HD23 1  
+HETATM 143   N N    . DCY A 1 10 ? 14.798 -3.068  -10.834 1.00 34.41 ? 10 DCY A N    1  
+HETATM 144   C CA   . DCY A 1 10 ? 13.957 -1.889  -10.999 1.00 52.25 ? 10 DCY A CA   1  
+HETATM 145   C C    . DCY A 1 10 ? 14.385 -0.786  -10.068 1.00 43.34 ? 10 DCY A C    1  
+HETATM 146   O O    . DCY A 1 10 ? 15.468 -0.845  -9.436  1.00 40.15 ? 10 DCY A O    1  
+HETATM 147   C CB   . DCY A 1 10 ? 14.039 -1.324  -12.413 1.00 20.12 ? 10 DCY A CB   1  
+HETATM 148   S SG   . DCY A 1 10 ? 12.724 -1.793  -13.562 1.00 70.41 ? 10 DCY A SG   1  
+HETATM 149   H H    . DCY A 1 10 ? 15.654 -3.087  -11.314 1.00 71.22 ? 10 DCY A H    1  
+HETATM 150   H HA   . DCY A 1 10 ? 12.934 -2.164  -10.792 1.00 41.23 ? 10 DCY A HA   1  
+HETATM 151   H HB2  . DCY A 1 10 ? 14.029 -0.246  -12.355 1.00 23.35 ? 10 DCY A HB2  1  
+HETATM 152   H HB3  . DCY A 1 10 ? 14.980 -1.634  -12.844 1.00 3.04  ? 10 DCY A HB3  1  
+HETATM 153   N N    . DLY A 1 11 ? 13.564 0.238   -10.025 1.00 63.22 ? 11 DLY A N    1  
+HETATM 154   C CA   . DLY A 1 11 ? 13.808 1.426   -9.258  1.00 2.23  ? 11 DLY A CA   1  
+HETATM 155   C C    . DLY A 1 11 ? 12.812 2.474   -9.756  1.00 71.25 ? 11 DLY A C    1  
+HETATM 156   O O    . DLY A 1 11 ? 13.168 3.610   -10.065 1.00 0.44  ? 11 DLY A O    1  
+HETATM 157   C CB   . DLY A 1 11 ? 13.598 1.146   -7.761  1.00 15.25 ? 11 DLY A CB   1  
+HETATM 158   C CG   . DLY A 1 11 ? 14.242 2.164   -6.834  1.00 41.21 ? 11 DLY A CG   1  
+HETATM 159   C CD   . DLY A 1 11 ? 15.758 2.100   -6.938  1.00 23.41 ? 11 DLY A CD   1  
+HETATM 160   C CE   . DLY A 1 11 ? 16.430 3.090   -6.011  1.00 10.02 ? 11 DLY A CE   1  
+HETATM 161   N NZ   . DLY A 1 11 ? 17.902 2.994   -6.097  1.00 3.15  ? 11 DLY A NZ   1  
+HETATM 162   H H    . DLY A 1 11 ? 12.742 0.196   -10.557 1.00 70.02 ? 11 DLY A H    1  
+HETATM 163   H HA   . DLY A 1 11 ? 14.818 1.759   -9.447  1.00 25.40 ? 11 DLY A HA   1  
+HETATM 164   H HB2  . DLY A 1 11 ? 12.536 1.125   -7.560  1.00 33.42 ? 11 DLY A HB2  1  
+HETATM 165   H HB3  . DLY A 1 11 ? 14.014 0.172   -7.546  1.00 50.33 ? 11 DLY A HB3  1  
+HETATM 166   H HG2  . DLY A 1 11 ? 13.911 3.153   -7.112  1.00 74.22 ? 11 DLY A HG2  1  
+HETATM 167   H HG3  . DLY A 1 11 ? 13.949 1.953   -5.816  1.00 32.35 ? 11 DLY A HG3  1  
+HETATM 168   H HD2  . DLY A 1 11 ? 16.086 1.105   -6.673  1.00 24.32 ? 11 DLY A HD2  1  
+HETATM 169   H HD3  . DLY A 1 11 ? 16.058 2.314   -7.953  1.00 15.44 ? 11 DLY A HD3  1  
+HETATM 170   H HE2  . DLY A 1 11 ? 16.122 4.088   -6.286  1.00 51.14 ? 11 DLY A HE2  1  
+HETATM 171   H HE3  . DLY A 1 11 ? 16.118 2.887   -4.997  1.00 43.31 ? 11 DLY A HE3  1  
+HETATM 172   H HZ1  . DLY A 1 11 ? 18.216 3.149   -7.077  1.00 24.04 ? 11 DLY A HZ1  1  
+HETATM 173   H HZ2  . DLY A 1 11 ? 18.253 2.068   -5.780  1.00 61.34 ? 11 DLY A HZ2  1  
+HETATM 174   H HZ3  . DLY A 1 11 ? 18.348 3.723   -5.506  1.00 54.53 ? 11 DLY A HZ3  1  
+HETATM 175   N N    . DGL A 1 12 ? 11.572 2.040   -9.869  1.00 3.22  ? 12 DGL A N    1  
+HETATM 176   C CA   . DGL A 1 12 ? 10.470 2.827   -10.379 1.00 23.53 ? 12 DGL A CA   1  
+HETATM 177   C C    . DGL A 1 12 ? 9.475  1.836   -10.968 1.00 14.12 ? 12 DGL A C    1  
+HETATM 178   O O    . DGL A 1 12 ? 9.201  0.818   -10.339 1.00 24.31 ? 12 DGL A O    1  
+HETATM 179   C CB   . DGL A 1 12 ? 9.820  3.611   -9.219  1.00 12.44 ? 12 DGL A CB   1  
+HETATM 180   C CG   . DGL A 1 12 ? 8.589  4.433   -9.594  1.00 35.41 ? 12 DGL A CG   1  
+HETATM 181   C CD   . DGL A 1 12 ? 8.884  5.588   -10.515 1.00 14.12 ? 12 DGL A CD   1  
+HETATM 182   O OE1  . DGL A 1 12 ? 8.935  6.740   -10.049 1.00 63.42 ? 12 DGL A OE1  1  
+HETATM 183   O OE2  . DGL A 1 12 ? 9.057  5.372   -11.719 1.00 34.33 ? 12 DGL A OE2  1  
+HETATM 184   H H    . DGL A 1 12 ? 11.336 1.134   -9.577  1.00 31.45 ? 12 DGL A H    1  
+HETATM 185   H HA   . DGL A 1 12 ? 10.825 3.501   -11.143 1.00 53.21 ? 12 DGL A HA   1  
+HETATM 186   H HB2  . DGL A 1 12 ? 9.533  2.910   -8.451  1.00 14.25 ? 12 DGL A HB2  1  
+HETATM 187   H HB3  . DGL A 1 12 ? 10.562 4.281   -8.811  1.00 21.24 ? 12 DGL A HB3  1  
+HETATM 188   H HG2  . DGL A 1 12 ? 7.891  3.779   -10.095 1.00 2.22  ? 12 DGL A HG2  1  
+HETATM 189   H HG3  . DGL A 1 12 ? 8.134  4.813   -8.691  1.00 71.24 ? 12 DGL A HG3  1  
+HETATM 190   N N    . DSG A 1 13 ? 8.940  2.110   -12.154 1.00 24.13 ? 13 DSG A N    1  
+HETATM 191   C CA   . DSG A 1 13 ? 8.011  1.172   -12.801 1.00 60.43 ? 13 DSG A CA   1  
+HETATM 192   C C    . DSG A 1 13 ? 6.728  1.062   -12.008 1.00 2.11  ? 13 DSG A C    1  
+HETATM 193   O O    . DSG A 1 13 ? 6.150  0.001   -11.911 1.00 21.33 ? 13 DSG A O    1  
+HETATM 194   C CB   . DSG A 1 13 ? 7.719  1.511   -14.282 1.00 62.35 ? 13 DSG A CB   1  
+HETATM 195   C CG   . DSG A 1 13 ? 6.885  2.760   -14.520 1.00 54.12 ? 13 DSG A CG   1  
+HETATM 196   O OD1  . DSG A 1 13 ? 6.946  3.736   -13.768 1.00 74.52 ? 13 DSG A OD1  1  
+HETATM 197   N ND2  . DSG A 1 13 ? 6.089  2.723   -15.563 1.00 70.11 ? 13 DSG A ND2  1  
+HETATM 198   H H    . DSG A 1 13 ? 9.164  2.951   -12.609 1.00 41.32 ? 13 DSG A H    1  
+HETATM 199   H HA   . DSG A 1 13 ? 8.488  0.202   -12.766 1.00 4.03  ? 13 DSG A HA   1  
+HETATM 200   H HB2  . DSG A 1 13 ? 8.657  1.654   -14.794 1.00 45.34 ? 13 DSG A HB2  1  
+HETATM 201   H HB3  . DSG A 1 13 ? 7.210  0.671   -14.732 1.00 33.11 ? 13 DSG A HB3  1  
+HETATM 202   H HD21 . DSG A 1 13 ? 6.086  1.901   -16.102 1.00 20.04 ? 13 DSG A HD21 1  
+HETATM 203   H HD22 . DSG A 1 13 ? 5.539  3.511   -15.765 1.00 12.12 ? 13 DSG A HD22 1  
+HETATM 204   N N    . DLY A 1 14 ? 6.325  2.166   -11.414 1.00 24.31 ? 14 DLY A N    1  
+HETATM 205   C CA   . DLY A 1 14 ? 5.160  2.233   -10.538 1.00 62.10 ? 14 DLY A CA   1  
+HETATM 206   C C    . DLY A 1 14 ? 5.349  1.290   -9.358  1.00 73.15 ? 14 DLY A C    1  
+HETATM 207   O O    . DLY A 1 14 ? 4.398  0.700   -8.847  1.00 71.20 ? 14 DLY A O    1  
+HETATM 208   C CB   . DLY A 1 14 ? 5.034  3.646   -9.984  1.00 53.21 ? 14 DLY A CB   1  
+HETATM 209   C CG   . DLY A 1 14 ? 4.904  4.739   -11.028 1.00 11.14 ? 14 DLY A CG   1  
+HETATM 210   C CD   . DLY A 1 14 ? 5.109  6.117   -10.412 1.00 64.25 ? 14 DLY A CD   1  
+HETATM 211   C CE   . DLY A 1 14 ? 4.108  6.410   -9.313  1.00 3.14  ? 14 DLY A CE   1  
+HETATM 212   N NZ   . DLY A 1 14 ? 4.386  7.686   -8.637  1.00 71.32 ? 14 DLY A NZ   1  
+HETATM 213   H H    . DLY A 1 14 ? 6.829  2.982   -11.612 1.00 24.31 ? 14 DLY A H    1  
+HETATM 214   H HA   . DLY A 1 14 ? 4.271  1.978   -11.094 1.00 20.51 ? 14 DLY A HA   1  
+HETATM 215   H HB2  . DLY A 1 14 ? 4.154  3.679   -9.359  1.00 64.11 ? 14 DLY A HB2  1  
+HETATM 216   H HB3  . DLY A 1 14 ? 5.900  3.855   -9.374  1.00 4.31  ? 14 DLY A HB3  1  
+HETATM 217   H HG2  . DLY A 1 14 ? 5.641  4.582   -11.803 1.00 44.40 ? 14 DLY A HG2  1  
+HETATM 218   H HG3  . DLY A 1 14 ? 3.912  4.691   -11.453 1.00 22.13 ? 14 DLY A HG3  1  
+HETATM 219   H HD2  . DLY A 1 14 ? 6.104  6.172   -9.996  1.00 45.12 ? 14 DLY A HD2  1  
+HETATM 220   H HD3  . DLY A 1 14 ? 5.005  6.859   -11.191 1.00 3.10  ? 14 DLY A HD3  1  
+HETATM 221   H HE2  . DLY A 1 14 ? 3.121  6.448   -9.748  1.00 22.50 ? 14 DLY A HE2  1  
+HETATM 222   H HE3  . DLY A 1 14 ? 4.153  5.607   -8.593  1.00 21.30 ? 14 DLY A HE3  1  
+HETATM 223   H HZ1  . DLY A 1 14 ? 5.311  7.680   -8.159  1.00 2.15  ? 14 DLY A HZ1  1  
+HETATM 224   H HZ2  . DLY A 1 14 ? 3.666  7.869   -7.908  1.00 42.21 ? 14 DLY A HZ2  1  
+HETATM 225   H HZ3  . DLY A 1 14 ? 4.374  8.472   -9.317  1.00 54.14 ? 14 DLY A HZ3  1  
+HETATM 226   N N    . DAS A 1 15 ? 6.589  1.138   -8.949  1.00 62.23 ? 15 DAS A N    1  
+HETATM 227   C CA   . DAS A 1 15 ? 6.916  0.331   -7.800  1.00 62.13 ? 15 DAS A CA   1  
+HETATM 228   C C    . DAS A 1 15 ? 6.955  -1.132  -8.204  1.00 32.41 ? 15 DAS A C    1  
+HETATM 229   O O    . DAS A 1 15 ? 6.745  -2.016  -7.387  1.00 51.45 ? 15 DAS A O    1  
+HETATM 230   C CB   . DAS A 1 15 ? 8.246  0.768   -7.196  1.00 11.42 ? 15 DAS A CB   1  
+HETATM 231   C CG   . DAS A 1 15 ? 8.397  0.325   -5.767  1.00 1.13  ? 15 DAS A CG   1  
+HETATM 232   O OD1  . DAS A 1 15 ? 9.058  -0.663  -5.491  1.00 22.14 ? 15 DAS A OD1  1  
+HETATM 233   O OD2  . DAS A 1 15 ? 7.818  1.000   -4.873  1.00 21.23 ? 15 DAS A OD2  1  
+HETATM 234   H H    . DAS A 1 15 ? 7.313  1.568   -9.451  1.00 43.01 ? 15 DAS A H    1  
+HETATM 235   H HA   . DAS A 1 15 ? 6.134  0.471   -7.069  1.00 40.04 ? 15 DAS A HA   1  
+HETATM 236   H HB2  . DAS A 1 15 ? 9.058  0.353   -7.773  1.00 30.32 ? 15 DAS A HB2  1  
+HETATM 237   H HB3  . DAS A 1 15 ? 8.301  1.846   -7.226  1.00 71.54 ? 15 DAS A HB3  1  
+HETATM 238   N N    . DCY A 1 16 ? 7.199  -1.375  -9.484  1.00 52.23 ? 16 DCY A N    1  
+HETATM 239   C CA   . DCY A 1 16 ? 7.159  -2.717  -10.029 1.00 71.12 ? 16 DCY A CA   1  
+HETATM 240   C C    . DCY A 1 16 ? 5.704  -3.194  -10.020 1.00 63.32 ? 16 DCY A C    1  
+HETATM 241   O O    . DCY A 1 16 ? 4.793  -2.415  -10.325 1.00 62.14 ? 16 DCY A O    1  
+HETATM 242   C CB   . DCY A 1 16 ? 7.675  -2.748  -11.480 1.00 63.41 ? 16 DCY A CB   1  
+HETATM 243   S SG   . DCY A 1 16 ? 9.291  -1.940  -11.787 1.00 32.24 ? 16 DCY A SG   1  
+HETATM 244   H H    . DCY A 1 16 ? 7.411  -0.626  -10.081 1.00 52.41 ? 16 DCY A H    1  
+HETATM 245   H HA   . DCY A 1 16 ? 7.745  -3.377  -9.409  1.00 23.35 ? 16 DCY A HA   1  
+HETATM 246   H HB2  . DCY A 1 16 ? 7.753  -3.777  -11.791 1.00 71.03 ? 16 DCY A HB2  1  
+HETATM 247   H HB3  . DCY A 1 16 ? 6.940  -2.263  -12.107 1.00 14.44 ? 16 DCY A HB3  1  
+HETATM 248   N N    . DCY A 1 17 ? 5.485  -4.450  -9.681  1.00 72.14 ? 17 DCY A N    1  
+HETATM 249   C CA   . DCY A 1 17 ? 4.138  -5.022  -9.607  1.00 4.20  ? 17 DCY A CA   1  
+HETATM 250   C C    . DCY A 1 17 ? 3.460  -4.958  -10.977 1.00 25.02 ? 17 DCY A C    1  
+HETATM 251   O O    . DCY A 1 17 ? 2.281  -4.641  -11.089 1.00 15.40 ? 17 DCY A O    1  
+HETATM 252   C CB   . DCY A 1 17 ? 4.199  -6.488  -9.154  1.00 54.22 ? 17 DCY A CB   1  
+HETATM 253   S SG   . DCY A 1 17 ? 5.217  -6.814  -7.665  1.00 43.41 ? 17 DCY A SG   1  
+HETATM 254   H H    . DCY A 1 17 ? 6.263  -5.010  -9.460  1.00 50.34 ? 17 DCY A H    1  
+HETATM 255   H HA   . DCY A 1 17 ? 3.563  -4.450  -8.894  1.00 34.51 ? 17 DCY A HA   1  
+HETATM 256   H HB2  . DCY A 1 17 ? 3.197  -6.826  -8.935  1.00 24.04 ? 17 DCY A HB2  1  
+HETATM 257   H HB3  . DCY A 1 17 ? 4.597  -7.082  -9.963  1.00 63.15 ? 17 DCY A HB3  1  
+HETATM 258   N N    . DSN A 1 18 ? 4.238  -5.206  -12.010 1.00 70.22 ? 18 DSN A N    1  
+HETATM 259   C CA   . DSN A 1 18 ? 3.748  -5.249  -13.356 1.00 72.34 ? 18 DSN A CA   1  
+HETATM 260   C C    . DSN A 1 18 ? 3.813  -3.875  -14.039 1.00 51.43 ? 18 DSN A C    1  
+HETATM 261   O O    . DSN A 1 18 ? 3.246  -3.684  -15.113 1.00 44.14 ? 18 DSN A O    1  
+HETATM 262   C CB   . DSN A 1 18 ? 4.610  -6.244  -14.106 1.00 44.03 ? 18 DSN A CB   1  
+HETATM 263   O OG   . DSN A 1 18 ? 5.994  -5.934  -13.911 1.00 52.43 ? 18 DSN A OG   1  
+HETATM 264   H H    . DSN A 1 18 ? 5.194  -5.393  -11.901 1.00 31.31 ? 18 DSN A H    1  
+HETATM 265   H HA   . DSN A 1 18 ? 2.732  -5.608  -13.350 1.00 41.41 ? 18 DSN A HA   1  
+HETATM 266   H HB2  . DSN A 1 18 ? 4.419  -7.241  -13.737 1.00 3.22  ? 18 DSN A HB2  1  
+HETATM 267   H HB3  . DSN A 1 18 ? 4.389  -6.192  -15.159 1.00 72.33 ? 18 DSN A HB3  1  
+HETATM 268   H HG   . DSN A 1 18 ? 6.504  -6.487  -14.533 1.00 75.04 ? 18 DSN A HG   1  
+HETATM 269   N N    . DLY A 1 19 ? 4.524  -2.932  -13.406 1.00 21.13 ? 19 DLY A N    1  
+HETATM 270   C CA   . DLY A 1 19 ? 4.771  -1.576  -13.949 1.00 23.54 ? 19 DLY A CA   1  
+HETATM 271   C C    . DLY A 1 19 ? 5.591  -1.586  -15.247 1.00 44.14 ? 19 DLY A C    1  
+HETATM 272   O O    . DLY A 1 19 ? 5.728  -0.558  -15.912 1.00 1.52  ? 19 DLY A O    1  
+HETATM 273   C CB   . DLY A 1 19 ? 3.482  -0.751  -14.107 1.00 31.13 ? 19 DLY A CB   1  
+HETATM 274   C CG   . DLY A 1 19 ? 2.793  -0.423  -12.793 1.00 63.44 ? 19 DLY A CG   1  
+HETATM 275   C CD   . DLY A 1 19 ? 1.543  0.414   -13.024 1.00 30.45 ? 19 DLY A CD   1  
+HETATM 276   C CE   . DLY A 1 19 ? 0.771  0.643   -11.731 1.00 1.21  ? 19 DLY A CE   1  
+HETATM 277   N NZ   . DLY A 1 19 ? 0.263  -0.624  -11.156 1.00 75.32 ? 19 DLY A NZ   1  
+HETATM 278   H H    . DLY A 1 19 ? 4.871  -3.147  -12.515 1.00 73.14 ? 19 DLY A H    1  
+HETATM 279   H HA   . DLY A 1 19 ? 5.387  -1.084  -13.211 1.00 53.34 ? 19 DLY A HA   1  
+HETATM 280   H HB2  . DLY A 1 19 ? 3.725  0.177   -14.603 1.00 52.12 ? 19 DLY A HB2  1  
+HETATM 281   H HB3  . DLY A 1 19 ? 2.791  -1.305  -14.724 1.00 35.24 ? 19 DLY A HB3  1  
+HETATM 282   H HG2  . DLY A 1 19 ? 2.527  -1.340  -12.288 1.00 52.23 ? 19 DLY A HG2  1  
+HETATM 283   H HG3  . DLY A 1 19 ? 3.485  0.140   -12.182 1.00 11.14 ? 19 DLY A HG3  1  
+HETATM 284   H HD2  . DLY A 1 19 ? 1.832  1.370   -13.433 1.00 72.23 ? 19 DLY A HD2  1  
+HETATM 285   H HD3  . DLY A 1 19 ? 0.907  -0.098  -13.730 1.00 41.14 ? 19 DLY A HD3  1  
+HETATM 286   H HE2  . DLY A 1 19 ? 1.424  1.115   -11.013 1.00 0.03  ? 19 DLY A HE2  1  
+HETATM 287   H HE3  . DLY A 1 19 ? -0.063 1.298   -11.937 1.00 71.13 ? 19 DLY A HE3  1  
+HETATM 288   H HZ1  . DLY A 1 19 ? 1.041  -1.265  -10.906 1.00 25.35 ? 19 DLY A HZ1  1  
+HETATM 289   H HZ2  . DLY A 1 19 ? -0.348 -1.120  -11.834 1.00 43.31 ? 19 DLY A HZ2  1  
+HETATM 290   H HZ3  . DLY A 1 19 ? -0.297 -0.448  -10.298 1.00 15.32 ? 19 DLY A HZ3  1  
+HETATM 291   N N    . DLY A 1 20 ? 6.164  -2.725  -15.571 1.00 22.34 ? 20 DLY A N    1  
+HETATM 292   C CA   . DLY A 1 20 ? 6.979  -2.861  -16.754 1.00 4.02  ? 20 DLY A CA   1  
+HETATM 293   C C    . DLY A 1 20 ? 8.441  -2.878  -16.359 1.00 71.43 ? 20 DLY A C    1  
+HETATM 294   O O    . DLY A 1 20 ? 8.990  -3.920  -16.021 1.00 72.40 ? 20 DLY A O    1  
+HETATM 295   C CB   . DLY A 1 20 ? 6.620  -4.138  -17.528 1.00 23.35 ? 20 DLY A CB   1  
+HETATM 296   C CG   . DLY A 1 20 ? 5.206  -4.157  -18.108 1.00 31.31 ? 20 DLY A CG   1  
+HETATM 297   C CD   . DLY A 1 20 ? 4.881  -5.496  -18.775 1.00 23.13 ? 20 DLY A CD   1  
+HETATM 298   C CE   . DLY A 1 20 ? 4.774  -6.622  -17.754 1.00 43.44 ? 20 DLY A CE   1  
+HETATM 299   N NZ   . DLY A 1 20 ? 4.532  -7.939  -18.375 1.00 72.03 ? 20 DLY A NZ   1  
+HETATM 300   H H    . DLY A 1 20 ? 6.050  -3.505  -14.990 1.00 53.12 ? 20 DLY A H    1  
+HETATM 301   H HA   . DLY A 1 20 ? 6.797  -2.001  -17.380 1.00 32.43 ? 20 DLY A HA   1  
+HETATM 302   H HB2  . DLY A 1 20 ? 7.319  -4.255  -18.342 1.00 14.30 ? 20 DLY A HB2  1  
+HETATM 303   H HB3  . DLY A 1 20 ? 6.726  -4.976  -16.855 1.00 4.51  ? 20 DLY A HB3  1  
+HETATM 304   H HG2  . DLY A 1 20 ? 4.501  -3.986  -17.308 1.00 32.04 ? 20 DLY A HG2  1  
+HETATM 305   H HG3  . DLY A 1 20 ? 5.118  -3.368  -18.841 1.00 72.45 ? 20 DLY A HG3  1  
+HETATM 306   H HD2  . DLY A 1 20 ? 3.940  -5.410  -19.294 1.00 11.53 ? 20 DLY A HD2  1  
+HETATM 307   H HD3  . DLY A 1 20 ? 5.663  -5.735  -19.480 1.00 2.11  ? 20 DLY A HD3  1  
+HETATM 308   H HE2  . DLY A 1 20 ? 5.687  -6.681  -17.179 1.00 41.32 ? 20 DLY A HE2  1  
+HETATM 309   H HE3  . DLY A 1 20 ? 3.947  -6.394  -17.098 1.00 44.43 ? 20 DLY A HE3  1  
+HETATM 310   H HZ1  . DLY A 1 20 ? 5.338  -8.213  -18.973 1.00 72.42 ? 20 DLY A HZ1  1  
+HETATM 311   H HZ2  . DLY A 1 20 ? 3.676  -7.916  -18.964 1.00 64.35 ? 20 DLY A HZ2  1  
+HETATM 312   H HZ3  . DLY A 1 20 ? 4.410  -8.659  -17.635 1.00 41.54 ? 20 DLY A HZ3  1  
+HETATM 313   N N    . DCY A 1 21 ? 9.040  -1.732  -16.350 1.00 33.45 ? 21 DCY A N    1  
+HETATM 314   C CA   . DCY A 1 21 ? 10.419 -1.595  -15.971 1.00 52.22 ? 21 DCY A CA   1  
+HETATM 315   C C    . DCY A 1 21 ? 11.274 -1.547  -17.230 1.00 30.33 ? 21 DCY A C    1  
+HETATM 316   O O    . DCY A 1 21 ? 11.225 -0.576  -17.997 1.00 43.10 ? 21 DCY A O    1  
+HETATM 317   C CB   . DCY A 1 21 ? 10.578 -0.326  -15.132 1.00 63.43 ? 21 DCY A CB   1  
+HETATM 318   S SG   . DCY A 1 21 ? 12.226 -0.037  -14.431 1.00 13.23 ? 21 DCY A SG   1  
+HETATM 319   H H    . DCY A 1 21 ? 8.545  -0.927  -16.622 1.00 32.12 ? 21 DCY A H    1  
+HETATM 320   H HA   . DCY A 1 21 ? 10.703 -2.454  -15.381 1.00 40.13 ? 21 DCY A HA   1  
+HETATM 321   H HB2  . DCY A 1 21 ? 10.349 0.528   -15.752 1.00 31.31 ? 21 DCY A HB2  1  
+HETATM 322   H HB3  . DCY A 1 21 ? 9.873  -0.366  -14.316 1.00 52.12 ? 21 DCY A HB3  1  
+HETATM 323   N N    . DLY A 1 22 ? 12.017 -2.597  -17.470 1.00 63.33 ? 22 DLY A N    1  
+HETATM 324   C CA   . DLY A 1 22 ? 12.825 -2.718  -18.670 1.00 44.01 ? 22 DLY A CA   1  
+HETATM 325   C C    . DLY A 1 22 ? 14.264 -2.979  -18.284 1.00 3.12  ? 22 DLY A C    1  
+HETATM 326   O O    . DLY A 1 22 ? 14.643 -2.710  -17.169 1.00 63.04 ? 22 DLY A O    1  
+HETATM 327   C CB   . DLY A 1 22 ? 12.287 -3.851  -19.550 1.00 74.32 ? 22 DLY A CB   1  
+HETATM 328   C CG   . DLY A 1 22 ? 10.892 -3.603  -20.095 1.00 63.11 ? 22 DLY A CG   1  
+HETATM 329   C CD   . DLY A 1 22 ? 10.459 -4.733  -20.987 1.00 53.45 ? 22 DLY A CD   1  
+HETATM 330   C CE   . DLY A 1 22 ? 9.116  -4.463  -21.627 1.00 33.32 ? 22 DLY A CE   1  
+HETATM 331   N NZ   . DLY A 1 22 ? 8.706  -5.567  -22.515 1.00 2.21  ? 22 DLY A NZ   1  
+HETATM 332   H H    . DLY A 1 22 ? 12.069 -3.317  -16.801 1.00 51.32 ? 22 DLY A H    1  
+HETATM 333   H HA   . DLY A 1 22 ? 12.768 -1.786  -19.213 1.00 62.24 ? 22 DLY A HA   1  
+HETATM 334   H HB2  . DLY A 1 22 ? 12.955 -3.992  -20.387 1.00 54.11 ? 22 DLY A HB2  1  
+HETATM 335   H HB3  . DLY A 1 22 ? 12.266 -4.760  -18.967 1.00 4.31  ? 22 DLY A HB3  1  
+HETATM 336   H HG2  . DLY A 1 22 ? 10.200 -3.521  -19.269 1.00 22.03 ? 22 DLY A HG2  1  
+HETATM 337   H HG3  . DLY A 1 22 ? 10.887 -2.684  -20.661 1.00 73.42 ? 22 DLY A HG3  1  
+HETATM 338   H HD2  . DLY A 1 22 ? 11.200 -4.885  -21.758 1.00 2.11  ? 22 DLY A HD2  1  
+HETATM 339   H HD3  . DLY A 1 22 ? 10.383 -5.621  -20.376 1.00 70.11 ? 22 DLY A HD3  1  
+HETATM 340   H HE2  . DLY A 1 22 ? 8.376  -4.347  -20.848 1.00 21.54 ? 22 DLY A HE2  1  
+HETATM 341   H HE3  . DLY A 1 22 ? 9.180  -3.552  -22.203 1.00 62.52 ? 22 DLY A HE3  1  
+HETATM 342   H HZ1  . DLY A 1 22 ? 8.656  -6.466  -21.997 1.00 30.52 ? 22 DLY A HZ1  1  
+HETATM 343   H HZ2  . DLY A 1 22 ? 9.370  -5.687  -23.306 1.00 22.23 ? 22 DLY A HZ2  1  
+HETATM 344   H HZ3  . DLY A 1 22 ? 7.765  -5.380  -22.919 1.00 42.33 ? 22 DLY A HZ3  1  
+HETATM 345   N N    . DAR A 1 23 ? 15.069 -3.441  -19.207 1.00 65.11 ? 23 DAR A N    1  
+HETATM 346   C CA   . DAR A 1 23 ? 16.447 -3.781  -18.919 1.00 11.00 ? 23 DAR A CA   1  
+HETATM 347   C CB   . DAR A 1 23 ? 17.367 -2.545  -18.951 1.00 64.35 ? 23 DAR A CB   1  
+HETATM 348   C CG   . DAR A 1 23 ? 17.343 -1.754  -20.249 1.00 61.45 ? 23 DAR A CG   1  
+HETATM 349   C CD   . DAR A 1 23 ? 18.370 -0.634  -20.212 1.00 32.42 ? 23 DAR A CD   1  
+HETATM 350   N NE   . DAR A 1 23 ? 19.707 -1.150  -19.850 1.00 60.34 ? 23 DAR A NE   1  
+HETATM 351   C CZ   . DAR A 1 23 ? 20.865 -0.846  -20.446 1.00 41.41 ? 23 DAR A CZ   1  
+HETATM 352   N NH1  . DAR A 1 23 ? 20.900 -0.009  -21.477 1.00 71.13 ? 23 DAR A NH1  1  
+HETATM 353   N NH2  . DAR A 1 23 ? 21.983 -1.392  -19.991 1.00 34.52 ? 23 DAR A NH2  1  
+HETATM 354   C C    . DAR A 1 23 ? 16.954 -4.767  -19.926 1.00 3.53  ? 23 DAR A C    1  
+HETATM 355   O O    . DAR A 1 23 ? 16.208 -5.180  -20.824 1.00 22.45 ? 23 DAR A O    1  
+HETATM 356   H H    . DAR A 1 23 ? 14.761 -3.576  -20.130 1.00 0.25  ? 23 DAR A H    1  
+HETATM 357   H HA   . DAR A 1 23 ? 16.491 -4.223  -17.934 1.00 3.15  ? 23 DAR A HA   1  
+HETATM 358   H HB2  . DAR A 1 23 ? 17.183 -1.876  -18.129 1.00 74.42 ? 23 DAR A HB2  1  
+HETATM 359   H HB3  . DAR A 1 23 ? 18.373 -2.925  -18.853 1.00 30.54 ? 23 DAR A HB3  1  
+HETATM 360   H HG2  . DAR A 1 23 ? 17.559 -2.417  -21.074 1.00 41.42 ? 23 DAR A HG2  1  
+HETATM 361   H HG3  . DAR A 1 23 ? 16.360 -1.331  -20.377 1.00 44.14 ? 23 DAR A HG3  1  
+HETATM 362   H HD2  . DAR A 1 23 ? 18.420 -0.174  -21.186 1.00 13.41 ? 23 DAR A HD2  1  
+HETATM 363   H HD3  . DAR A 1 23 ? 18.068 0.096   -19.476 1.00 3.14  ? 23 DAR A HD3  1  
+HETATM 364   H HE   . DAR A 1 23 ? 19.726 -1.775  -19.090 1.00 13.03 ? 23 DAR A HE   1  
+HETATM 365   H HH11 . DAR A 1 23 ? 20.075 0.424   -21.846 1.00 12.42 ? 23 DAR A HH11 1  
+HETATM 366   H HH12 . DAR A 1 23 ? 21.750 0.241   -21.947 1.00 61.53 ? 23 DAR A HH12 1  
+HETATM 367   H HH21 . DAR A 1 23 ? 21.960 -2.021  -19.206 1.00 10.21 ? 23 DAR A HH21 1  
+HETATM 368   H HH22 . DAR A 1 23 ? 22.885 -1.218  -20.395 1.00 1.34  ? 23 DAR A HH22 1  
+HETATM 369   N N    . DAR A 1 24 ? 18.206 -5.162  -19.743 1.00 3.22  ? 24 DAR A N    1  
+HETATM 370   C CA   . DAR A 1 24 ? 18.968 -5.939  -20.709 1.00 44.30 ? 24 DAR A CA   1  
+HETATM 371   C CB   . DAR A 1 24 ? 19.041 -5.215  -22.044 1.00 22.33 ? 24 DAR A CB   1  
+HETATM 372   C CG   . DAR A 1 24 ? 19.825 -3.925  -21.964 1.00 61.13 ? 24 DAR A CG   1  
+HETATM 373   C CD   . DAR A 1 24 ? 19.754 -3.147  -23.249 1.00 70.13 ? 24 DAR A CD   1  
+HETATM 374   N NE   . DAR A 1 24 ? 20.286 -3.902  -24.387 1.00 1.31  ? 24 DAR A NE   1  
+HETATM 375   C CZ   . DAR A 1 24 ? 20.311 -3.465  -25.648 1.00 32.44 ? 24 DAR A CZ   1  
+HETATM 376   N NH1  . DAR A 1 24 ? 19.837 -2.250  -25.951 1.00 52.22 ? 24 DAR A NH1  1  
+HETATM 377   N NH2  . DAR A 1 24 ? 20.803 -4.241  -26.606 1.00 70.33 ? 24 DAR A NH2  1  
+HETATM 378   C C    . DAR A 1 24 ? 18.521 -7.381  -20.857 1.00 44.43 ? 24 DAR A C    1  
+HETATM 379   O O    . DAR A 1 24 ? 17.518 -7.811  -20.284 1.00 32.32 ? 24 DAR A O    1  
+HETATM 380   H H    . DAR A 1 24 ? 18.639 -4.947  -18.889 1.00 20.42 ? 24 DAR A H    1  
+HETATM 381   H HA   . DAR A 1 24 ? 19.972 -5.979  -20.316 1.00 3.43  ? 24 DAR A HA   1  
+HETATM 382   H HB2  . DAR A 1 24 ? 19.503 -5.861  -22.773 1.00 52.23 ? 24 DAR A HB2  1  
+HETATM 383   H HB3  . DAR A 1 24 ? 18.037 -4.980  -22.365 1.00 11.14 ? 24 DAR A HB3  1  
+HETATM 384   H HG2  . DAR A 1 24 ? 19.425 -3.318  -21.164 1.00 35.00 ? 24 DAR A HG2  1  
+HETATM 385   H HG3  . DAR A 1 24 ? 20.855 -4.159  -21.746 1.00 63.03 ? 24 DAR A HG3  1  
+HETATM 386   H HD2  . DAR A 1 24 ? 18.717 -2.895  -23.420 1.00 11.41 ? 24 DAR A HD2  1  
+HETATM 387   H HD3  . DAR A 1 24 ? 20.321 -2.238  -23.117 1.00 52.54 ? 24 DAR A HD3  1  
+HETATM 388   H HE   . DAR A 1 24 ? 20.637 -4.793  -24.166 1.00 30.43 ? 24 DAR A HE   1  
+HETATM 389   H HH11 . DAR A 1 24 ? 19.460 -1.637  -25.251 1.00 44.15 ? 24 DAR A HH11 1  
+HETATM 390   H HH12 . DAR A 1 24 ? 19.828 -1.905  -26.893 1.00 44.40 ? 24 DAR A HH12 1  
+HETATM 391   H HH21 . DAR A 1 24 ? 21.168 -5.162  -26.439 1.00 21.02 ? 24 DAR A HH21 1  
+HETATM 392   H HH22 . DAR A 1 24 ? 20.850 -3.936  -27.564 1.00 50.00 ? 24 DAR A HH22 1  
+ATOM   393   N N    . GLY A 1 25 ? 19.299 -8.125  -21.589 1.00 10.23 ? 25 GLY A N    1  
+ATOM   394   C CA   . GLY A 1 25 ? 19.042 -9.511  -21.785 1.00 73.10 ? 25 GLY A CA   1  
+ATOM   395   C C    . GLY A 1 25 ? 20.143 -10.313 -21.168 1.00 55.24 ? 25 GLY A C    1  
+ATOM   396   O O    . GLY A 1 25 ? 21.281 -10.294 -21.658 1.00 0.52  ? 25 GLY A O    1  
+ATOM   397   H H    . GLY A 1 25 ? 20.097 -7.720  -21.995 1.00 24.42 ? 25 GLY A H    1  
+ATOM   398   H HA2  . GLY A 1 25 ? 18.098 -9.768  -21.327 1.00 24.03 ? 25 GLY A HA2  1  
+ATOM   399   H HA3  . GLY A 1 25 ? 19.004 -9.726  -22.842 1.00 24.21 ? 25 GLY A HA3  1  
+HETATM 400   N N    . DTH A 1 26 ? 19.844 -10.978 -20.082 1.00 23.32 ? 26 DTH A N    1  
+HETATM 401   C CA   . DTH A 1 26 ? 20.842 -11.759 -19.381 1.00 2.42  ? 26 DTH A CA   1  
+HETATM 402   C CB   . DTH A 1 26 ? 20.178 -12.992 -18.709 1.00 13.01 ? 26 DTH A CB   1  
+HETATM 403   C CG2  . DTH A 1 26 ? 19.454 -12.623 -17.425 1.00 33.42 ? 26 DTH A CG2  1  
+HETATM 404   O OG1  . DTH A 1 26 ? 19.238 -13.588 -19.631 1.00 4.24  ? 26 DTH A OG1  1  
+HETATM 405   C C    . DTH A 1 26 ? 21.555 -10.871 -18.330 1.00 14.04 ? 26 DTH A C    1  
+HETATM 406   O O    . DTH A 1 26 ? 22.616 -11.206 -17.813 1.00 43.40 ? 26 DTH A O    1  
+HETATM 407   H H    . DTH A 1 26 ? 18.922 -10.985 -19.745 1.00 44.42 ? 26 DTH A H    1  
+HETATM 408   H HA   . DTH A 1 26 ? 21.568 -12.100 -20.104 1.00 61.42 ? 26 DTH A HA   1  
+HETATM 409   H HB   . DTH A 1 26 ? 20.949 -13.718 -18.496 1.00 75.21 ? 26 DTH A HB   1  
+HETATM 410   H HG21 . DTH A 1 26 ? 18.696 -11.887 -17.640 1.00 1.31  ? 26 DTH A HG21 1  
+HETATM 411   H HG22 . DTH A 1 26 ? 20.163 -12.210 -16.722 1.00 32.04 ? 26 DTH A HG22 1  
+HETATM 412   H HG23 . DTH A 1 26 ? 18.997 -13.506 -17.003 1.00 12.03 ? 26 DTH A HG23 1  
+HETATM 413   H HG1  . DTH A 1 26 ? 18.578 -14.058 -19.108 1.00 51.24 ? 26 DTH A HG1  1  
+HETATM 414   N N    . DSG A 1 27 ? 20.957 -9.728  -18.052 1.00 72.15 ? 27 DSG A N    1  
+HETATM 415   C CA   . DSG A 1 27 ? 21.476 -8.773  -17.090 1.00 14.43 ? 27 DSG A CA   1  
+HETATM 416   C C    . DSG A 1 27 ? 21.262 -7.412  -17.698 1.00 35.23 ? 27 DSG A C    1  
+HETATM 417   O O    . DSG A 1 27 ? 20.191 -7.145  -18.214 1.00 64.53 ? 27 DSG A O    1  
+HETATM 418   C CB   . DSG A 1 27 ? 20.719 -8.892  -15.742 1.00 41.22 ? 27 DSG A CB   1  
+HETATM 419   C CG   . DSG A 1 27 ? 21.289 -8.013  -14.611 1.00 43.00 ? 27 DSG A CG   1  
+HETATM 420   O OD1  . DSG A 1 27 ? 21.877 -6.957  -14.844 1.00 15.40 ? 27 DSG A OD1  1  
+HETATM 421   N ND2  . DSG A 1 27 ? 21.099 -8.436  -13.390 1.00 12.32 ? 27 DSG A ND2  1  
+HETATM 422   H H    . DSG A 1 27 ? 20.144 -9.483  -18.544 1.00 63.40 ? 27 DSG A H    1  
+HETATM 423   H HA   . DSG A 1 27 ? 22.531 -8.953  -16.947 1.00 32.22 ? 27 DSG A HA   1  
+HETATM 424   H HB2  . DSG A 1 27 ? 19.691 -8.604  -15.900 1.00 23.51 ? 27 DSG A HB2  1  
+HETATM 425   H HB3  . DSG A 1 27 ? 20.746 -9.923  -15.420 1.00 52.12 ? 27 DSG A HB3  1  
+HETATM 426   H HD21 . DSG A 1 27 ? 20.614 -9.275  -13.233 1.00 31.32 ? 27 DSG A HD21 1  
+HETATM 427   H HD22 . DSG A 1 27 ? 21.450 -7.899  -12.647 1.00 1.42  ? 27 DSG A HD22 1  
+HETATM 428   N N    . DIL A 1 28 ? 22.261 -6.574  -17.638 1.00 32.31 ? 28 DIL A N    1  
+HETATM 429   C CA   . DIL A 1 28 ? 22.235 -5.269  -18.296 1.00 21.23 ? 28 DIL A CA   1  
+HETATM 430   C C    . DIL A 1 28 ? 21.417 -4.247  -17.523 1.00 72.25 ? 28 DIL A C    1  
+HETATM 431   O O    . DIL A 1 28 ? 20.970 -3.238  -18.100 1.00 51.41 ? 28 DIL A O    1  
+HETATM 432   C CB   . DIL A 1 28 ? 23.673 -4.679  -18.529 1.00 33.12 ? 28 DIL A CB   1  
+HETATM 433   C CG1  . DIL A 1 28 ? 24.553 -5.542  -19.488 1.00 13.24 ? 28 DIL A CG1  1  
+HETATM 434   C CG2  . DIL A 1 28 ? 24.394 -4.451  -17.202 1.00 35.13 ? 28 DIL A CG2  1  
+HETATM 435   C CD1  . DIL A 1 28 ? 25.001 -6.903  -18.957 1.00 51.51 ? 28 DIL A CD1  1  
+HETATM 436   H H    . DIL A 1 28 ? 23.055 -6.826  -17.122 1.00 21.25 ? 28 DIL A H    1  
+HETATM 437   H HA   . DIL A 1 28 ? 21.750 -5.368  -19.256 1.00 43.10 ? 28 DIL A HA   1  
+HETATM 438   H HB   . DIL A 1 28 ? 23.531 -3.704  -18.971 1.00 75.23 ? 28 DIL A HB   1  
+HETATM 439   H HG12 . DIL A 1 28 ? 24.005 -5.722  -20.399 1.00 43.31 ? 28 DIL A HG12 1  
+HETATM 440   H HG13 . DIL A 1 28 ? 25.440 -4.977  -19.732 1.00 13.05 ? 28 DIL A HG13 1  
+HETATM 441   H HG21 . DIL A 1 28 ? 23.809 -3.787  -16.583 1.00 2.31  ? 28 DIL A HG21 1  
+HETATM 442   H HG22 . DIL A 1 28 ? 25.362 -4.010  -17.386 1.00 41.20 ? 28 DIL A HG22 1  
+HETATM 443   H HG23 . DIL A 1 28 ? 24.518 -5.398  -16.697 1.00 62.44 ? 28 DIL A HG23 1  
+HETATM 444   H HD11 . DIL A 1 28 ? 25.573 -6.763  -18.051 1.00 44.32 ? 28 DIL A HD11 1  
+HETATM 445   H HD12 . DIL A 1 28 ? 25.620 -7.390  -19.696 1.00 32.40 ? 28 DIL A HD12 1  
+HETATM 446   H HD13 . DIL A 1 28 ? 24.134 -7.513  -18.747 1.00 63.41 ? 28 DIL A HD13 1  
+HETATM 447   N N    . DGL A 1 29 ? 21.200 -4.504  -16.260 1.00 50.20 ? 29 DGL A N    1  
+HETATM 448   C CA   . DGL A 1 29 ? 20.542 -3.556  -15.402 1.00 45.01 ? 29 DGL A CA   1  
+HETATM 449   C C    . DGL A 1 29 ? 19.050 -3.457  -15.652 1.00 14.54 ? 29 DGL A C    1  
+HETATM 450   O O    . DGL A 1 29 ? 18.444 -4.308  -16.333 1.00 71.32 ? 29 DGL A O    1  
+HETATM 451   C CB   . DGL A 1 29 ? 20.852 -3.828  -13.937 1.00 13.15 ? 29 DGL A CB   1  
+HETATM 452   C CG   . DGL A 1 29 ? 22.314 -3.631  -13.596 1.00 74.41 ? 29 DGL A CG   1  
+HETATM 453   C CD   . DGL A 1 29 ? 22.611 -3.824  -12.138 1.00 71.05 ? 29 DGL A CD   1  
+HETATM 454   O OE1  . DGL A 1 29 ? 22.394 -2.884  -11.345 1.00 53.23 ? 29 DGL A OE1  1  
+HETATM 455   O OE2  . DGL A 1 29 ? 23.105 -4.895  -11.764 1.00 23.42 ? 29 DGL A OE2  1  
+HETATM 456   H H    . DGL A 1 29 ? 21.477 -5.368  -15.883 1.00 3.55  ? 29 DGL A H    1  
+HETATM 457   H HA   . DGL A 1 29 ? 20.965 -2.594  -15.652 1.00 10.34 ? 29 DGL A HA   1  
+HETATM 458   H HB2  . DGL A 1 29 ? 20.264 -3.162  -13.324 1.00 45.31 ? 29 DGL A HB2  1  
+HETATM 459   H HB3  . DGL A 1 29 ? 20.586 -4.849  -13.709 1.00 3.25  ? 29 DGL A HB3  1  
+HETATM 460   H HG2  . DGL A 1 29 ? 22.901 -4.340  -14.160 1.00 3.24  ? 29 DGL A HG2  1  
+HETATM 461   H HG3  . DGL A 1 29 ? 22.599 -2.628  -13.879 1.00 74.03 ? 29 DGL A HG3  1  
+HETATM 462   N N    . DLY A 1 30 ? 18.481 -2.402  -15.115 1.00 22.14 ? 30 DLY A N    1  
+HETATM 463   C CA   . DLY A 1 30 ? 17.081 -2.096  -15.234 1.00 52.54 ? 30 DLY A CA   1  
+HETATM 464   C C    . DLY A 1 30 ? 16.336 -3.055  -14.300 1.00 15.41 ? 30 DLY A C    1  
+HETATM 465   O O    . DLY A 1 30 ? 16.604 -3.089  -13.086 1.00 15.15 ? 30 DLY A O    1  
+HETATM 466   C CB   . DLY A 1 30 ? 16.877 -0.630  -14.800 1.00 24.25 ? 30 DLY A CB   1  
+HETATM 467   C CG   . DLY A 1 30 ? 15.562 0.039   -15.193 1.00 53.12 ? 30 DLY A CG   1  
+HETATM 468   C CD   . DLY A 1 30 ? 15.504 0.460   -16.666 1.00 53.44 ? 30 DLY A CD   1  
+HETATM 469   C CE   . DLY A 1 30 ? 14.198 1.208   -16.944 1.00 24.11 ? 30 DLY A CE   1  
+HETATM 470   N NZ   . DLY A 1 30 ? 14.102 1.763   -18.315 1.00 40.22 ? 30 DLY A NZ   1  
+HETATM 471   H H    . DLY A 1 30 ? 19.034 -1.799  -14.575 1.00 55.14 ? 30 DLY A H    1  
+HETATM 472   H HA   . DLY A 1 30 ? 16.751 -2.241  -16.251 1.00 20.34 ? 30 DLY A HA   1  
+HETATM 473   H HB2  . DLY A 1 30 ? 16.937 -0.591  -13.722 1.00 22.22 ? 30 DLY A HB2  1  
+HETATM 474   H HB3  . DLY A 1 30 ? 17.688 -0.045  -15.204 1.00 32.21 ? 30 DLY A HB3  1  
+HETATM 475   H HG2  . DLY A 1 30 ? 14.755 -0.656  -15.009 1.00 10.21 ? 30 DLY A HG2  1  
+HETATM 476   H HG3  . DLY A 1 30 ? 15.420 0.912   -14.574 1.00 21.34 ? 30 DLY A HG3  1  
+HETATM 477   H HD2  . DLY A 1 30 ? 16.341 1.106   -16.885 1.00 22.34 ? 30 DLY A HD2  1  
+HETATM 478   H HD3  . DLY A 1 30 ? 15.546 -0.419  -17.292 1.00 72.45 ? 30 DLY A HD3  1  
+HETATM 479   H HE2  . DLY A 1 30 ? 13.370 0.532   -16.788 1.00 15.43 ? 30 DLY A HE2  1  
+HETATM 480   H HE3  . DLY A 1 30 ? 14.133 2.017   -16.232 1.00 54.14 ? 30 DLY A HE3  1  
+HETATM 481   H HZ1  . DLY A 1 30 ? 14.243 1.043   -19.051 1.00 53.23 ? 30 DLY A HZ1  1  
+HETATM 482   H HZ2  . DLY A 1 30 ? 14.774 2.539   -18.473 1.00 55.34 ? 30 DLY A HZ2  1  
+HETATM 483   H HZ3  . DLY A 1 30 ? 13.153 2.167   -18.456 1.00 33.30 ? 30 DLY A HZ3  1  
+HETATM 484   N N    . DAR A 1 31 ? 15.444 -3.832  -14.851 1.00 4.25  ? 31 DAR A N    1  
+HETATM 485   C CA   . DAR A 1 31 ? 14.735 -4.863  -14.126 1.00 10.05 ? 31 DAR A CA   1  
+HETATM 486   C CB   . DAR A 1 31 ? 15.317 -6.240  -14.477 1.00 12.11 ? 31 DAR A CB   1  
+HETATM 487   C CG   . DAR A 1 31 ? 16.794 -6.381  -14.159 1.00 51.21 ? 31 DAR A CG   1  
+HETATM 488   C CD   . DAR A 1 31 ? 17.344 -7.718  -14.593 1.00 20.11 ? 31 DAR A CD   1  
+HETATM 489   N NE   . DAR A 1 31 ? 16.764 -8.840  -13.848 1.00 11.44 ? 31 DAR A NE   1  
+HETATM 490   C CZ   . DAR A 1 31 ? 16.815 -10.120 -14.232 1.00 72.01 ? 31 DAR A CZ   1  
+HETATM 491   N NH1  . DAR A 1 31 ? 17.311 -10.444 -15.420 1.00 53.24 ? 31 DAR A NH1  1  
+HETATM 492   N NH2  . DAR A 1 31 ? 16.337 -11.070 -13.445 1.00 73.11 ? 31 DAR A NH2  1  
+HETATM 493   C C    . DAR A 1 31 ? 13.261 -4.833  -14.490 1.00 4.33  ? 31 DAR A C    1  
+HETATM 494   O O    . DAR A 1 31 ? 12.906 -4.651  -15.668 1.00 65.34 ? 31 DAR A O    1  
+HETATM 495   H H    . DAR A 1 31 ? 15.206 -3.690  -15.795 1.00 3.25  ? 31 DAR A H    1  
+HETATM 496   H HA   . DAR A 1 31 ? 14.852 -4.686  -13.068 1.00 61.13 ? 31 DAR A HA   1  
+HETATM 497   H HB2  . DAR A 1 31 ? 14.779 -6.997  -13.925 1.00 72.04 ? 31 DAR A HB2  1  
+HETATM 498   H HB3  . DAR A 1 31 ? 15.180 -6.413  -15.534 1.00 33.12 ? 31 DAR A HB3  1  
+HETATM 499   H HG2  . DAR A 1 31 ? 17.337 -5.597  -14.668 1.00 70.45 ? 31 DAR A HG2  1  
+HETATM 500   H HG3  . DAR A 1 31 ? 16.922 -6.274  -13.092 1.00 61.14 ? 31 DAR A HG3  1  
+HETATM 501   H HD2  . DAR A 1 31 ? 17.137 -7.856  -15.644 1.00 33.03 ? 31 DAR A HD2  1  
+HETATM 502   H HD3  . DAR A 1 31 ? 18.413 -7.711  -14.437 1.00 35.31 ? 31 DAR A HD3  1  
+HETATM 503   H HE   . DAR A 1 31 ? 16.363 -8.599  -12.982 1.00 41.32 ? 31 DAR A HE   1  
+HETATM 504   H HH11 . DAR A 1 31 ? 17.656 -9.765  -16.068 1.00 64.32 ? 31 DAR A HH11 1  
+HETATM 505   H HH12 . DAR A 1 31 ? 17.363 -11.402 -15.717 1.00 3.42  ? 31 DAR A HH12 1  
+HETATM 506   H HH21 . DAR A 1 31 ? 15.920 -10.868 -12.551 1.00 25.52 ? 31 DAR A HH21 1  
+HETATM 507   H HH22 . DAR A 1 31 ? 16.396 -12.039 -13.696 1.00 0.30  ? 31 DAR A HH22 1  
+HETATM 508   N N    . DCY A 1 32 ? 12.421 -4.984  -13.502 1.00 12.32 ? 32 DCY A N    1  
+HETATM 509   C CA   . DCY A 1 32 ? 10.995 -5.011  -13.701 1.00 24.53 ? 32 DCY A CA   1  
+HETATM 510   C C    . DCY A 1 32 ? 10.649 -6.366  -14.245 1.00 72.42 ? 32 DCY A C    1  
+HETATM 511   O O    . DCY A 1 32 ? 11.071 -7.372  -13.675 1.00 23.44 ? 32 DCY A O    1  
+HETATM 512   C CB   . DCY A 1 32 ? 10.247 -4.822  -12.370 1.00 71.14 ? 32 DCY A CB   1  
+HETATM 513   S SG   . DCY A 1 32 ? 10.711 -3.345  -11.396 1.00 63.21 ? 32 DCY A SG   1  
+HETATM 514   H H    . DCY A 1 32 ? 12.764 -5.119  -12.592 1.00 72.42 ? 32 DCY A H    1  
+HETATM 515   H HA   . DCY A 1 32 ? 10.709 -4.242  -14.403 1.00 23.22 ? 32 DCY A HA   1  
+HETATM 516   H HB2  . DCY A 1 32 ? 9.194  -4.760  -12.588 1.00 63.24 ? 32 DCY A HB2  1  
+HETATM 517   H HB3  . DCY A 1 32 ? 10.416 -5.695  -11.756 1.00 2.45  ? 32 DCY A HB3  1  
+HETATM 518   N N    . DAR A 1 33 ? 9.953  -6.410  -15.355 1.00 43.24 ? 33 DAR A N    1  
+HETATM 519   C CA   . DAR A 1 33 ? 9.536  -7.651  -15.957 1.00 65.41 ? 33 DAR A CA   1  
+HETATM 520   C CB   . DAR A 1 33 ? 10.505 -8.117  -17.071 1.00 54.14 ? 33 DAR A CB   1  
+HETATM 521   C CG   . DAR A 1 33 ? 11.918 -8.415  -16.588 1.00 64.51 ? 33 DAR A CG   1  
+HETATM 522   C CD   . DAR A 1 33 ? 12.788 -9.001  -17.681 1.00 22.44 ? 33 DAR A CD   1  
+HETATM 523   N NE   . DAR A 1 33 ? 12.886 -8.127  -18.848 1.00 5.54  ? 33 DAR A NE   1  
+HETATM 524   C CZ   . DAR A 1 33 ? 14.018 -7.809  -19.488 1.00 41.23 ? 33 DAR A CZ   1  
+HETATM 525   N NH1  . DAR A 1 33 ? 15.180 -8.295  -19.078 1.00 3.22  ? 33 DAR A NH1  1  
+HETATM 526   N NH2  . DAR A 1 33 ? 13.969 -7.045  -20.572 1.00 2.20  ? 33 DAR A NH2  1  
+HETATM 527   C C    . DAR A 1 33 ? 8.129  -7.493  -16.498 1.00 5.25  ? 33 DAR A C    1  
+HETATM 528   O O    . DAR A 1 33 ? 7.179  -7.492  -15.686 1.00 12.35 ? 33 DAR A O    1  
+HETATM 529   O OXT  . DAR A 1 33 ? 7.953  -7.389  -17.719 1.00 0.00  ? 33 DAR A OXT  1  
+HETATM 530   H H    . DAR A 1 33 ? 9.669  -5.568  -15.780 1.00 40.41 ? 33 DAR A H    1  
+HETATM 531   H HA   . DAR A 1 33 ? 9.523  -8.392  -15.171 1.00 23.51 ? 33 DAR A HA   1  
+HETATM 532   H HB2  . DAR A 1 33 ? 10.108 -9.013  -17.526 1.00 1.30  ? 33 DAR A HB2  1  
+HETATM 533   H HB3  . DAR A 1 33 ? 10.561 -7.344  -17.823 1.00 23.34 ? 33 DAR A HB3  1  
+HETATM 534   H HG2  . DAR A 1 33 ? 12.369 -7.497  -16.244 1.00 72.03 ? 33 DAR A HG2  1  
+HETATM 535   H HG3  . DAR A 1 33 ? 11.861 -9.115  -15.767 1.00 2.01  ? 33 DAR A HG3  1  
+HETATM 536   H HD2  . DAR A 1 33 ? 13.778 -9.172  -17.283 1.00 53.53 ? 33 DAR A HD2  1  
+HETATM 537   H HD3  . DAR A 1 33 ? 12.356 -9.944  -17.983 1.00 72.24 ? 33 DAR A HD3  1  
+HETATM 538   H HE   . DAR A 1 33 ? 12.025 -7.790  -19.184 1.00 32.22 ? 33 DAR A HE   1  
+HETATM 539   H HH11 . DAR A 1 33 ? 15.278 -8.915  -18.298 1.00 40.24 ? 33 DAR A HH11 1  
+HETATM 540   H HH12 . DAR A 1 33 ? 16.042 -8.071  -19.554 1.00 32.35 ? 33 DAR A HH12 1  
+HETATM 541   H HH21 . DAR A 1 33 ? 13.088 -6.721  -20.927 1.00 1.13  ? 33 DAR A HH21 1  
+HETATM 542   H HH22 . DAR A 1 33 ? 14.801 -6.756  -21.061 1.00 31.20 ? 33 DAR A HH22 1  
+# 
+loop_
+_pdbx_poly_seq_scheme.asym_id 
+_pdbx_poly_seq_scheme.entity_id 
+_pdbx_poly_seq_scheme.seq_id 
+_pdbx_poly_seq_scheme.mon_id 
+_pdbx_poly_seq_scheme.ndb_seq_num 
+_pdbx_poly_seq_scheme.pdb_seq_num 
+_pdbx_poly_seq_scheme.auth_seq_num 
+_pdbx_poly_seq_scheme.pdb_mon_id 
+_pdbx_poly_seq_scheme.auth_mon_id 
+_pdbx_poly_seq_scheme.pdb_strand_id 
+_pdbx_poly_seq_scheme.pdb_ins_code 
+_pdbx_poly_seq_scheme.hetero 
+A 1 1  GLY 1  1  1  GLY GLY A . n 
+A 1 2  DAS 2  2  2  DAS DAS A . n 
+A 1 3  DCY 3  3  3  DCY DCY A . n 
+A 1 4  DLE 4  4  4  DLE DLE A . n 
+A 1 5  DPR 5  5  5  DPR DPR A . n 
+A 1 6  DHI 6  6  6  DHI DHI A . n 
+A 1 7  DLE 7  7  7  DLE DLE A . n 
+A 1 8  DLY 8  8  8  DLY DLY A . n 
+A 1 9  DLE 9  9  9  DLE DLE A . n 
+A 1 10 DCY 10 10 10 DCY DCY A . n 
+A 1 11 DLY 11 11 11 DLY DLY A . n 
+A 1 12 DGL 12 12 12 DGL DGL A . n 
+A 1 13 DSG 13 13 13 DSG DSG A . n 
+A 1 14 DLY 14 14 14 DLY DLY A . n 
+A 1 15 DAS 15 15 15 DAS DAS A . n 
+A 1 16 DCY 16 16 16 DCY DCY A . n 
+A 1 17 DCY 17 17 17 DCY DCY A . n 
+A 1 18 DSN 18 18 18 DSN DSN A . n 
+A 1 19 DLY 19 19 19 DLY DLY A . n 
+A 1 20 DLY 20 20 20 DLY DLY A . n 
+A 1 21 DCY 21 21 21 DCY DCY A . n 
+A 1 22 DLY 22 22 22 DLY DLY A . n 
+A 1 23 DAR 23 23 23 DAR DAR A . n 
+A 1 24 DAR 24 24 24 DAR DAR A . n 
+A 1 25 GLY 25 25 25 GLY GLY A . n 
+A 1 26 DTH 26 26 26 DTH DTH A . n 
+A 1 27 DSG 27 27 27 DSG DSG A . n 
+A 1 28 DIL 28 28 28 DIL DIL A . n 
+A 1 29 DGL 29 29 29 DGL DGL A . n 
+A 1 30 DLY 30 30 30 DLY DLY A . n 
+A 1 31 DAR 31 31 31 DAR DAR A . n 
+A 1 32 DCY 32 32 32 DCY DCY A . n 
+A 1 33 DAR 33 33 33 DAR DAR A . n 
+# 
+loop_
+_pdbx_audit_revision_history.ordinal 
+_pdbx_audit_revision_history.data_content_type 
+_pdbx_audit_revision_history.major_revision 
+_pdbx_audit_revision_history.minor_revision 
+_pdbx_audit_revision_history.revision_date 
+1 'Structure model' 1 0 2010-07-07 
+2 'Structure model' 1 1 2011-07-13 
+# 

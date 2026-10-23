@@ -1,0 +1,55 @@
+data_1acdf
+#
+_entry.id 1acd
+#
+loop_
+_entity.id
+_entity.type
+A     polymer     
+B     polymer     
+#
+loop_
+_entity_poly.entity_id
+_entity_poly.pdbx_seq_one_letter_code
+_entity_poly.pdbx_strand_id
+_entity_poly.type
+A F A polypeptide(L) 
+B A B polypeptide(L) 
+#
+loop_
+_entity_poly_seq.entity_id
+_entity_poly_seq.hetero
+_entity_poly_seq.mon_id
+_entity_poly_seq.num
+A n PHE 6   
+B n ASP 6   
+#
+loop_
+_struct_asym.entity_id
+_struct_asym.id
+A     Axp 
+B     Bxp 
+#
+loop_
+_atom_site.group_PDB
+_atom_site.id
+_atom_site.type_symbol
+_atom_site.label_atom_id
+_atom_site.label_alt_id
+_atom_site.label_comp_id
+_atom_site.label_asym_id
+_atom_site.label_entity_id
+_atom_site.label_seq_id
+_atom_site.pdbx_PDB_ins_code
+_atom_site.Cartn_x
+_atom_site.Cartn_y
+_atom_site.Cartn_z
+_atom_site.occupancy
+_atom_site.B_iso_or_equiv
+_atom_site.pdbx_formal_charge
+_atom_site.auth_seq_id
+_atom_site.auth_asym_id
+_atom_site.pdbx_PDB_model_num
+ATOM 2    C CA  . PHE Axp A 6   ? 0.000 0.000 0.000 1    54.3  ? 139 A 1 
+ATOM 3813 C CA  . ASP Bxp B 6   ? 0.000 0.000 0.000 1    47.37 ? 6   B 1 
+#

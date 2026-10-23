@@ -1,0 +1,137 @@
+data_cell
+#
+_entry.id cell
+#
+loop_
+_entity.id
+_entity.pdbx_description
+_entity.type
+1 ? polymer     
+2 ? non-polymer 
+3 ? water       
+4 ? non-polymer 
+#
+_entity_poly.entity_id      1
+_entity_poly.pdbx_strand_id A
+_entity_poly.type           polypeptide(L)
+#
+loop_
+_entity_poly_seq.entity_id
+_entity_poly_seq.hetero
+_entity_poly_seq.mon_id
+_entity_poly_seq.num
+1 n GLY 1   
+1 n PRO 2   
+1 n ASP 3   
+#
+loop_
+_pdbx_branch_scheme.asym_id
+_pdbx_branch_scheme.auth_asym_id
+_pdbx_branch_scheme.auth_seq_num
+_pdbx_branch_scheme.entity_id
+_pdbx_branch_scheme.hetero
+_pdbx_branch_scheme.mon_id
+_pdbx_branch_scheme.num
+_pdbx_branch_scheme.pdb_asym_id
+_pdbx_branch_scheme.pdb_ins_code
+_pdbx_branch_scheme.pdb_seq_num
+C C 1     1 n HOH 1     C . 1     
+D D 1     4 n NA  1     D . 1     
+D D 2     4 n CL  2     D . 2     
+#
+_pdbx_nonpoly_scheme.asym_id       B
+_pdbx_nonpoly_scheme.auth_seq_num  1
+_pdbx_nonpoly_scheme.entity_id     2
+_pdbx_nonpoly_scheme.mon_id        E4Y
+_pdbx_nonpoly_scheme.pdb_ins_code  .
+_pdbx_nonpoly_scheme.pdb_seq_num   1
+_pdbx_nonpoly_scheme.pdb_strand_id B
+#
+loop_
+_pdbx_poly_seq_scheme.asym_id
+_pdbx_poly_seq_scheme.auth_seq_num
+_pdbx_poly_seq_scheme.entity_id
+_pdbx_poly_seq_scheme.hetero
+_pdbx_poly_seq_scheme.mon_id
+_pdbx_poly_seq_scheme.pdb_ins_code
+_pdbx_poly_seq_scheme.pdb_seq_num
+_pdbx_poly_seq_scheme.pdb_strand_id
+_pdbx_poly_seq_scheme.seq_id
+A 1   1 n GLY . 1   A 1   
+A 2   1 n PRO . 2   A 2   
+A 3   1 n ASP . 3   A 3   
+#
+_software.classification other
+_software.name           "DeepMind Structure Class"
+_software.pdbx_ordinal   1
+_software.version        1.0.2
+#
+loop_
+_struct_asym.entity_id
+_struct_asym.id
+1 A 
+2 B 
+3 C 
+4 D 
+#
+loop_
+_atom_site.group_PDB
+_atom_site.id
+_atom_site.type_symbol
+_atom_site.label_atom_id
+_atom_site.label_alt_id
+_atom_site.label_comp_id
+_atom_site.label_asym_id
+_atom_site.label_entity_id
+_atom_site.label_seq_id
+_atom_site.pdbx_PDB_ins_code
+_atom_site.Cartn_x
+_atom_site.Cartn_y
+_atom_site.Cartn_z
+_atom_site.occupancy
+_atom_site.B_iso_or_equiv
+_atom_site.auth_seq_id
+_atom_site.auth_asym_id
+_atom_site.pdbx_PDB_model_num
+ATOM 1     N  N    . GLY A 1 1   ? 9.771   20.336  -10.699 0.00 0.00 1     A 1 
+ATOM 2     C  CA   . GLY A 1 1   ? 9.979   19.343  -11.832 0.00 0.00 1     A 1 
+ATOM 3     C  C    . GLY A 1 1   ? 8.938   19.772  -12.854 0.00 0.00 1     A 1 
+ATOM 4     O  O    . GLY A 1 1   ? 8.992   20.907  -13.383 0.00 0.00 1     A 1 
+ATOM 5     H  H    . GLY A 1 1   ? 9.145   20.040  -9.964  0.00 0.00 1     A 1 
+ATOM 6     H  H2   . GLY A 1 1   ? 10.686  20.478  -10.295 0.00 0.00 1     A 1 
+ATOM 7     H  H3   . GLY A 1 1   ? 9.357   21.193  -11.037 0.00 0.00 1     A 1 
+ATOM 8     H  HA2  . GLY A 1 1   ? 10.943  19.475  -12.323 0.00 0.00 1     A 1 
+ATOM 9     H  HA3  . GLY A 1 1   ? 9.962   18.288  -11.556 0.00 0.00 1     A 1 
+ATOM 10    N  N    . PRO A 1 2   ? 7.922   18.936  -13.083 0.00 0.00 2     A 1 
+ATOM 11    C  CA   . PRO A 1 2   ? 6.670   19.365  -13.741 0.00 0.00 2     A 1 
+ATOM 12    C  C    . PRO A 1 2   ? 6.051   20.687  -13.187 0.00 0.00 2     A 1 
+ATOM 13    O  O    . PRO A 1 2   ? 6.121   20.899  -11.986 0.00 0.00 2     A 1 
+ATOM 14    C  CB   . PRO A 1 2   ? 5.720   18.124  -13.585 0.00 0.00 2     A 1 
+ATOM 15    C  CG   . PRO A 1 2   ? 6.671   16.915  -13.408 0.00 0.00 2     A 1 
+ATOM 16    C  CD   . PRO A 1 2   ? 7.837   17.586  -12.603 0.00 0.00 2     A 1 
+ATOM 17    H  HA   . PRO A 1 2   ? 6.907   19.550  -14.789 0.00 0.00 2     A 1 
+ATOM 18    H  HB2  . PRO A 1 2   ? 5.151   18.288  -12.670 0.00 0.00 2     A 1 
+ATOM 19    H  HB3  . PRO A 1 2   ? 5.033   18.004  -14.423 0.00 0.00 2     A 1 
+ATOM 20    H  HG2  . PRO A 1 2   ? 6.279   16.036  -12.898 0.00 0.00 2     A 1 
+ATOM 21    H  HG3  . PRO A 1 2   ? 6.927   16.712  -14.448 0.00 0.00 2     A 1 
+ATOM 22    H  HD2  . PRO A 1 2   ? 7.736   17.701  -11.524 0.00 0.00 2     A 1 
+ATOM 23    H  HD3  . PRO A 1 2   ? 8.738   17.042  -12.887 0.00 0.00 2     A 1 
+ATOM 24    N  N    . ASP A 1 3   ? 5.355   21.437  -14.084 0.00 0.00 3     A 1 
+ATOM 25    C  CA   . ASP A 1 3   ? 4.518   22.633  -13.699 0.00 0.00 3     A 1 
+ATOM 26    C  C    . ASP A 1 3   ? 3.360   22.218  -12.796 0.00 0.00 3     A 1 
+ATOM 27    O  O    . ASP A 1 3   ? 2.816   21.084  -12.902 0.00 0.00 3     A 1 
+ATOM 28    C  CB   . ASP A 1 3   ? 4.133   23.376  -14.996 0.00 0.00 3     A 1 
+ATOM 29    C  CG   . ASP A 1 3   ? 5.334   24.011  -15.672 0.00 0.00 3     A 1 
+ATOM 30    O  OD1  . ASP A 1 3   ? 5.301   23.867  -16.945 0.00 0.00 3     A 1 
+ATOM 31    O  OD2  . ASP A 1 3   ? 6.248   24.563  -14.980 0.00 0.00 3     A 1 
+ATOM 32    H  H    . ASP A 1 3   ? 5.237   21.200  -15.059 0.00 0.00 3     A 1 
+ATOM 33    H  HA   . ASP A 1 3   ? 5.110   23.312  -13.085 0.00 0.00 3     A 1 
+ATOM 34    H  HB2  . ASP A 1 3   ? 3.606   22.729  -15.697 0.00 0.00 3     A 1 
+ATOM 35    H  HB3  . ASP A 1 3   ? 3.498   24.235  -14.780 0.00 0.00 3     A 1 
+ATOM 36    N  N1   . E4Y B 2 .   ? -2.465  -8.591  1.355   0.00 0.00 1     B 1 
+ATOM 37    O  O    . HOH C 3 .   ? 19.260  -27.077 -24.468 0.00 0.00 1     C 1 
+ATOM 38    H  H1   . HOH C 3 .   ? 20.018  -27.642 -24.322 0.00 0.00 1     C 1 
+ATOM 39    H  H2   . HOH C 3 .   ? 19.276  -26.459 -23.738 0.00 0.00 1     C 1 
+ATOM 40    Na Na   . NA  D 4 .   ? 31.849  27.023  -31.388 0.00 0.00 1     D 1 
+ATOM 41    Cl Cl   . CL  D 4 .   ? -19.476 16.541  36.482  0.00 0.00 2     D 1 
+#
