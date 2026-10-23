@@ -42,6 +42,6 @@ jobs:
 
     - name: Run CPU-only tests
       run: |
-        uv run python src/alphafold3/common/folding_input_test.py
+        uv run pytest src/alphafold3/common/folding_input_test.py
         uv run pytest src/alphafold3/structure
-        uv run python run_alphafold_data_test.py
+        uv run pytest run_alphafold_data_test.py
