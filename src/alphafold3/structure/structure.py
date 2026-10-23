@@ -532,13 +532,11 @@ class Structure(table.Database):
 
   @functools.cached_property
   def chain_id(self) -> np.ndarray:
-    chain_index_by_key = self._chains.index_by_key
-    return self._chains.id[chain_index_by_key[self._atoms.chain_key]]
+    return self._chains.apply_array_to_column('id', self._atoms.chain_key)
 
   @functools.cached_property
   def chain_type(self) -> np.ndarray:
-    chain_index_by_key = self._chains.index_by_key
-    return self._chains.type[chain_index_by_key[self._atoms.chain_key]]
+    return self._chains.apply_array_to_column('type', self._atoms.chain_key)
 
   @functools.cached_property
   def res_id(self) -> np.ndarray:
