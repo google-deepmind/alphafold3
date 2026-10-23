@@ -2936,13 +2936,27 @@ class StructureTest(test_utils.StructureTestCase):
         res_arrays.atom_occupancy.shape, (0, atom_types.ATOM37_NUM)
     )
 
+  def test_to_res_arrays_single_model_leading_dim_raises(self):
+    # 2pv7 is a single-model mmCIF, so ModelID.ALL adds a size-1 leading dim.
+    batched = structure.from_mmcif(
+        test_utils.read_test_cif_file('2pv7'),
+        model_id=structure.ModelID.ALL,
+        include_bonds=False,
+    )
+    self.assertEqual(batched.atoms_table.ndim, 2)
+    self.assertEqual(batched.num_models, 1)
+    with self.assertRaisesRegex(ValueError, 'Only 1D atom arrays allowed'):
+      batched.to_res_arrays(include_missing_residues=False)
+
   def test_to_res_arrays_multi_model_raises(self):
     multi_model = structure.from_mmcif(
         test_utils.read_test_cif_file('1wib'),
         model_id=structure.ModelID.ALL,
         include_bonds=False,
     )
-    with self.assertRaises(ValueError):
+    with self.assertRaisesRegex(
+        ValueError, 'Only single-model Structure allowed'
+    ):
       multi_model.to_res_arrays(include_missing_residues=False)
 
   @parameterized.parameters(

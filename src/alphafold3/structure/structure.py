@@ -2480,7 +2480,19 @@ class Structure(table.Database):
 
     Returns:
       A ResArrays object.
+
+    Raises:
+      ValueError: If this is not a single-model structure (`num_models != 1`) or
+        if the atoms table has leading dimensions (`atoms_table.ndim != 1`).
     """
+    if self.num_models != 1:
+      raise ValueError(
+          f'Only single-model Structure allowed, got {self.num_models=}'
+      )
+    if self._atoms.ndim != 1:
+      raise ValueError(
+          f'Only 1D atom arrays allowed, got {self.atoms_table.ndim=}'
+      )
     num_res = self.num_residues(count_unresolved=include_missing_residues)
     atom_type_num = len(atom_order)
     atom_positions = np.zeros((num_res, atom_type_num, 3), dtype=np.float32)
