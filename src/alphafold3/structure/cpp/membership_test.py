@@ -30,6 +30,17 @@ def _prevent_intern(s: str) -> str:
   return ''.join(s)
 
 
+_INT_DTYPES = (
+    np.int64,
+    np.int32,
+    np.int16,
+    np.int8,
+    np.uint32,
+    np.uint16,
+    np.uint8,
+)
+
+
 class MembershipTest(parameterized.TestCase):
 
   @parameterized.parameters(
@@ -58,7 +69,7 @@ class MembershipTest(parameterized.TestCase):
     )
     self.assertSequenceEqual(result.tolist(), exp_result)
 
-  @parameterized.parameters(np.int64, np.int32)
+  @parameterized.parameters(*_INT_DTYPES)
   def test_isin_multi_dim(self, dtype):
     result = membership.isin(
         np.array([[1, 2, 0], [3, 4, 0]], dtype=dtype), {1, 4}
@@ -68,8 +79,7 @@ class MembershipTest(parameterized.TestCase):
     )
 
   @parameterized.parameters(
-      (np.int64, 42, 1),
-      (np.int32, 42, 1),
+      *((dtype, 42, 1) for dtype in _INT_DTYPES),
       (object, 'A', 'B'),
       (np.dtype('T'), 'A', 'B'),
   )
@@ -280,6 +290,52 @@ class MembershipTest(parameterized.TestCase):
     arr = np.empty((5, 0), dtype=np.dtypes.StringDType())[::2, :]
     res = membership.isin(arr, {'A', 'B'})
     self.assertEqual(res.shape, (3, 0))
+
+  @parameterized.product(
+      layout_fn=(
+          np.asfortranarray,
+          np.transpose,
+          lambda x: x[::2, ::2],
+          lambda x: x[::-1, ::-1],
+      ),
+      dtype=(*_INT_DTYPES, np.longlong),
+      test_elements=({1, 5, 6}, set()),
+      invert=(False, True),
+  )
+  def test_isin_int_array_non_c_contiguous_layouts(
+      self, layout_fn, dtype, test_elements, invert
+  ):
+    arr = layout_fn(np.arange(1, 13, dtype=dtype).reshape(3, 4))
+    self.assertFalse(arr.flags.c_contiguous)
+    np.testing.assert_array_equal(
+        membership.isin(arr, test_elements, invert=invert),
+        np.isin(arr, list(test_elements), invert=invert),
+        strict=True,
+    )
+
+  @parameterized.parameters(*_INT_DTYPES, np.longlong)
+  def test_isin_non_contiguous_int_rejects_incompatible_test_elements(
+      self, dtype
+  ):
+    with self.assertRaisesRegex(RuntimeError, 'Unable to cast'):
+      membership.isin(np.arange(4, dtype=dtype)[::2], {'A'})
+
+  @parameterized.parameters(*_INT_DTYPES)
+  def test_isin_int_out_of_range_test_elements(self, dtype):
+    arr = np.array([1, 2, 3], dtype=dtype)
+    np.testing.assert_array_equal(
+        membership.isin(arr, {-1, 2, 10**12, 10**30}),
+        [False, True, False],
+        strict=True,
+    )
+
+  def test_isin_uint64_above_int64_max(self):
+    arr = np.array([1, 2**63 + 5, 3], dtype=np.uint64)
+    np.testing.assert_array_equal(
+        membership.isin(arr, {2**63 + 5, 99}),
+        [False, True, False],
+        strict=True,
+    )
 
 
 if __name__ == '__main__':

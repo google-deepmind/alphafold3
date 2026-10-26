@@ -25,9 +25,11 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <memory>
 #include <utility>
 
+#include "numpy/ndarrayobject.h"
 #include "numpy/ndarraytypes.h"
 #include "numpy/npy_common.h"
 #include "absl/algorithm/container.h"
@@ -57,10 +59,33 @@ void ApplyIsIn(absl::Span<bool> result, absl::Span<PyObject* const> values,
   }
 }
 
+// Skips out-of-range integers while keeping `py::cast<Number>` non-int errors.
+template <typename Number>
+absl::flat_hash_set<Number> CastIntSet(const py::iterable& test_elements) {
+  absl::flat_hash_set<Number> result;
+  result.reserve(py::len_hint(test_elements));
+  for (py::handle elem : test_elements) {
+    if (!PyIndex_Check(elem.ptr())) {
+      py::cast<Number>(elem);
+    }
+    int overflow = 0;
+    const int64_t val = PyLong_AsLongLongAndOverflow(elem.ptr(), &overflow);
+    if (PyErr_Occurred()) {
+      throw py::error_already_set();
+    }
+    if (overflow == 0 && val >= std::numeric_limits<Number>::min() &&
+        val <= std::numeric_limits<Number>::max()) {
+      result.insert(static_cast<Number>(val));
+    }
+  }
+  return result;
+}
+
 template <typename Number>
 void ApplyIsIn(absl::Span<bool> result, absl::Span<const Number> values,
                py::anyset test_elements, bool invert) {
-  auto test_elements_set = py::cast<absl::flat_hash_set<Number>>(test_elements);
+  auto test_elements_set =
+      CastIntSet<Number>(py::reinterpret_borrow<py::iterable>(test_elements));
   py::gil_scoped_release release;
   for (size_t i = 0, e = values.size(); i < e; ++i) {
     result[i] = invert != test_elements_set.contains(values[i]);
@@ -160,10 +185,20 @@ py::array_t<bool> isin(const py::array& array, py::anyset test_elements,
   PyArray_Descr* descr = PyArray_DESCR(array_obj);
 
   if (descr->type_num != NPY_VSTRING) {
+    const npy_intp elsize = PyDataType_ELSIZE(descr);
+    // Reuse `int32_t`/`int64_t` kernels (`uint64` falls back to `PyObject*`).
+    if (PyDataType_ISSIGNED(descr) && elsize <= sizeof(int32_t)) {
+      return IsIn(py::cast<py::array_t<int32_t, py::array::c_style>>(array),
+                  std::move(test_elements), invert);
+    }
+    if ((PyDataType_ISSIGNED(descr) && elsize == sizeof(int64_t)) ||
+        (PyDataType_ISUNSIGNED(descr) && elsize <= sizeof(uint32_t))) {
+      return IsIn(py::cast<py::array_t<int64_t, py::array::c_style>>(array),
+                  std::move(test_elements), invert);
+    }
     // Fall back to the object-based IsIn, for backwards compatibility.
-    py::array_t<PyObject*, py::array::c_style> as_py_object =
-        py::cast<py::array_t<PyObject*, py::array::c_style>>(array);
-    return IsIn(as_py_object, test_elements, invert);
+    return IsIn(py::cast<py::array_t<PyObject*, py::array::c_style>>(array),
+                std::move(test_elements), invert);
   }
 
   absl::flat_hash_set<absl::string_view> test_elements_set =
