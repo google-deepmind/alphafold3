@@ -22,6 +22,7 @@ import dataclasses
 from typing import Any, ClassVar, Self
 
 from absl.testing import absltest
+from absl.testing import parameterized
 from alphafold3.structure import table
 import numpy as np
 
@@ -42,7 +43,7 @@ class MultiDimColTable(table.Table):
   multi_data: np.ndarray
 
 
-class TableTest(absltest.TestCase):
+class TableTest(parameterized.TestCase):
 
   def test_post_init_validation(self):
     with self.assertRaises(ValueError):
@@ -50,6 +51,29 @@ class TableTest(absltest.TestCase):
           key=np.array([1, 2, 3], dtype=np.int64),
           data=np.array(['A'], dtype=object),
       )
+
+  @parameterized.named_parameters(
+      dict(
+          testcase_name='numeric_column_str_predicate',
+          col='ints',
+          predicate='A',
+      ),
+      dict(
+          testcase_name='character_column_numeric_predicate',
+          col='data',
+          predicate=(1, 2, 3),
+      ),
+  )
+  def test_make_filter_mask_mismatched_value_type_raises_value_error(
+      self, col, predicate
+  ):
+    tbl = TwoColTable(
+        key=np.array([0, 1, 2], dtype=np.int64),
+        data=np.array(['A', 'B', 'C'], dtype='<U1'),
+        ints=np.array([3, 5, 7], dtype=np.int32),
+    )
+    with self.assertRaisesRegex(ValueError, f'Cannot filter column {col}'):
+      tbl.make_filter_mask(**{col: predicate})
 
   def test_single_table(self):
     test_table = OneColTable(

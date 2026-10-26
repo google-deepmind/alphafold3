@@ -79,6 +79,25 @@ def _eval_callable_predicate(
   return _as_bool_mask(pred_fn(col_arr), size=size)
 
 
+def _validate_filter_values(
+    col_dtype: np.dtype, target_vals: Sequence[Any], *, col_name: str
+) -> None:
+  """Raises ValueError if target values are incompatible with `col_dtype`."""
+  col_is_numeric = np.issubdtype(col_dtype, np.number)
+  col_is_character = np.issubdtype(col_dtype, np.character)
+  if not (col_is_numeric or col_is_character):
+    return
+  for target_val in target_vals:
+    val_dtype = np.asarray(target_val).dtype
+    if (col_is_numeric and not np.issubdtype(val_dtype, np.number)) or (
+        col_is_character and not np.issubdtype(val_dtype, np.character)
+    ):
+      raise ValueError(
+          f'Cannot filter column {col_name} (with type {col_dtype}) by value'
+          f' {target_val} (with type {type(target_val)}.'
+      )
+
+
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Table:
   """Parent class for structure tables.
@@ -354,9 +373,12 @@ class Table:
       callable_predicates = []
       if not callable(predicate):
         if isinstance(predicate, Iterable) and not isinstance(predicate, str):
-          target_vals = predicate
+          target_vals = tuple(predicate)
         else:
-          target_vals = [predicate]
+          target_vals = (predicate,)
+        _validate_filter_values(
+            self.get_column(col).dtype, target_vals, col_name=col
+        )
         for target_val in target_vals:
           callable_predicates.append(lambda x, target=target_val: x == target)
       else:
