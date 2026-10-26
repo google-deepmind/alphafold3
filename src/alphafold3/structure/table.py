@@ -60,6 +60,25 @@ def _as_bool_mask(mask_or_scalar: Any, *, size: int) -> np.ndarray:
   return mask if mask.shape == (size,) else np.broadcast_to(mask, (size,))
 
 
+def _eval_callable_predicate(
+    col_arr: np.ndarray,
+    predicate: (
+        Callable[[Any], bool] | Callable[[np.ndarray], bool | np.ndarray]
+    ),
+    *,
+    apply_per_element: bool,
+) -> np.ndarray:
+  """Evaluates a per-element or vectorized callable predicate into a mask."""
+  size = col_arr.shape[0]
+  if apply_per_element:
+    # Cast via `bool(...)` so non-bool truthy/sequence returns match `np.array`.
+    return np.fromiter(
+        (bool(predicate(elem)) for elem in col_arr), dtype=bool, count=size
+    )
+  pred_fn = typing.cast(Callable[[np.ndarray], bool | np.ndarray], predicate)
+  return _as_bool_mask(pred_fn(col_arr), size=size)
+
+
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Table:
   """Parent class for structure tables.
@@ -345,17 +364,11 @@ class Table:
 
       field_mask = np.zeros_like(mask)
       for callable_predicate in callable_predicates:
-        if not apply_per_element:
-          callable_predicate = typing.cast(
-              Callable[[np.ndarray], bool | np.ndarray], callable_predicate
-          )
-          predicate_result = _as_bool_mask(
-              callable_predicate(self.get_column(col)), size=self.size
-          )
-        else:
-          predicate_result = np.array(
-              [callable_predicate(elem) for elem in self.get_column(col)]
-          )
+        predicate_result = _eval_callable_predicate(
+            self.get_column(col),
+            callable_predicate,
+            apply_per_element=apply_per_element,
+        )
         np.logical_or(field_mask, predicate_result, out=field_mask)
       np.logical_and(mask, field_mask, out=mask)  # Update in-place.
     return mask

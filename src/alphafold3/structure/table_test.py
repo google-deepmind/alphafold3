@@ -19,7 +19,7 @@
 
 from collections.abc import Collection, Mapping
 import dataclasses
-from typing import ClassVar, Self
+from typing import Any, ClassVar, Self
 
 from absl.testing import absltest
 from alphafold3.structure import table
@@ -391,6 +391,19 @@ class TableTest(absltest.TestCase):
       )
     with self.assertRaisesRegex(ValueError, 'broadcast'):
       tbl.make_filter_mask(data=lambda _: np.array([True, False]))
+
+  def test_make_filter_mask_per_element_truthy_callable(self):
+    tbl = TwoColTable(
+        key=np.array([0, 1, 2], dtype=np.int64),
+        data=np.array(['A', 'B', 'C'], dtype=object),
+        ints=np.array([3, 5, 7], dtype=np.int32),
+    )
+    truthy_fn: Any = lambda x: x - 3
+    np.testing.assert_array_equal(
+        tbl.make_filter_mask(ints=truthy_fn, apply_per_element=True),
+        np.array([False, True, True]),
+        strict=True,
+    )
 
   def test_sliced_multidim_table_columns_remain_immutable(self):
     tbl = MultiDimColTable(
