@@ -429,6 +429,21 @@ class TableTest(parameterized.TestCase):
         strict=True,
     )
 
+  def test_make_filter_mask_multichar_string_and_generator_predicates(self):
+    tbl = OneColTable(
+        key=np.array([0, 1, 2], dtype=np.int64),
+        data=np.array(['AB', 'A', 'B'], dtype=object),
+    )
+    for pred, expected in (
+        ('AB', [True, False, False]),
+        ((c for c in ('A', 'C')), [False, True, False]),
+    ):
+      np.testing.assert_array_equal(
+          tbl.make_filter_mask(data=pred),
+          np.array(expected, dtype=bool),
+          strict=True,
+      )
+
   def test_sliced_multidim_table_columns_remain_immutable(self):
     tbl = MultiDimColTable(
         key=np.array([10, 20, 30], dtype=np.int64),

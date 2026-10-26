@@ -99,11 +99,7 @@ def _validate_filter_values(
 
 
 def _eval_value_predicate(
-    col_arr: np.ndarray,
-    predicate: Any,
-    *,
-    apply_per_element: bool,
-    col_name: str,
+    col_arr: np.ndarray, predicate: Any, *, col_name: str
 ) -> np.ndarray:
   """Evaluates a scalar or multi-value equality predicate into a bool mask."""
   # Strings are Iterable, so treat `str` predicates as a single scalar value.
@@ -111,16 +107,18 @@ def _eval_value_predicate(
     target_vals = tuple(predicate)
   else:
     target_vals = (predicate,)
-  _validate_filter_values(col_arr.dtype, target_vals, col_name=col_name)
+  col_dtype = col_arr.dtype
+  _validate_filter_values(col_dtype, target_vals, col_name=col_name)
 
-  field_mask = np.zeros((col_arr.shape[0],), dtype=bool)
+  size = col_arr.shape[0]
+  if not target_vals or size == 0:
+    return np.zeros((size,), dtype=bool)
+  if len(target_vals) == 1:
+    return _as_bool_mask(col_arr == target_vals[0], size=size)
+
+  field_mask = np.zeros((size,), dtype=bool)
   for target_val in target_vals:
-    predicate_result = _eval_callable_predicate(
-        col_arr,
-        lambda x, target=target_val: x == target,
-        apply_per_element=apply_per_element,
-    )
-    np.logical_or(field_mask, predicate_result, out=field_mask)
+    np.logical_or(field_mask, col_arr == target_val, out=field_mask)
   return field_mask
 
 
@@ -401,12 +399,7 @@ class Table:
             col_arr, predicate, apply_per_element=apply_per_element
         )
       else:
-        field_mask = _eval_value_predicate(
-            col_arr,
-            predicate,
-            apply_per_element=apply_per_element,
-            col_name=col,
-        )
+        field_mask = _eval_value_predicate(col_arr, predicate, col_name=col)
       np.logical_and(mask, field_mask, out=mask)  # Update in-place.
     return mask
 
