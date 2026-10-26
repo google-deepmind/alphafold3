@@ -98,6 +98,32 @@ def _validate_filter_values(
       )
 
 
+def _eval_value_predicate(
+    col_arr: np.ndarray,
+    predicate: Any,
+    *,
+    apply_per_element: bool,
+    col_name: str,
+) -> np.ndarray:
+  """Evaluates a scalar or multi-value equality predicate into a bool mask."""
+  # Strings are Iterable, so treat `str` predicates as a single scalar value.
+  if isinstance(predicate, Iterable) and not isinstance(predicate, str):
+    target_vals = tuple(predicate)
+  else:
+    target_vals = (predicate,)
+  _validate_filter_values(col_arr.dtype, target_vals, col_name=col_name)
+
+  field_mask = np.zeros((col_arr.shape[0],), dtype=bool)
+  for target_val in target_vals:
+    predicate_result = _eval_callable_predicate(
+        col_arr,
+        lambda x, target=target_val: x == target,
+        apply_per_element=apply_per_element,
+    )
+    np.logical_or(field_mask, predicate_result, out=field_mask)
+  return field_mask
+
+
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Table:
   """Parent class for structure tables.
@@ -365,33 +391,22 @@ class Table:
         raise ValueError(f'mask must have dtype bool. Got: {mask.dtype}.')
 
     for col, predicate in predicate_by_col.items():
-      if self[col].ndim > 1:
+      col_arr = self.get_column(col)
+      if col_arr.ndim > 1:
         raise ValueError(
             f'Cannot filter by column {col} with more than 1 dimension.'
         )
-
-      callable_predicates = []
-      if not callable(predicate):
-        if isinstance(predicate, Iterable) and not isinstance(predicate, str):
-          target_vals = tuple(predicate)
-        else:
-          target_vals = (predicate,)
-        _validate_filter_values(
-            self.get_column(col).dtype, target_vals, col_name=col
+      if callable(predicate):
+        field_mask = _eval_callable_predicate(
+            col_arr, predicate, apply_per_element=apply_per_element
         )
-        for target_val in target_vals:
-          callable_predicates.append(lambda x, target=target_val: x == target)
       else:
-        callable_predicates.append(predicate)
-
-      field_mask = np.zeros_like(mask)
-      for callable_predicate in callable_predicates:
-        predicate_result = _eval_callable_predicate(
-            self.get_column(col),
-            callable_predicate,
+        field_mask = _eval_value_predicate(
+            col_arr,
+            predicate,
             apply_per_element=apply_per_element,
+            col_name=col,
         )
-        np.logical_or(field_mask, predicate_result, out=field_mask)
       np.logical_and(mask, field_mask, out=mask)  # Update in-place.
     return mask
 
