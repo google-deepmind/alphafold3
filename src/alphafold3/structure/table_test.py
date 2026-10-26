@@ -483,6 +483,18 @@ class TableTest(parameterized.TestCase):
         writeable_mask, np.array([False, True, True]), strict=True
     )
 
+  def test_make_filter_mask_multi_value_int_out_of_dtype_range(self):
+    tbl = TwoColTable(
+        key=np.array([0, 1, 2], dtype=np.int64),
+        data=np.array(['A', 'B', 'C'], dtype=object),
+        ints=np.array([3, 5, 7], dtype=np.int32),
+    )
+    np.testing.assert_array_equal(
+        tbl.make_filter_mask(ints=(5, 10**12)),
+        np.array([False, True, False]),
+        strict=True,
+    )
+
   def test_sliced_multidim_table_columns_remain_immutable(self):
     tbl = MultiDimColTable(
         key=np.array([10, 20, 30], dtype=np.int64),

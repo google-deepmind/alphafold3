@@ -28,9 +28,11 @@ from collections.abc import Callable, Collection, Iterable, Iterator, Mapping, S
 import dataclasses
 import functools
 import graphlib
+import math
 import typing
 from typing import Any, Protocol, Self, TypeAlias, TypeVar, overload
 
+from alphafold3.cpp import membership
 from alphafold3.cpp import string_array
 import numpy as np
 
@@ -115,6 +117,23 @@ def _eval_value_predicate(
     return np.zeros((size,), dtype=bool)
   if len(target_vals) == 1:
     return _as_bool_mask(col_arr == target_vals[0], size=size)
+  if col_dtype == object:
+    # Exclude NaN so Python `set` identity lookup cannot match NaN singletons.
+    non_nan_targets = {
+        v
+        for v in target_vals
+        if not (isinstance(v, (float, np.floating)) and math.isnan(v))
+    }
+    return membership.isin(col_arr, non_nan_targets)
+  if col_dtype in (np.int64, np.int32) and all(
+      isinstance(v, (int, np.integer)) for v in target_vals
+  ):
+    # Pre-filter out-of-range ints so C++ int64_t or int32_t cast cannot raise.
+    iinfo = np.iinfo(col_dtype)
+    return membership.isin(
+        col_arr,
+        {int(v) for v in target_vals if iinfo.min <= int(v) <= iinfo.max},
+    )
 
   field_mask = np.zeros((size,), dtype=bool)
   for target_val in target_vals:
