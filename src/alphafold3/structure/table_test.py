@@ -37,6 +37,11 @@ class TwoColTable(table.Table):
   ints: np.ndarray
 
 
+@dataclasses.dataclass(frozen=True)
+class MultiDimColTable(table.Table):
+  multi_data: np.ndarray
+
+
 class TableTest(absltest.TestCase):
 
   def test_post_init_validation(self):
@@ -308,6 +313,84 @@ class TableTest(absltest.TestCase):
     with self.subTest('invalid_column_name'):
       with self.assertRaisesRegex(ValueError, 'Invalid column names: '):
         _ = test_table.copy_and_remap(bad_col_name={})
+
+  def test_make_filter_mask_float32_column(self):
+    @dataclasses.dataclass(frozen=True, kw_only=True)
+    class FloatColTable(table.Table):
+      vals: np.ndarray
+
+    tbl = FloatColTable(
+        key=np.array([0, 1, 2], dtype=np.int64),
+        vals=np.array([0.3, 0.5, 0.7], dtype=np.float32),
+    )
+    np.testing.assert_array_equal(
+        tbl.make_filter_mask(vals=(0.3, 0.7)),
+        np.array([True, False, True]),
+        strict=True,
+    )
+
+  def test_make_filter_mask_bool_column_multi_value(self):
+    @dataclasses.dataclass(frozen=True, kw_only=True)
+    class BoolColTable(table.Table):
+      flags: np.ndarray
+
+    tbl = BoolColTable(
+        key=np.array([0, 1], dtype=np.int64),
+        flags=np.array([True, False], dtype=bool),
+    )
+    np.testing.assert_array_equal(
+        tbl.make_filter_mask(flags=(True, False)),
+        np.array([True, True]),
+        strict=True,
+    )
+    np.testing.assert_array_equal(
+        tbl.make_filter_mask(flags=tuple(str(i) for i in range(12))),
+        np.array([False, False]),
+        strict=True,
+    )
+
+  def test_make_filter_mask_object_column_nan_singleton(self):
+    nan = float('nan')
+    tbl = OneColTable(
+        key=np.array([0, 1], dtype=np.int64),
+        data=np.array([nan, 'B'], dtype=object),
+    )
+    np.testing.assert_array_equal(
+        tbl.make_filter_mask(data=(nan, 'B')),
+        np.array([False, True]),
+        strict=True,
+    )
+
+  def test_make_filter_mask_empty_iterable_returns_all_false(self):
+    tbl = OneColTable(
+        key=np.array([0, 1, 2], dtype=np.int64),
+        data=np.array(['A', 'B', 'C'], dtype=object),
+    )
+    np.testing.assert_array_equal(
+        tbl.make_filter_mask(data=()),
+        np.array([False, False, False]),
+        strict=True,
+    )
+
+  def test_sliced_multidim_table_columns_remain_immutable(self):
+    tbl = MultiDimColTable(
+        key=np.array([10, 20, 30], dtype=np.int64),
+        multi_data=np.array(
+            [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]], dtype=np.float32
+        ),
+    )
+    for sliced in (
+        tbl.apply_array(np.array([True, False, True])),
+        tbl.apply_array(np.array([10, 30], dtype=np.int64)),
+        tbl.apply_index(np.array([0, 2], dtype=np.int64)),
+    ):
+      self.assertFalse(sliced.key.flags.writeable)
+      self.assertFalse(sliced.multi_data.flags.writeable)
+      np.testing.assert_array_equal(
+          sliced.multi_data,
+          np.array([[1.0, 3.0], [4.0, 6.0]], dtype=np.float32),
+          strict=True,
+      )
 
 
 @dataclasses.dataclass(frozen=True)

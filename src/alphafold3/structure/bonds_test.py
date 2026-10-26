@@ -68,6 +68,8 @@ class BondsTest(parameterized.TestCase):
       dict(atom_key=[4, 5], exp_bonds_key=[2]),
       dict(atom_key=[4, 2, 5], exp_bonds_key=[2, 5]),
       dict(atom_key=[4], exp_bonds_key=[]),
+      dict(atom_key=[], exp_bonds_key=[]),
+      dict(atom_key=[0, 1, 2, 3, 4, 5], exp_bonds_key=[2, 3, 4, 5]),
   ])
   def test_restrict_to_atoms(self, atom_key, exp_bonds_key):
     bonds = bonds_table.Bonds(
@@ -79,6 +81,44 @@ class BondsTest(parameterized.TestCase):
     )
     restr_bonds = bonds.restrict_to_atoms(np.array(atom_key))
     np.testing.assert_array_equal(restr_bonds.key, np.array(exp_bonds_key))
+
+  @parameterized.named_parameters(
+      dict(
+          testcase_name='int32_query_with_out_of_range_bond_key',
+          from_atom_key=[4, 4],
+          dest_atom_key=[5, 10**12],
+          atom_key=np.array([4, 5], dtype=np.int32),
+          exp_bonds_key=[2],
+      ),
+      dict(
+          testcase_name='int16_query',
+          from_atom_key=[4, 0],
+          dest_atom_key=[5, 1],
+          atom_key=np.array([4, 5], dtype=np.int16),
+          exp_bonds_key=[2],
+      ),
+      dict(
+          testcase_name='2d_query_array',
+          from_atom_key=[4, 0],
+          dest_atom_key=[5, 1],
+          atom_key=np.array([[4, 5], [0, 9]], dtype=np.int64),
+          exp_bonds_key=[2],
+      ),
+  )
+  def test_restrict_to_atoms_integer_dtypes_and_shapes(
+      self, from_atom_key, dest_atom_key, atom_key, exp_bonds_key
+  ):
+    bonds = bonds_table.Bonds(
+        key=np.array([2, 3], dtype=np.int64),
+        type=np.array(['.', '.'], dtype=object),
+        role=np.array(['.', '.'], dtype=object),
+        from_atom_key=np.array(from_atom_key, dtype=np.int64),
+        dest_atom_key=np.array(dest_atom_key, dtype=np.int64),
+    )
+    restr_bonds = bonds.restrict_to_atoms(atom_key)
+    np.testing.assert_array_equal(
+        restr_bonds.key, np.array(exp_bonds_key, dtype=np.int64), strict=True
+    )
 
   def test_concat_with_atom_keys_no_bonds(self):
     bonds_tables = [None, None, None]

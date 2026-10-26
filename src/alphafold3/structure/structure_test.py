@@ -841,6 +841,199 @@ class StructureTest(test_utils.StructureTestCase):
         filtered_mask_only.atom_x, np.array([[1.0, 3.0, 6.0]])
     )
 
+  @parameterized.named_parameters(
+      dict(
+          testcase_name='single_chain',
+          chain_pred='A',
+          cascade_delete=structure_lib.CascadeDelete.CHAINS,
+          exp_chains=['A'],
+          exp_all_residues={'A': [('ALA', 1), ('CYS', 2)]},
+          exp_atom_x=[[1.0], [11.0]],
+          exp_bond_keys=[],
+      ),
+      dict(
+          testcase_name='adjacent_chains_chains_cascade',
+          chain_pred=('A', 'B'),
+          cascade_delete=structure_lib.CascadeDelete.CHAINS,
+          exp_chains=['A', 'B'],
+          exp_all_residues={
+              'A': [('ALA', 1), ('CYS', 2)],
+              'B': [('GLY', 1), ('SER', 2)],
+          },
+          exp_atom_x=[[1.0, 2.0, 3.0], [11.0, 12.0, 13.0]],
+          exp_bond_keys=[1],
+      ),
+      dict(
+          testcase_name='adjacent_chains_full_cascade',
+          chain_pred=('A', 'B'),
+          cascade_delete=structure_lib.CascadeDelete.FULL,
+          exp_chains=['A', 'B'],
+          exp_all_residues={
+              'A': [('ALA', 1)],
+              'B': [('GLY', 1), ('SER', 2)],
+          },
+          exp_atom_x=[[1.0, 2.0, 3.0], [11.0, 12.0, 13.0]],
+          exp_bond_keys=[1],
+      ),
+      dict(
+          testcase_name='disjoint_chains',
+          chain_pred=('A', 'D'),
+          cascade_delete=structure_lib.CascadeDelete.CHAINS,
+          exp_chains=['A', 'D'],
+          exp_all_residues={
+              'A': [('ALA', 1), ('CYS', 2)],
+              'D': [('LEU', 1)],
+          },
+          exp_atom_x=[[1.0, 5.0], [11.0, 15.0]],
+          exp_bond_keys=[3],
+      ),
+  )
+  def test_filter_chain_spans(
+      self,
+      chain_pred,
+      cascade_delete,
+      exp_chains,
+      exp_all_residues,
+      exp_atom_x,
+      exp_bond_keys,
+  ):
+    atom_x = np.array(
+        [[1.0, 2.0, 3.0, 4.0, 5.0], [11.0, 12.0, 13.0, 14.0, 15.0]],
+        dtype=np.float32,
+    )
+    struc = structure.from_atom_arrays(
+        name='span_test',
+        chain_id=np.array(['A', 'B', 'B', 'C', 'D'], dtype=object),
+        res_id=np.array([1, 1, 2, 1, 1], dtype=np.int32),
+        res_name=np.array(['ALA', 'GLY', 'SER', 'VAL', 'LEU'], dtype=object),
+        all_residues={
+            'A': [('ALA', 1), ('CYS', 2)],
+            'B': [('GLY', 1), ('SER', 2)],
+            'C': [('VAL', 1)],
+            'D': [('LEU', 1)],
+        },
+        atom_key=np.array([10, 20, 30, 40, 50], dtype=np.int64),
+        atom_name=np.array(['CA', 'CA', 'CA', 'CA', 'CA'], dtype=object),
+        atom_x=atom_x,
+        atom_y=atom_x,
+        atom_z=atom_x,
+        bond_table=structure.Bonds(
+            key=np.array([1, 2, 3], dtype=np.int64),
+            type=np.array(['covale', 'covale', 'covale'], dtype=object),
+            role=np.array(['.', '.', '.'], dtype=object),
+            from_atom_key=np.array([10, 20, 10], dtype=np.int64),
+            dest_atom_key=np.array([20, 40, 50], dtype=np.int64),
+        ),
+    )
+    filtered = struc.filter(chain_id=chain_pred, cascade_delete=cascade_delete)
+    np.testing.assert_array_equal(
+        filtered.chains_table.id,
+        np.array(exp_chains, dtype=object),
+        strict=True,
+    )
+    self.assertAllResiduesEqual(filtered.all_residues, exp_all_residues)
+    np.testing.assert_array_equal(
+        filtered.atom_x, np.array(exp_atom_x, dtype=np.float32), strict=True
+    )
+    np.testing.assert_array_equal(
+        filtered.bonds_table.key,
+        np.array(exp_bond_keys, dtype=np.int64),
+        strict=True,
+    )
+
+  def test_filter_many_disjoint_chains(self):
+    num_chains = 80
+    coords = np.arange(num_chains, dtype=np.float32)
+    struc = structure.from_atom_arrays(
+        name='many_chains',
+        chain_id=np.array([f'C{i}' for i in range(num_chains)], dtype=object),
+        res_id=np.ones(num_chains, dtype=np.int32),
+        atom_x=coords,
+        atom_y=coords,
+        atom_z=coords,
+    )
+    target_chains = tuple(f'C{i}' for i in range(0, num_chains, 2))
+    filtered = struc.filter(chain_id=target_chains)
+    np.testing.assert_array_equal(
+        filtered.chains_table.id,
+        np.array(target_chains, dtype=object),
+        strict=True,
+    )
+    np.testing.assert_array_equal(
+        filtered.atom_x,
+        np.arange(0, num_chains, 2, dtype=np.float32),
+        strict=True,
+    )
+
+  def test_filter_empty_chain_preserves_multimodel_shape(self):
+    coords = np.array([[1.0], [2.0]], dtype=np.float32)
+    struc = structure_lib.Structure(
+        name='unresolved_chain',
+        chains=structure_tables.Chains.from_defaults(
+            id=np.array(['A', 'D'], dtype=object),
+        ),
+        residues=structure_tables.Residues.from_defaults(
+            id=np.array([1, 1], dtype=np.int32),
+            chain_key=np.array([0, 1], dtype=np.int64),
+        ),
+        atoms=structure_tables.Atoms.from_defaults(
+            chain_key=np.array([0], dtype=np.int64),
+            res_key=np.array([0], dtype=np.int64),
+            x=coords,
+            y=coords,
+            z=coords,
+        ),
+        bonds=structure.Bonds.make_empty(),
+    )
+    filtered_chains = struc.filter(
+        chain_id='D', cascade_delete=structure_lib.CascadeDelete.CHAINS
+    )
+    self.assertEmpty(filtered_chains.chains_table.id)
+    self.assertEqual(filtered_chains.atom_x.shape, (2, 0))
+    filtered_none = struc.filter(
+        chain_id='D', cascade_delete=structure_lib.CascadeDelete.NONE
+    )
+    np.testing.assert_array_equal(
+        filtered_none.chains_table.id,
+        np.array(['A', 'D'], dtype=object),
+        strict=True,
+    )
+    self.assertEqual(filtered_none.atom_x.shape, (2, 0))
+
+  def test_filter_non_monotonic_chain_keys(self):
+    coords = np.array([1.0, 2.0], dtype=np.float32)
+    struc = structure_lib.Structure(
+        name='non_monotonic',
+        chains=structure_tables.Chains.from_defaults(
+            key=np.array([10, 5], dtype=np.int64),
+            id=np.array(['A', 'B'], dtype=object),
+        ),
+        residues=structure_tables.Residues.from_defaults(
+            key=np.array([100, 50], dtype=np.int64),
+            id=np.array([1, 1], dtype=np.int32),
+            chain_key=np.array([10, 5], dtype=np.int64),
+        ),
+        atoms=structure_tables.Atoms.from_defaults(
+            key=np.array([1000, 500], dtype=np.int64),
+            chain_key=np.array([10, 5], dtype=np.int64),
+            res_key=np.array([100, 50], dtype=np.int64),
+            x=coords,
+            y=coords,
+            z=coords,
+        ),
+        bonds=structure.Bonds.make_empty(),
+    )
+    np.testing.assert_array_equal(
+        struc.filter(chain_id='A').atom_x,
+        np.array([1.0], dtype=np.float32),
+        strict=True,
+    )
+    np.testing.assert_array_equal(
+        struc.filter(chain_id='B').atom_x,
+        np.array([2.0], dtype=np.float32),
+        strict=True,
+    )
+
   def test_filter_residues(self):
     struc = self.make_test_structure(
         name='test_structure',
@@ -942,6 +1135,64 @@ class StructureTest(test_utils.StructureTestCase):
     np.testing.assert_array_equal(filtered.res_id, [3, 2, 5, 5, 5, 5, 7])
     np.testing.assert_array_equal(
         filtered.atom_name, ["C4'", 'C', 'CA', 'C', 'C', 'CA', "C2'"]
+    )
+
+  @parameterized.named_parameters(
+      dict(
+          testcase_name='empty_mapping_cascades_unresolved_chain',
+          mapping={},
+          exp_chains=['A', 'B', 'C'],
+          exp_atoms=['N', 'CA', 'C', 'CA', "C2'", 'OP1'],
+      ),
+      dict(
+          testcase_name='shared_target_atom_with_sparse_chain_keys',
+          mapping={
+              mmcif_names.PROTEIN_CHAIN: 'CA',
+              mmcif_names.NON_POLYMER_CHAIN: 'CA',
+          },
+          exp_chains=['A', 'B', 'C'],
+          exp_atoms=['CA', 'CA', "C2'", 'OP1'],
+      ),
+  )
+  def test_filter_polymers_to_single_atom_per_res_edge_cases(
+      self, mapping, exp_chains, exp_atoms
+  ):
+    struc = structure_lib.Structure(
+        name='polymer_edge_cases',
+        chains=structure_tables.Chains.from_defaults(
+            key=np.array([100, 5000, 9000, 12000], dtype=np.int64),
+            id=np.array(['A', 'B', 'C', 'D'], dtype=object),
+            type=np.array(
+                [
+                    mmcif_names.PROTEIN_CHAIN,
+                    mmcif_names.NON_POLYMER_CHAIN,
+                    mmcif_names.RNA_CHAIN,
+                    mmcif_names.PROTEIN_CHAIN,
+                ],
+                dtype=object,
+            ),
+        ),
+        residues=structure_tables.Residues.from_defaults(
+            id=np.array([1, 1, 1, 1], dtype=np.int32),
+            chain_key=np.array([100, 5000, 9000, 12000], dtype=np.int64),
+        ),
+        atoms=structure_tables.Atoms.from_defaults(
+            chain_key=np.array(
+                [100, 100, 5000, 5000, 9000, 9000], dtype=np.int64
+            ),
+            res_key=np.array([0, 0, 1, 1, 2, 2], dtype=np.int64),
+            name=np.array(['N', 'CA', 'C', 'CA', "C2'", 'OP1'], dtype=object),
+        ),
+        bonds=structure.Bonds.make_empty(),
+    )
+    filtered = struc.filter_polymers_to_single_atom_per_res(mapping)
+    np.testing.assert_array_equal(
+        filtered.chains_table.id,
+        np.array(exp_chains, dtype=object),
+        strict=True,
+    )
+    np.testing.assert_array_equal(
+        filtered.atom_name, np.array(exp_atoms, dtype=object), strict=True
     )
 
   def test_atom_ids(self):
