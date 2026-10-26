@@ -17,11 +17,33 @@
 # if received directly from Google. Use is subject to terms of use available at
 # https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md
 
-import numpy
-
+from collections.abc import Set
+from typing import Any
+import numpy as np
 
 def isin(
-    array: numpy.ndarray[numpy.int64],
-    test_elements: set[int],
+    array: np.ndarray[np.int64 | object],
+    test_elements: Set[int | Any],
+    *,
     invert: bool = ...,
-) -> numpy.ndarray[bool]: ...
+) -> np.ndarray[bool]:
+  """Computes whether each element is in test_elements.
+
+  Same use as np.isin, but much faster. If len(array) = n, len(test_elements) =
+  m:
+  * This function has complexity O(n).
+  * np.isin with kind='sort' has complexity O(m * log(m) + n * log(m)).
+
+  Args:
+    array: Input NumPy array. The type of the member elements must be compatible
+      with the type of the elements in test_elements.
+    test_elements: The values against which to test each value of array.
+    invert: If True, the values in the returned array are inverted, as if
+      calculating `element not in test_elements`. Default is False. `isin(a, b,
+      invert=True)` is equivalent to but faster than `~isin(a, b)`.
+
+  Returns
+    A boolean array of the same shape as the input array. Each value `val` is:
+    * `val in test_elements` if `invert=False`,
+    * `val not in test_elements` if `invert=True`.
+  """
