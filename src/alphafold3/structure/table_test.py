@@ -444,6 +444,45 @@ class TableTest(parameterized.TestCase):
           strict=True,
       )
 
+  def test_make_filter_mask_does_not_mutate_input_mask(self):
+    full_data = np.array(['A', 'X', 'B', 'Y', 'C', 'Z'], dtype=object)
+    tbl = TwoColTable(
+        key=np.array([0, 1, 2], dtype=np.int64),
+        data=full_data[::2],
+        ints=np.array([3, 5, 7], dtype=np.int32),
+    )
+    input_mask = np.array([True, True, False], dtype=bool)
+    input_mask.flags.writeable = False
+    np.testing.assert_array_equal(
+        tbl.make_filter_mask(
+            mask=input_mask,
+            data=(c for c in ('B', 'C')),
+            ints=(5, 9),
+        ),
+        np.array([False, True, False]),
+        strict=True,
+    )
+
+  def test_make_filter_mask_does_not_mutate_callable_masks(self):
+    tbl = TwoColTable(
+        key=np.array([0, 1, 2], dtype=np.int64),
+        data=np.array(['A', 'B', 'C'], dtype=object),
+        ints=np.array([3, 5, 7], dtype=np.int32),
+    )
+    read_only_mask = np.array([True, True, False], dtype=bool)
+    read_only_mask.flags.writeable = False
+    writeable_mask = np.array([False, True, True], dtype=bool)
+    np.testing.assert_array_equal(
+        tbl.make_filter_mask(
+            data=lambda _: read_only_mask, ints=lambda _: writeable_mask
+        ),
+        np.array([False, True, False]),
+        strict=True,
+    )
+    np.testing.assert_array_equal(
+        writeable_mask, np.array([False, True, True]), strict=True
+    )
+
   def test_sliced_multidim_table_columns_remain_immutable(self):
     tbl = MultiDimColTable(
         key=np.array([10, 20, 30], dtype=np.int64),

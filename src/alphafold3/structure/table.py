@@ -375,19 +375,17 @@ class Table:
       implies there is no filtering required, and is used where possible
       instead of an all-True array to save time and space.
     """
-    if mask is None:
-      if not predicate_by_col:
-        return None
-      else:
-        mask = np.ones((self.size,), dtype=bool)
-    else:
+    if mask is not None:
       if mask.shape != (self.size,):
         raise ValueError(
             f'mask must have shape ({self.size},). Got: {mask.shape}.'
         )
       if mask.dtype != bool:
         raise ValueError(f'mask must have dtype bool. Got: {mask.dtype}.')
+    if not predicate_by_col:
+      return mask
 
+    result_mask: np.ndarray | None = mask
     for col, predicate in predicate_by_col.items():
       col_arr = self.get_column(col)
       if col_arr.ndim > 1:
@@ -400,8 +398,11 @@ class Table:
         )
       else:
         field_mask = _eval_value_predicate(col_arr, predicate, col_name=col)
-      np.logical_and(mask, field_mask, out=mask)  # Update in-place.
-    return mask
+      # Allocate `&` rather than mutating caller `mask` or callable views.
+      result_mask = (
+          field_mask if result_mask is None else result_mask & field_mask
+      )
+    return result_mask
 
   def filter(
       self,
