@@ -40,7 +40,7 @@ FilterPredicate: TypeAlias = (
     TableEntry
     | Iterable[Any]  # Workaround for b/326384670. Tighten once fixed.
     | Callable[[Any], bool]  # Workaround for b/326384670. Tighten once fixed.
-    | Callable[[np.ndarray], bool]
+    | Callable[[np.ndarray], bool | np.ndarray]
 )
 
 
@@ -52,6 +52,12 @@ class RowLookup(Protocol):
       column_name_map: Mapping[str, str] | None = None,
   ) -> Mapping[str, Any]:
     ...
+
+
+def _as_bool_mask(mask_or_scalar: Any, *, size: int) -> np.ndarray:
+  """Coerces a scalar or 1D predicate result into a `(size,)` bool mask."""
+  mask = np.asarray(mask_or_scalar, dtype=bool)
+  return mask if mask.shape == (size,) else np.broadcast_to(mask, (size,))
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -341,9 +347,11 @@ class Table:
       for callable_predicate in callable_predicates:
         if not apply_per_element:
           callable_predicate = typing.cast(
-              Callable[[np.ndarray], bool], callable_predicate
+              Callable[[np.ndarray], bool | np.ndarray], callable_predicate
           )
-          predicate_result = callable_predicate(self.get_column(col))
+          predicate_result = _as_bool_mask(
+              callable_predicate(self.get_column(col)), size=self.size
+          )
         else:
           predicate_result = np.array(
               [callable_predicate(elem) for elem in self.get_column(col)]
