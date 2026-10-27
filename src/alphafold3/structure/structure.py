@@ -26,13 +26,13 @@ import datetime
 import enum
 import functools
 import itertools
-import typing
 from typing import Any, ClassVar, Final, Literal, NamedTuple, Self, TypeAlias, TypeVar
 
 from alphafold3.constants import atom_types
 from alphafold3.constants import chemical_components
 from alphafold3.constants import mmcif_names
 from alphafold3.constants import residue_names
+from alphafold3.cpp import indexing
 from alphafold3.cpp import membership
 from alphafold3.cpp import string_array
 from alphafold3.structure import bioassemblies
@@ -1564,31 +1564,34 @@ class Structure(table.Database):
     atom_mask = self._atoms.make_filter_mask(
         mask, **atom_predicates, apply_per_element=apply_per_element
     )
+    # Remove atoms that belong to filtered out chains or residues; foreign keys
+    # are validated in `__init__`, so gather directly by index.
+    for parent_mask, fk_col, parent_keys in (
+        (chain_mask, self._atoms.chain_key, self._chains.key),
+        (res_mask, self._atoms.res_key, self._residues.key),
+    ):
+      if parent_mask is not None:
+        atom_parent_mask = parent_mask[indexing.index_of(fk_col, parent_keys)]
+        if atom_mask is None:
+          atom_mask = atom_parent_mask
+        else:
+          atom_mask = np.logical_and(
+              atom_mask, atom_parent_mask, out=atom_parent_mask
+          )
+
     if atom_mask is None:
-      atom_mask = np.ones((self._atoms.size,), dtype=bool)
-
-    # Remove atoms that belong to filtered out chains.
-    if chain_mask is not None:
-      atom_chain_mask = membership.isin(
-          self._atoms.chain_key, set(self._chains.key[chain_mask])
+      filtered_atoms = (
+          self._atoms.apply_index(np.empty((0,), dtype=np.int64))
+          if invert
+          else self._atoms
       )
-      np.logical_and(atom_mask, atom_chain_mask, out=atom_mask)
-
-    # Remove atoms that belong to filtered out residues.
-    if res_mask is not None:
-      atom_res_mask = membership.isin(
-          self._atoms.res_key, set(self._residues.key[res_mask])
+    else:
+      filtered_atoms = self._atoms.apply_array(
+          ~atom_mask if invert else atom_mask
       )
-      np.logical_and(atom_mask, atom_res_mask, out=atom_mask)
 
-    final_atom_mask = ~atom_mask if invert else atom_mask
-
-    if cascade_delete == CascadeDelete.NONE and np.all(final_atom_mask):
+    if cascade_delete == CascadeDelete.NONE and filtered_atoms is self._atoms:
       return self  # Shortcut: The filter is a no-op, so just return itself.
-
-    filtered_atoms = typing.cast(
-        structure_tables.Atoms, self._atoms[final_atom_mask]
-    )
 
     match cascade_delete:
       case CascadeDelete.FULL:

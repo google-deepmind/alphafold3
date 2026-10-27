@@ -965,6 +965,50 @@ class StructureTest(test_utils.StructureTestCase):
         strict=True,
     )
 
+  @parameterized.named_parameters(
+      dict(
+          testcase_name='mask_only',
+          kwargs={},
+          expected=[2.0],
+      ),
+      dict(
+          testcase_name='mask_with_chain_predicate',
+          kwargs={'chain_id': 'A'},
+          expected=[2.0, 3.0],
+      ),
+  )
+  def test_filter_does_not_mutate_input_mask(self, kwargs, expected):
+    struc = self.make_test_structure(
+        name='test_structure',
+        chain_id=np.array(['A', 'A', 'B'], dtype=object),
+        res_id=np.array([1, 2, 1], dtype=np.int32),
+        atom_x=np.array([1.0, 2.0, 3.0], dtype=np.float32),
+    )
+    mask = np.array([True, False, True], dtype=bool)
+    mask.flags.writeable = False
+    np.testing.assert_array_equal(
+        struc.filter(mask, invert=True, **kwargs).atom_x,
+        np.array(expected, dtype=np.float32),
+        strict=True,
+    )
+
+  def test_filter_does_not_mutate_callable_mask(self):
+    struc = self.make_test_structure(
+        name='test_structure',
+        chain_id=np.array(['A', 'A', 'B'], dtype=object),
+        res_id=np.array([1, 2, 1], dtype=np.int32),
+        atom_x=np.array([1.0, 2.0, 3.0], dtype=np.float32),
+    )
+    callable_mask = np.array([True, False, True], dtype=bool)
+    np.testing.assert_array_equal(
+        struc.filter(invert=True, atom_x=lambda _: callable_mask).atom_x,
+        np.array([2.0], dtype=np.float32),
+        strict=True,
+    )
+    np.testing.assert_array_equal(
+        callable_mask, np.array([True, False, True]), strict=True
+    )
+
   def test_filter_empty_chain_preserves_multimodel_shape(self):
     coords = np.array([[1.0], [2.0]], dtype=np.float32)
     struc = structure_lib.Structure(
