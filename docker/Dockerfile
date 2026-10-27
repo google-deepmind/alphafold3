@@ -31,7 +31,7 @@ apt-get update --quiet \
 
 # Install uv from the official repository. The version is pinned for
 # reproducibility.
-COPY --from=ghcr.io/astral-sh/uv:0.13.1 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.13.6 /uv /uvx /bin/
 
 # UV_COMPILE_BYTECODE=1 speeds up future container starts.
 # UV_PROJECT_ENVIRONMENT explicitly sets the virtual environment location.
