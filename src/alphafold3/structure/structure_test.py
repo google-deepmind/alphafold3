@@ -1078,6 +1078,70 @@ class StructureTest(test_utils.StructureTestCase):
         strict=True,
     )
 
+  def test_filter_single_chain_owns_sliced_columns(self):
+    coords = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+    struc = structure.from_atom_arrays(
+        name='owns_slice',
+        chain_id=np.array(['A', 'B', 'C'], dtype=object),
+        res_id=np.array([1, 1, 1], dtype=np.int32),
+        atom_x=coords,
+        atom_y=coords,
+        atom_z=coords,
+    )
+    self.assertIsNone(struc.filter(chain_id='B').atom_x.base)
+
+  def test_filter_unsorted_chain_keys(self):
+    coords = np.array([1.0, 2.0], dtype=np.float32)
+    base = structure.from_atom_arrays(
+        name='unsorted',
+        chain_id=np.array(['A', 'B'], dtype=object),
+        res_id=np.array([1, 1], dtype=np.int32),
+        atom_x=coords,
+        atom_y=coords,
+        atom_z=coords,
+    )
+    unsorted = base.copy_and_update(
+        chains=base.chains_table.copy_and_update(
+            key=np.array([1, 0], dtype=np.int64)
+        ),
+        residues=base.residues_table.copy_and_update(
+            chain_key=np.array([1, 0], dtype=np.int64)
+        ),
+        atoms=base.atoms_table.copy_and_update(
+            chain_key=np.array([1, 0], dtype=np.int64)
+        ),
+    )
+    filtered = unsorted.filter(chain_id='B')
+    np.testing.assert_array_equal(filtered.chain_id, ['B'])
+    np.testing.assert_array_equal(
+        filtered.atom_x, np.array([2.0], dtype=np.float32), strict=True
+    )
+
+  def test_filter_after_concat_preserves_chain_order(self):
+    coords = np.array([1.0, 2.0], dtype=np.float32)
+    s1 = structure.from_atom_arrays(
+        name='s1',
+        chain_id=np.array(['D', 'B'], dtype=object),
+        res_id=np.array([1, 1], dtype=np.int32),
+        atom_x=coords,
+        atom_y=coords,
+        atom_z=coords,
+    )
+    s2 = structure.from_atom_arrays(
+        name='s2',
+        chain_id=np.array(['C', 'A'], dtype=object),
+        res_id=np.array([1, 1], dtype=np.int32),
+        atom_x=coords + 10.0,
+        atom_y=coords,
+        atom_z=coords,
+    )
+    merged = structure.concat([s1, s2], assign_unique_chain_ids=False)
+    filtered = merged.filter(chain_id=('B', 'A'))
+    np.testing.assert_array_equal(filtered.chain_id, ['B', 'A'])
+    np.testing.assert_array_equal(
+        filtered.atom_x, np.array([2.0, 12.0], dtype=np.float32), strict=True
+    )
+
   def test_filter_residues(self):
     struc = self.make_test_structure(
         name='test_structure',

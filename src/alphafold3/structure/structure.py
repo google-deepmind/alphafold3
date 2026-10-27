@@ -1472,6 +1472,52 @@ class Structure(table.Database):
         chains=chains, residues=residues, atoms=atoms, bonds=bonds
     )
 
+  def _filter_by_chains(
+      self,
+      chain_mask: np.ndarray,
+      *,
+      invert: bool,
+      cascade_delete: CascadeDelete,
+  ) -> Self:
+    """Slices sorted chain, residue, and atom spans in O(C log A) time."""
+    keep_chain = ~chain_mask if invert else chain_mask
+    chain_keys = self._chains.key[keep_chain]
+    atom_starts = np.searchsorted(
+        self._atoms.chain_key, chain_keys, side='left'
+    )
+    atom_ends = np.searchsorted(self._atoms.chain_key, chain_keys, side='right')
+    filtered_atoms = self._atoms.slice_spans(atom_starts, atom_ends)
+    if cascade_delete == CascadeDelete.NONE:
+      if filtered_atoms is self._atoms:
+        return self  # Shortcut: The filter is a no-op, so just return itself.
+      filtered_chains, filtered_residues = self._chains, self._residues
+    else:
+      # CHAINS and FULL both drop kept chains left without atoms.
+      has_atoms = atom_ends > atom_starts
+      kept_keys = chain_keys[has_atoms]
+      filtered_chains = self._chains.apply_index(
+          np.flatnonzero(keep_chain)[has_atoms]
+      )
+      filtered_residues = self._residues.slice_spans(
+          np.searchsorted(self._residues.chain_key, kept_keys, side='left'),
+          np.searchsorted(self._residues.chain_key, kept_keys, side='right'),
+      )
+      if cascade_delete == CascadeDelete.FULL:
+        filtered_residues = filtered_residues.apply_array(
+            membership.isin(filtered_residues.key, filtered_atoms.res_key)
+        )
+    return self.copy_and_update(
+        chains=filtered_chains,
+        residues=filtered_residues,
+        atoms=filtered_atoms,
+        bonds=(
+            self._bonds
+            if filtered_atoms is self._atoms
+            else self._bonds.restrict_to_atoms(filtered_atoms.key)
+        ),
+        skip_validation=True,
+    )
+
   def filter(
       self,
       mask: np.ndarray | None = None,
@@ -1558,6 +1604,21 @@ class Structure(table.Database):
     chain_mask = self._chains.make_filter_mask(
         **chain_predicates, apply_per_element=apply_per_element  # pyrefly: ignore[bad-argument-type]
     )
+    # Chain-only predicates on sorted tables slice contiguous spans directly.
+    if (
+        chain_mask is not None
+        and mask is None
+        and not res_predicates
+        and not atom_predicates
+        and np.all(self._chains.key[1:] > self._chains.key[:-1])
+        and np.all(
+            self._residues.chain_key[1:] >= self._residues.chain_key[:-1]
+        )
+        and np.all(self._atoms.chain_key[1:] >= self._atoms.chain_key[:-1])
+    ):
+      return self._filter_by_chains(
+          chain_mask, invert=invert, cascade_delete=cascade_delete
+      )
     res_mask = self._residues.make_filter_mask(
         **res_predicates, apply_per_element=apply_per_element  # pyrefly: ignore[bad-argument-type]
     )
