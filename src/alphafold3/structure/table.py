@@ -32,6 +32,7 @@ import math
 import typing
 from typing import Any, Protocol, Self, TypeAlias, TypeVar, overload
 
+from alphafold3.cpp import indexing
 from alphafold3.cpp import membership
 from alphafold3.cpp import string_array
 import numpy as np
@@ -139,6 +140,11 @@ def _eval_value_predicate(
   for target_val in target_vals:
     np.logical_or(field_mask, col_arr == target_val, out=field_mask)
   return field_mask
+
+
+def _take_rows(col_arr: np.ndarray, selector: np.ndarray) -> np.ndarray:
+  """Selects rows along the last axis; 1D columns skip NumPy's N-D index path."""
+  return col_arr[selector] if col_arr.ndim == 1 else col_arr[..., selector]
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -258,10 +264,8 @@ class Table:
       arr: np.ndarray,
   ) -> np.ndarray:
     """Returns a sliced column array using a key array or a boolean mask."""
-    if arr.dtype == bool:
-      return self.get_column(column_name)[..., arr]
-    else:
-      return self.get_column(column_name)[..., self.index_by_key[arr]]
+    selector = arr if arr.dtype == bool else indexing.index_of(arr, self.key)
+    return _take_rows(self.get_column(column_name), selector)
 
   def get_value_by_index(self, column_name: str, index: int) -> Any:
     return self.get_column(column_name)[index]
@@ -356,16 +360,14 @@ class Table:
         that the foreign keys point into. If provided, then the yielded rows
         will include data from the foreign tables at the appropriate key.
     """
-    if row_keys is not None:
-      row_indices = self.index_by_key[row_keys]
-    else:
-      row_indices = range(self.size)
-    for i in row_indices:
+    for i in (
+        range(self.size)
+        if row_keys is None
+        else indexing.index_of(row_keys, self.key)
+    ):
       row = self.get_row_by_index(i, column_name_map=column_name_map)
       for key_col, table in table_by_foreign_key_col.items():
-        foreign_key = self[key_col][i]
-        foreign_row = table.get_row_by_key(foreign_key)
-        row.update(foreign_row)
+        row.update(table.get_row_by_key(self[key_col][i]))
       yield row
 
   def with_column_names(

@@ -495,6 +495,89 @@ class TableTest(parameterized.TestCase):
         strict=True,
     )
 
+  @parameterized.named_parameters(
+      dict(
+          testcase_name='contiguous_keys',
+          table_keys=[0, 1, 2],
+          query_keys=np.array([2, 0, 1, 2], dtype=np.int32),
+          expected=['C', 'A', 'B', 'C'],
+      ),
+      dict(
+          testcase_name='sparse_unsorted_keys',
+          table_keys=[100_000, 10, 5_000],
+          query_keys=np.array([5_000, 100_000, 10], dtype=np.int64),
+          expected=['C', 'A', 'B'],
+      ),
+      dict(
+          testcase_name='sparse_empty_query',
+          table_keys=[10, 5_000, 100_000],
+          query_keys=np.array([], dtype=np.int64),
+          expected=[],
+      ),
+  )
+  def test_apply_array_to_column_avoids_dense_index_by_key(
+      self, table_keys, query_keys, expected
+  ):
+    tbl = OneColTable(
+        key=np.array(table_keys, dtype=np.int64),
+        data=np.array(['A', 'B', 'C'][: len(table_keys)], dtype=object),
+    )
+    np.testing.assert_array_equal(
+        tbl.apply_array_to_column('data', query_keys),
+        np.array(expected, dtype=object),
+        strict=True,
+    )
+    self.assertNotIn('index_by_key', tbl.__dict__)
+
+  @parameterized.named_parameters(
+      dict(
+          testcase_name='float',
+          bad_query=np.array([0.0, 1.0], dtype=np.float64),
+      ),
+      dict(testcase_name='uint', bad_query=np.array([2**63], dtype=np.uint64)),
+  )
+  def test_apply_array_to_column_non_signed_int_query_raises_index_error(
+      self, bad_query
+  ):
+    tbl = OneColTable(
+        key=np.array([0, 1], dtype=np.int64),
+        data=np.array(['A', 'B'], dtype=object),
+    )
+    with self.assertRaisesRegex(IndexError, 'Keys'):
+      tbl.apply_array_to_column('data', bad_query)
+
+  @parameterized.named_parameters(
+      dict(testcase_name='empty_table', table_keys=[], query_keys=[0]),
+      dict(testcase_name='negative_key', table_keys=[0, 1, 2], query_keys=[-1]),
+      dict(
+          testcase_name='missing_sparse_key',
+          table_keys=[10, 5_000, 100_000],
+          query_keys=[5_001],
+      ),
+  )
+  def test_apply_array_to_column_invalid_key_raises_index_error(
+      self, table_keys, query_keys
+  ):
+    tbl = OneColTable(
+        key=np.array(table_keys, dtype=np.int64),
+        data=np.array(['A', 'B', 'C'][: len(table_keys)], dtype=object),
+    )
+    with self.assertRaisesRegex(IndexError, 'Keys'):
+      tbl.apply_array_to_column('data', np.array(query_keys, dtype=np.int64))
+
+  def test_iterrows_row_keys_avoids_dense_index_by_key(self):
+    tbl = OneColTable(
+        key=np.array([100_000, 10, 5_000], dtype=np.int64),
+        data=np.array(['A', 'B', 'C'], dtype=object),
+    )
+    rows = list(
+        tbl.iterrows(row_keys=np.array([5_000, 100_000], dtype=np.int64))
+    )
+    self.assertSequenceEqual(
+        rows, [{'key': 5_000, 'data': 'C'}, {'key': 100_000, 'data': 'A'}]
+    )
+    self.assertNotIn('index_by_key', tbl.__dict__)
+
   def test_sliced_multidim_table_columns_remain_immutable(self):
     tbl = MultiDimColTable(
         key=np.array([10, 20, 30], dtype=np.int64),
