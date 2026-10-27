@@ -137,7 +137,7 @@ def _eval_value_predicate(
   return field_mask
 
 
-def _take_rows(col_arr: np.ndarray, selector: np.ndarray) -> np.ndarray:
+def _take_rows(col_arr: np.ndarray, selector: np.ndarray | slice) -> np.ndarray:
   """Selects rows along the last axis; 1D columns skip NumPy's N-D index path."""
   return col_arr[selector] if col_arr.ndim == 1 else col_arr[..., selector]
 
@@ -277,6 +277,27 @@ class Table:
       return self  # Shortcut: No-op, so just return.
 
     return self._take(index_arr)
+
+  def slice_spans(self, starts: np.ndarray, ends: np.ndarray) -> Self:
+    """Returns a Table sliced to non-overlapping sorted `[start, end)` spans."""
+    spans: list[slice] = []
+    for start, end in zip(starts.tolist(), ends.tolist(), strict=True):
+      if start >= end:
+        continue
+      if spans and spans[-1].stop == start:
+        spans[-1] = slice(spans[-1].start, end)
+      else:
+        spans.append(slice(start, end))
+
+    spans = spans or [slice(0, 0)]
+    if spans == [slice(0, self.size)]:
+      return self
+    # `np.concatenate` always allocates a fresh array, even for one span,
+    # so small slices never retain views pinning parent Structure memory.
+    return self._from_validated_columns({
+        col: np.concatenate([_take_rows(arr, s) for s in spans], axis=-1)
+        for col, arr in self.items.items()
+    })
 
   def apply_array_to_column(
       self,

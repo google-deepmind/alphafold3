@@ -598,6 +598,83 @@ class TableTest(parameterized.TestCase):
           strict=True,
       )
 
+  @parameterized.named_parameters(
+      dict(
+          testcase_name='empty_spans_preserve_multidim_shape',
+          total_size=5,
+          starts=[2, 4],
+          ends=[2, 4],
+          expected_indices=[],
+      ),
+      dict(
+          testcase_name='adjacent_spans_merge_to_full_table',
+          total_size=5,
+          starts=[0, 2],
+          ends=[2, 5],
+          expected_indices=[0, 1, 2, 3, 4],
+      ),
+      dict(
+          testcase_name='single_interior_span',
+          total_size=6,
+          starts=[1],
+          ends=[4],
+          expected_indices=[1, 2, 3],
+      ),
+      dict(
+          testcase_name='disjoint_spans_concat',
+          total_size=6,
+          starts=[0, 3],
+          ends=[2, 5],
+          expected_indices=[0, 1, 3, 4],
+      ),
+      dict(
+          testcase_name='many_disjoint_spans_concat',
+          total_size=70,
+          starts=list(range(0, 70, 2)),
+          ends=list(range(1, 71, 2)),
+          expected_indices=list(range(0, 70, 2)),
+      ),
+  )
+  def test_slice_spans(self, total_size, starts, ends, expected_indices):
+    tbl = MultiDimColTable(
+        key=np.arange(total_size, dtype=np.int64) * 10,
+        multi_data=np.arange(2 * total_size, dtype=np.float32).reshape(
+            2, total_size
+        ),
+    )
+    sliced = tbl.slice_spans(
+        np.array(starts, dtype=np.int64), np.array(ends, dtype=np.int64)
+    )
+    expected = tbl.apply_index(np.array(expected_indices, dtype=np.int64))
+    np.testing.assert_array_equal(sliced.key, expected.key, strict=True)
+    np.testing.assert_array_equal(
+        sliced.multi_data, expected.multi_data, strict=True
+    )
+    self.assertFalse(sliced.key.flags.writeable)
+    self.assertFalse(sliced.multi_data.flags.writeable)
+
+  def test_slice_spans_adjacent_full_cover_returns_self(self):
+    tbl = MultiDimColTable(
+        key=np.arange(5, dtype=np.int64),
+        multi_data=np.zeros((1, 5), dtype=np.float32),
+    )
+    self.assertIs(
+        tbl.slice_spans(
+            np.array([0, 2], dtype=np.int64), np.array([2, 5], dtype=np.int64)
+        ),
+        tbl,
+    )
+
+  def test_slice_spans_single_span_copies_columns(self):
+    tbl = MultiDimColTable(
+        key=np.array([0, 1, 2], dtype=np.int64),
+        multi_data=np.array([[1.0, 2.0, 3.0]], dtype=np.float32),
+    )
+    sliced = tbl.slice_spans(
+        np.array([1], dtype=np.int64), np.array([2], dtype=np.int64)
+    )
+    self.assertIsNone(sliced.multi_data.base)
+
 
 @dataclasses.dataclass(frozen=True)
 class Residues(table.Table):
