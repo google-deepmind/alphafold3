@@ -25,6 +25,7 @@
 #include "alphafold3/parsers/cpp/fasta_iterator_pybind.h"
 #include "alphafold3/parsers/cpp/msa_conversion_pybind.h"
 #include "alphafold3/structure/cpp/aggregation_pybind.h"
+#include "alphafold3/structure/cpp/indexing_pybind.h"
 #include "alphafold3/structure/cpp/membership_pybind.h"
 #include "alphafold3/structure/cpp/mmcif_atom_site_pybind.h"
 #include "alphafold3/structure/cpp/mmcif_layout_pybind.h"
@@ -43,6 +44,7 @@ PYBIND11_MODULE(cpp, m) {
   RegisterModuleMsaConversion(m.def_submodule("msa_conversion"));
   RegisterModuleMmcifLayout(m.def_submodule("mmcif_layout"));
   RegisterModuleMmcifStructConn(m.def_submodule("mmcif_struct_conn"));
+  RegisterModuleIndexing(m.def_submodule("indexing"));
   RegisterModuleMembership(m.def_submodule("membership"));
   RegisterModuleMmcifUtils(m.def_submodule("mmcif_utils"));
   RegisterModuleAggregation(m.def_submodule("aggregation"));
