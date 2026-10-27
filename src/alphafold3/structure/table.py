@@ -254,9 +254,11 @@ class Table:
     """Returns a sliced table using a key (!= index) array or a boolean mask."""
     if arr.dtype != bool:
       return self._take(indexing.index_of(arr, self.key))
-    if np.all(arr):
+    if arr.shape != (self.size,):
+      return self._take(arr)
+    if (indices := indexing.nonzero_indices(arr)) is None:
       return self  # Shortcut: No-op, so just return.
-    return self._take(arr)
+    return self._take(indices)
 
   def apply_index(self, index_arr: np.ndarray) -> Self:
     """Returns a sliced table using an index (!= key) array."""

@@ -675,6 +675,31 @@ class TableTest(parameterized.TestCase):
     )
     self.assertIsNone(sliced.multi_data.base)
 
+  @parameterized.named_parameters(
+      dict(testcase_name='scattered_rows', kept_rows=slice(None, None, 3)),
+      dict(testcase_name='long_run', kept_rows=slice(5, 30)),
+  )
+  def test_apply_array_bool_mask(self, kept_rows):
+    tbl = MultiDimColTable(
+        key=np.arange(40, dtype=np.int64) * 10,
+        multi_data=np.arange(80, dtype=np.float32).reshape(2, 40),
+    )
+    mask = np.zeros(40, dtype=bool)
+    mask[kept_rows] = True
+    sliced = tbl.apply_array(mask)
+    np.testing.assert_array_equal(sliced.key, tbl.key[mask], strict=True)
+    np.testing.assert_array_equal(
+        sliced.multi_data, tbl.multi_data[:, mask], strict=True
+    )
+
+  def test_apply_array_wrong_length_bool_mask_raises_index_error(self):
+    tbl = OneColTable(
+        key=np.array([0, 1, 2], dtype=np.int64),
+        data=np.array(['A', 'B', 'C'], dtype=object),
+    )
+    with self.assertRaises(IndexError):
+      tbl.apply_array(np.array([True, False]))
+
 
 @dataclasses.dataclass(frozen=True)
 class Residues(table.Table):
