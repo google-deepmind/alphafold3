@@ -114,9 +114,13 @@ pybind11_add_module(cpp ${cpp_srcs})
 
 target_link_libraries(
   cpp
-  PRIVATE absl::check
+  PRIVATE absl::algorithm_container
+          absl::check
+          absl::core_headers
           absl::flat_hash_map
+          absl::flat_hash_set
           absl::node_hash_map
+          absl::span
           absl::strings
           absl::status
           absl::statusor

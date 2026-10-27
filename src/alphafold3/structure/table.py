@@ -129,12 +129,7 @@ def _eval_value_predicate(
   if col_dtype in (np.int64, np.int32) and all(
       isinstance(v, (int, np.integer)) for v in target_vals
   ):
-    # Pre-filter out-of-range ints so C++ int64_t or int32_t cast cannot raise.
-    iinfo = np.iinfo(col_dtype)
-    return membership.isin(
-        col_arr,
-        {int(v) for v in target_vals if iinfo.min <= int(v) <= iinfo.max},
-    )
+    return membership.isin(col_arr, set(target_vals))
 
   field_mask = np.zeros((size,), dtype=bool)
   for target_val in target_vals:

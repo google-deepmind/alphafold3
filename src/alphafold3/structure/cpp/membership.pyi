@@ -23,7 +23,7 @@ import numpy as np
 
 def isin(
     array: np.ndarray[np.int64 | object],
-    test_elements: Set[int | Any],
+    test_elements: Set[int | Any] | np.ndarray,
     *,
     invert: bool = ...,
 ) -> np.ndarray[bool]:
@@ -31,13 +31,14 @@ def isin(
 
   Same use as np.isin, but much faster. If len(array) = n, len(test_elements) =
   m:
-  * This function has complexity O(n).
+  * This function has complexity O(n) for a set or O(n + m) for an array.
   * np.isin with kind='sort' has complexity O(m * log(m) + n * log(m)).
 
   Args:
     array: Input NumPy array. The type of the member elements must be compatible
       with the type of the elements in test_elements.
-    test_elements: The values against which to test each value of array.
+    test_elements: A Python set/frozenset, or a signed-integer NumPy array when
+      `array` is a signed-integer array.
     invert: If True, the values in the returned array are inverted, as if
       calculating `element not in test_elements`. Default is False. `isin(a, b,
       invert=True)` is equivalent to but faster than `~isin(a, b)`.

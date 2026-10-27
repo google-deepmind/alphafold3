@@ -23,6 +23,7 @@
 
 #include <Python.h>
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <limits>
@@ -32,10 +33,10 @@
 #include "numpy/ndarrayobject.h"
 #include "numpy/ndarraytypes.h"
 #include "numpy/npy_common.h"
-#include "absl/algorithm/container.h"
 #include "absl/container/flat_hash_set.h"
 #include "absl/strings/string_view.h"
 #include "absl/types/span.h"
+#include "alphafold3/structure/cpp/key_lookup.h"
 #include "pybind11/cast.h"
 #include "pybind11/gil.h"
 #include "pybind11/numpy.h"
@@ -47,6 +48,8 @@ namespace {
 
 namespace py = pybind11;
 
+using ::alphafold3::ContainsKeys;
+
 // Returns a native-endian, aligned, C-contiguous view or copy of `array`.
 template <typename T>
 py::array_t<T> AsAlignedCContiguous(const py::array& array) {
@@ -55,8 +58,11 @@ py::array_t<T> AsAlignedCContiguous(const py::array& array) {
           ? NPY_OBJECT
           : (sizeof(T) == sizeof(int64_t) ? NPY_INT64 : NPY_INT32);
   auto* arr_obj = reinterpret_cast<PyArrayObject*>(array.ptr());
-  if (PyArray_ISCARRAY_RO(arr_obj) &&
-      PyArray_DESCR(arr_obj)->type_num == kTargetTypeNum) {
+  const bool matches_type = std::is_same_v<T, PyObject*>
+                                ? PyArray_ISOBJECT(arr_obj)
+                                : (PyArray_ISSIGNED(arr_obj) &&
+                                   PyArray_ITEMSIZE(arr_obj) == sizeof(T));
+  if (PyArray_ISCARRAY_RO(arr_obj) && matches_type) {
     return py::reinterpret_borrow<py::array_t<T>>(array);
   }
   PyObject* obj =
@@ -79,7 +85,7 @@ py::array_t<bool> NewBoolCArray(const py::array& shape_src) {
 py::array_t<bool> MakeConstantBoolArray(const py::array& shape_src,
                                         bool value) {
   auto result = NewBoolCArray(shape_src);
-  absl::c_fill(absl::MakeSpan(result.mutable_data(), result.size()), value);
+  std::fill_n(result.mutable_data(), result.size(), value);
   return result;
 }
 
@@ -148,6 +154,39 @@ py::array_t<bool> IsInIntSet(const py::array& array,
     }
   }
   return result;
+}
+
+template <typename IntT>
+py::array_t<bool> IsInTypedIntArray(const py::array& array,
+                                    const py::array& test_elements,
+                                    bool invert) {
+  auto contig = AsAlignedCContiguous<IntT>(array);
+  auto contig_test = AsAlignedCContiguous<IntT>(test_elements);
+  auto result = NewBoolCArray(array);
+  {
+    py::gil_scoped_release release;
+    ContainsKeys<IntT>(absl::MakeConstSpan(contig),
+                       absl::MakeConstSpan(contig_test), invert,
+                       absl::MakeSpan(result.mutable_data(), result.size()));
+  }
+  return result;
+}
+
+py::array_t<bool> IsInIntArray(const py::array& array,
+                               const py::array& test_elements, bool invert) {
+  auto* arr_obj = reinterpret_cast<PyArrayObject*>(array.ptr());
+  auto* test_obj = reinterpret_cast<PyArrayObject*>(test_elements.ptr());
+  if (!PyArray_ISSIGNED(arr_obj) || !PyArray_ISSIGNED(test_obj)) {
+    throw py::type_error("Incompatible array and test_elements dtypes.");
+  }
+  if (array.size() == 0 || test_elements.size() == 0) {
+    return MakeConstantBoolArray(array, invert);
+  }
+  if (PyArray_ITEMSIZE(arr_obj) <= sizeof(int32_t) &&
+      PyArray_ITEMSIZE(test_obj) <= sizeof(int32_t)) {
+    return IsInTypedIntArray<int32_t>(array, test_elements, invert);
+  }
+  return IsInTypedIntArray<int64_t>(array, test_elements, invert);
 }
 
 // `iter` is a two-operand iterator created by `NpyIter_MultiNew`, where
@@ -302,7 +341,8 @@ Same use as np.isin, but much faster. If len(array) = n, len(test_elements) = m:
 Args:
   array: Input NumPy array. The type of the member elements must be compatible
     with the type of the elements in test_elements.
-  test_elements: The values against which to test each value of array.
+  test_elements: A Python set/frozenset, or a signed-integer NumPy array when
+    `array` is a signed-integer array.
   invert: If True, the values in the returned array are inverted, as if
     calculating `element not in test_elements`. Default is False. `isin(a, b,
     invert=True)` is equivalent to but faster than `~isin(a, b)`.
@@ -321,6 +361,9 @@ void RegisterModuleMembership(pybind11::module m) {
   if (_import_array() < 0) {
     throw py::error_already_set();
   }
+  m.def("isin", &IsInIntArray, py::arg("array").noconvert(),
+        py::arg("test_elements").noconvert(), py::kw_only(),
+        py::arg("invert") = false, py::doc(kIsInDoc));
   m.def("isin", &IsIn, py::arg("array"), py::arg("test_elements"),
         py::kw_only(), py::arg("invert") = false, py::doc(kIsInDoc));
 }

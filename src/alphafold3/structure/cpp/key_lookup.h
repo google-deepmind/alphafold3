@@ -32,6 +32,19 @@ namespace alphafold3 {
 bool ResolveKeys(absl::Span<const int64_t> query_keys,
                  absl::Span<const int64_t> table_keys, absl::Span<int64_t> out);
 
+// Writes `invert != (query_keys[i] in table_keys)` into `out[i]`.
+template <typename IntT>
+void ContainsKeys(absl::Span<const IntT> query_keys,
+                  absl::Span<const IntT> table_keys, bool invert,
+                  absl::Span<bool> out);
+
+extern template void ContainsKeys<int32_t>(absl::Span<const int32_t> query_keys,
+                                           absl::Span<const int32_t> table_keys,
+                                           bool invert, absl::Span<bool> out);
+extern template void ContainsKeys<int64_t>(absl::Span<const int64_t> query_keys,
+                                           absl::Span<const int64_t> table_keys,
+                                           bool invert, absl::Span<bool> out);
+
 }  // namespace alphafold3
 
 #endif  // ALPHAFOLD3_SRC_ALPHAFOLD3_STRUCTURE_CPP_KEY_LOOKUP_H_

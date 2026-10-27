@@ -29,6 +29,7 @@
 
 #include "absl/algorithm/container.h"
 #include "absl/container/flat_hash_map.h"
+#include "absl/container/flat_hash_set.h"
 #include "absl/log/check.h"
 #include "absl/types/span.h"
 
@@ -37,6 +38,7 @@ namespace {
 
 constexpr size_t kBinarySearchTargetRatio = 32;
 constexpr uint64_t kDenseLutRatio = 8;
+constexpr uint64_t kByteLutMaxBytes = 64 * 1024;
 constexpr uint64_t kDenseLutMaxBytes = 16 * 1024 * 1024;
 
 template <typename IntT>
@@ -87,6 +89,30 @@ bool ResolveWithLastKeyCache(absl::Span<const int64_t> query_keys,
     out[i] = prev_row;
   }
   return true;
+}
+
+template <typename IntT, typename PredFn>
+void WriteMask(absl::Span<const IntT> query_keys, PredFn pred, bool invert,
+               absl::Span<bool> out) {
+  for (size_t i = 0; i < query_keys.size(); ++i) {
+    out[i] = invert != pred(query_keys[i]);
+  }
+}
+
+template <typename IntT, typename ContainsFn>
+void ContainsWithLastKeyCache(absl::Span<const IntT> query_keys,
+                              ContainsFn contains, bool invert,
+                              absl::Span<bool> out) {
+  IntT prev_key = query_keys[0];
+  bool prev_out = invert != contains(prev_key);
+  out[0] = prev_out;
+  for (size_t i = 1; i < query_keys.size(); ++i) {
+    if (const IntT key = query_keys[i]; key != prev_key) {
+      prev_out = invert != contains(key);
+      prev_key = key;
+    }
+    out[i] = prev_out;
+  }
 }
 
 }  // namespace
@@ -165,5 +191,88 @@ bool ResolveKeys(absl::Span<const int64_t> query_keys,
       },
       out);
 }
+
+template <typename IntT>
+void ContainsKeys(absl::Span<const IntT> query_keys,
+                  absl::Span<const IntT> table_keys, bool invert,
+                  absl::Span<bool> out) {
+  using UnsignedT = std::make_unsigned_t<IntT>;
+  CHECK_EQ(out.size(), query_keys.size());
+  if (query_keys.empty()) {
+    return;
+  }
+  if (table_keys.empty()) {
+    absl::c_fill(out, invert);
+    return;
+  }
+  const KeyStats<IntT> stats = AnalyzeKeys(table_keys);
+  const uint64_t span = stats.span;
+  if (stats.strictly_increasing && span == table_keys.size() - 1) {
+    const uint64_t num_rows = table_keys.size();
+    WriteMask(
+        query_keys,
+        [umin = stats.umin, num_rows](IntT key) {
+          return uint64_t{static_cast<UnsignedT>(key) - umin} < num_rows;
+        },
+        invert, out);
+    return;
+  }
+  if (stats.non_decreasing &&
+      query_keys.size() <= table_keys.size() / kBinarySearchTargetRatio) {
+    ContainsWithLastKeyCache(
+        query_keys,
+        [table_keys](IntT key) {
+          return absl::c_binary_search(table_keys, key);
+        },
+        invert, out);
+    return;
+  }
+  const uint64_t budget = query_keys.size() + table_keys.size();
+  if (span < kByteLutMaxBytes && span / kDenseLutRatio <= budget) {
+    std::vector<uint8_t> present(static_cast<size_t>(span) + 1, 0);
+    for (const IntT key : table_keys) {
+      present[static_cast<size_t>(static_cast<UnsignedT>(key) - stats.umin)] =
+          1;
+    }
+    WriteMask(
+        query_keys,
+        [umin = stats.umin, span = stats.span,
+         table = absl::MakeConstSpan(present)](IntT key) {
+          const UnsignedT offset = static_cast<UnsignedT>(key) - umin;
+          return offset <= span && table[static_cast<size_t>(offset)] != 0;
+        },
+        invert, out);
+    return;
+  }
+  if (span < kDenseLutMaxBytes * 8 && (span / 8) / kDenseLutRatio <= budget) {
+    std::vector<uint64_t> present(static_cast<size_t>(span >> 6) + 1, 0);
+    for (const IntT key : table_keys) {
+      const UnsignedT offset = static_cast<UnsignedT>(key) - stats.umin;
+      present[static_cast<size_t>(offset >> 6)] |= uint64_t{1} << (offset & 63);
+    }
+    WriteMask(
+        query_keys,
+        [umin = stats.umin, span = stats.span,
+         bits = absl::MakeConstSpan(present)](IntT key) {
+          const UnsignedT offset = static_cast<UnsignedT>(key) - umin;
+          return offset <= span &&
+                 ((bits[static_cast<size_t>(offset >> 6)] >> (offset & 63)) &
+                  1) != 0;
+        },
+        invert, out);
+    return;
+  }
+  const absl::flat_hash_set<IntT> key_set(table_keys.begin(), table_keys.end());
+  ContainsWithLastKeyCache(
+      query_keys, [&key_set](IntT key) { return key_set.contains(key); },
+      invert, out);
+}
+
+template void ContainsKeys<int32_t>(absl::Span<const int32_t> query_keys,
+                                    absl::Span<const int32_t> table_keys,
+                                    bool invert, absl::Span<bool> out);
+template void ContainsKeys<int64_t>(absl::Span<const int64_t> query_keys,
+                                    absl::Span<const int64_t> table_keys,
+                                    bool invert, absl::Span<bool> out);
 
 }  // namespace alphafold3
