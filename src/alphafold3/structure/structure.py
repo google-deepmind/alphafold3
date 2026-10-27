@@ -605,25 +605,22 @@ class Structure(table.Database):
   @functools.cached_property
   def present_chains(self) -> structure_tables.Chains:
     """Returns table of chains which have at least 1 resolved atom."""
-    is_present_mask = np.isin(self._chains.key, self._atoms.chain_key)
-    return typing.cast(structure_tables.Chains, self._chains[is_present_mask])
+    return self._chains.apply_array(
+        membership.isin(self._chains.key, self._atoms.chain_key)
+    )
 
   @functools.cached_property
   def present_residues(self) -> structure_tables.Residues:
     """Returns table of residues which have at least 1 resolved atom."""
-    is_present_mask = np.isin(self._residues.key, self._atoms.res_key)
-    return typing.cast(
-        structure_tables.Residues, self._residues[is_present_mask]
+    return self._residues.apply_array(
+        membership.isin(self._residues.key, self._atoms.res_key)
     )
 
   @functools.cached_property
   def unresolved_residues(self) -> structure_tables.Residues:
     """Returns table of residues which have at least 1 resolved atom."""
-    is_unresolved_mask = np.isin(
-        self._residues.key, self._atoms.res_key, invert=True
-    )
-    return typing.cast(
-        structure_tables.Residues, self._residues[is_unresolved_mask]
+    return self._residues.apply_array(
+        membership.isin(self._residues.key, self._atoms.res_key, invert=True)
     )
 
   def __getitem__(self, field: str) -> Any:
@@ -1462,15 +1459,13 @@ class Structure(table.Database):
       bonds = self._bonds
 
     if not chains_unchanged:
-      residues_mask = membership.isin(residues.chain_key, set(chains.key))  # pylint:disable=attribute-error
-      if not np.all(residues_mask):  # Only apply if this is not a no-op.
-        residues = residues[residues_mask]
-        residues_unchanged = False
+      residues = residues.apply_array(
+          membership.isin(residues.chain_key, chains.key)
+      )
+      residues_unchanged = residues_unchanged and residues is self._residues
     if not residues_unchanged:
-      atoms_mask = membership.isin(atoms.res_key, set(residues.key))  # pylint:disable=attribute-error
-      if not np.all(atoms_mask):  # Only apply if this is not a no-op.
-        atoms = atoms[atoms_mask]
-        atoms_unchanged = False
+      atoms = atoms.apply_array(membership.isin(atoms.res_key, residues.key))
+      atoms_unchanged = atoms_unchanged and atoms is self._atoms
     if not atoms_unchanged:
       bonds = bonds.restrict_to_atoms(atoms.key)
     return StructureTables(
@@ -1767,10 +1762,8 @@ class Structure(table.Database):
       )
     if res_mask.dtype != bool:
       raise ValueError(f'res_mask must have dtype bool. Got: {res_mask.dtype}.')
-
-    filtered_residues = self.present_residues.filter(res_mask)
-    atom_mask = np.isin(self._atoms.res_key, filtered_residues.key)
-    return self.filter(atom_mask)
+    kept_res_keys = self.present_residues.filter(res_mask).key
+    return self.filter(membership.isin(self._atoms.res_key, kept_res_keys))
 
   def filter_coords(
       self, coord_predicate: Callable[[np.ndarray], bool]
