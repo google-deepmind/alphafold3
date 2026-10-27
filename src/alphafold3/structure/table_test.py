@@ -385,6 +385,29 @@ class TableTest(parameterized.TestCase):
         strict=True,
     )
 
+  @parameterized.named_parameters(
+      dict(
+          testcase_name='string',
+          predicate='B',
+          expected=[False, True, False],
+      ),
+      dict(
+          testcase_name='none',
+          predicate=None,
+          expected=[False, False, True],
+      ),
+  )
+  def test_make_filter_mask_object_column_single_value(
+      self, predicate, expected
+  ):
+    tbl = OneColTable(
+        key=np.arange(3, dtype=np.int64),
+        data=np.array(['A', 'B', None], dtype=object),
+    )
+    np.testing.assert_array_equal(
+        tbl.make_filter_mask(data=predicate), np.array(expected), strict=True
+    )
+
   def test_make_filter_mask_empty_iterable_returns_all_false(self):
     tbl = OneColTable(
         key=np.array([0, 1, 2], dtype=np.int64),

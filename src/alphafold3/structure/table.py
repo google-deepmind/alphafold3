@@ -116,8 +116,6 @@ def _eval_value_predicate(
   size = col_arr.shape[0]
   if not target_vals or size == 0:
     return np.zeros((size,), dtype=bool)
-  if len(target_vals) == 1:
-    return _as_bool_mask(col_arr == target_vals[0], size=size)
   if col_dtype == object:
     # Exclude NaN so Python `set` identity lookup cannot match NaN singletons.
     non_nan_targets = {
@@ -126,6 +124,8 @@ def _eval_value_predicate(
         if not (isinstance(v, (float, np.floating)) and math.isnan(v))
     }
     return membership.isin(col_arr, non_nan_targets)
+  if len(target_vals) == 1:
+    return _as_bool_mask(col_arr == target_vals[0], size=size)
   if col_dtype in (np.int64, np.int32) and all(
       isinstance(v, (int, np.integer)) for v in target_vals
   ):
