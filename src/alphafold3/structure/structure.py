@@ -1867,26 +1867,24 @@ class Structure(table.Database):
       A Structure filtered so that per chain types, only specified atoms are
       present.
     """
-    polymer_chain_keys = self._chains.key[
-        string_array.isin(
-            self._chains.type, set(representative_atom_by_chain_type)
-        )
+    rep_by_chain = [
+        representative_atom_by_chain_type.get(t) for t in self._chains.type
     ]
-    polymer_atoms_mask = np.isin(self._atoms.chain_key, polymer_chain_keys)
-
-    wanted_atom_by_chain_key = {
-        chain_key: representative_atom_by_chain_type.get(chain_type, None)
-        for chain_key, chain_type in zip(self._chains.key, self._chains.type)
-    }
-    wanted_atoms = string_array.remap(
-        self._atoms.chain_key.astype(object), mapping=wanted_atom_by_chain_key
-    )
-
-    representative_polymer_atoms_mask = polymer_atoms_mask & (
-        wanted_atoms == self._atoms.name
-    )
-
-    return self.filter(representative_polymer_atoms_mask | ~polymer_atoms_mask)
+    targets = {r for r in rep_by_chain if r is not None}
+    chain_idx = indexing.index_of(self._atoms.chain_key, self._chains.key)
+    keep_mask = np.array(
+        [t not in representative_atom_by_chain_type for t in self._chains.type],
+        dtype=bool,
+    )[chain_idx]
+    if len(targets) == 1:
+      keep_mask |= membership.isin(self._atoms.name, targets)
+      return self.filter(keep_mask)
+    for rep in targets:
+      in_rep_chain = np.array([r == rep for r in rep_by_chain], dtype=bool)[
+          chain_idx
+      ]
+      keep_mask |= in_rep_chain & membership.isin(self._atoms.name, {rep})
+    return self.filter(keep_mask)
 
   def drop_non_standard_protein_atoms(self, *, drop_oxt: bool = True) -> Self:
     """Drops non-standard atom names from protein chains.
