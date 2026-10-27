@@ -22,9 +22,9 @@
 import collections
 from collections.abc import Mapping, Sequence
 import dataclasses
-import typing
 from typing import Self
 
+from alphafold3.cpp import membership
 from alphafold3.structure import table
 import numpy as np
 
@@ -87,12 +87,14 @@ class Bonds(table.Table):
     return from_indices, dest_indices
 
   def restrict_to_atoms(self, atom_key: np.ndarray) -> Self:
+    """Returns a Bonds table retaining only bonds with both atoms in atom_key."""
     if not self.size:  # Early-out for empty table.
       return self
-    from_atom_mask = np.isin(self.from_atom_key, atom_key)
-    dest_atom_mask = np.isin(self.dest_atom_key, atom_key)
-    mask = np.logical_and(from_atom_mask, dest_atom_mask)
-    return typing.cast(Bonds, self.filter(mask=mask))  # pyrefly: ignore[bad-return]
+    if not atom_key.size:
+      return self._take(np.empty((0,), dtype=np.int64))
+    # Evaluate both bond endpoints in one `(2, num_bonds)` membership pass.
+    endpoints = np.stack((self.from_atom_key, self.dest_atom_key), axis=0)
+    return self.apply_array(membership.isin(endpoints, atom_key).all(axis=0))
 
   def to_mmcif_dict_from_atom_arrays(
       self,
