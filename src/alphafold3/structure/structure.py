@@ -1594,40 +1594,36 @@ class Structure(table.Database):
       return self  # Shortcut: The filter is a no-op, so just return itself.
 
     match cascade_delete:
-      case CascadeDelete.FULL:
-        nonempty_residues_mask = np.isin(
-            self._residues.key, filtered_atoms.res_key
+      case CascadeDelete.FULL | CascadeDelete.CHAINS:
+        filtered_chains = self._chains.apply_array(
+            membership.isin(self._chains.key, filtered_atoms.chain_key)
         )
-        filtered_residues = self._residues[nonempty_residues_mask]
-        nonempty_chain_mask = np.isin(
-            self._chains.key, filtered_atoms.chain_key
-        )
-        filtered_chains = self._chains[nonempty_chain_mask]
-        updated_tables = self._cascade_delete(
-            chains=filtered_chains,  # pyrefly: ignore[bad-argument-type]
-            residues=filtered_residues,  # pyrefly: ignore[bad-argument-type]
-            atoms=filtered_atoms,
-        )
-      case CascadeDelete.CHAINS:
-        # To match v1 behavior we remove chains that have no atoms remaining,
-        # and we remove residues in those chains.
-        # NB we do not remove empty residues.
-        nonempty_chain_mask = membership.isin(
-            self._chains.key, set(filtered_atoms.chain_key)
-        )
-        filtered_chains = self._chains[nonempty_chain_mask]
-        updated_tables = self._cascade_delete(
-            chains=filtered_chains, atoms=filtered_atoms
-        )
+        if cascade_delete == CascadeDelete.FULL:
+          filtered_residues = self._residues.apply_array(
+              membership.isin(self._residues.key, filtered_atoms.res_key)
+          )
+        elif filtered_chains is self._chains:
+          filtered_residues = self._residues
+        else:
+          # To match v1 behavior we remove chains that have no atoms remaining,
+          # and we remove residues in those chains.
+          # NB we do not remove empty residues.
+          filtered_residues = self._residues.apply_array(
+              membership.isin(self._residues.chain_key, filtered_chains.key)
+          )
       case CascadeDelete.NONE:
-        updated_tables = self._cascade_delete(atoms=filtered_atoms)
+        filtered_chains, filtered_residues = self._chains, self._residues
       case _:
         raise ValueError(f'Unknown cascade_delete behaviour: {cascade_delete}')
     return self.copy_and_update(
-        chains=updated_tables.chains,
-        residues=updated_tables.residues,
-        atoms=updated_tables.atoms,
-        bonds=updated_tables.bonds,
+        chains=filtered_chains,
+        residues=filtered_residues,
+        atoms=filtered_atoms,
+        bonds=(
+            self._bonds
+            if filtered_atoms is self._atoms
+            else self._bonds.restrict_to_atoms(filtered_atoms.key)
+        ),
         skip_validation=True,
     )
 
