@@ -26,6 +26,6 @@ namespace alphafold3 {
 
 void RegisterModuleMembership(pybind11::module m);
 
-}
+}  // namespace alphafold3
 
 #endif  // ALPHAFOLD3_SRC_ALPHAFOLD3_STRUCTURE_CPP_MEMBERSHIP_PYBIND_H_

@@ -19,15 +19,15 @@
 
 #define NPY_TARGET_VERSION NPY_2_1_API_VERSION
 
-#include <Python.h>
-
 #include "alphafold3/structure/cpp/membership_pybind.h"
+
+#include <Python.h>
 
 #include <cstddef>
 #include <cstdint>
 #include <limits>
 #include <memory>
-#include <utility>
+#include <type_traits>
 
 #include "numpy/ndarrayobject.h"
 #include "numpy/ndarraytypes.h"
@@ -47,63 +47,105 @@ namespace {
 
 namespace py = pybind11;
 
-void ApplyIsIn(absl::Span<bool> result, absl::Span<PyObject* const> values,
-               py::anyset test_elements, bool invert) {
-  for (size_t i = 0, e = values.size(); i < e; ++i) {
-    if (values[i] == nullptr) {
-      result[i] = invert;
-      continue;
-    }
-    py::handle test_element = py::cast<py::handle>(values[i]);
-    result[i] = invert != test_elements.contains(test_element);
+// Returns a native-endian, aligned, C-contiguous view or copy of `array`.
+template <typename T>
+py::array_t<T> AsAlignedCContiguous(const py::array& array) {
+  constexpr int kTargetTypeNum =
+      std::is_same_v<T, PyObject*>
+          ? NPY_OBJECT
+          : (sizeof(T) == sizeof(int64_t) ? NPY_INT64 : NPY_INT32);
+  auto* arr_obj = reinterpret_cast<PyArrayObject*>(array.ptr());
+  if (PyArray_ISCARRAY_RO(arr_obj) &&
+      PyArray_DESCR(arr_obj)->type_num == kTargetTypeNum) {
+    return py::reinterpret_borrow<py::array_t<T>>(array);
   }
+  PyObject* obj =
+      PyArray_FROM_OTF(array.ptr(), kTargetTypeNum, NPY_ARRAY_CARRAY_RO);
+  if (obj == nullptr) {
+    throw py::error_already_set();
+  }
+  return py::reinterpret_steal<py::array_t<T>>(obj);
 }
 
-// Skips out-of-range integers while keeping `py::cast<Number>` non-int errors.
-template <typename Number>
-absl::flat_hash_set<Number> CastIntSet(const py::iterable& test_elements) {
-  absl::flat_hash_set<Number> result;
+py::array_t<bool> NewBoolCArray(const py::array& shape_src) {
+  PyObject* obj =
+      PyArray_SimpleNew(shape_src.ndim(), shape_src.shape(), NPY_BOOL);
+  if (obj == nullptr) {
+    throw py::error_already_set();
+  }
+  return py::reinterpret_steal<py::array_t<bool>>(obj);
+}
+
+py::array_t<bool> MakeConstantBoolArray(const py::array& shape_src,
+                                        bool value) {
+  auto result = NewBoolCArray(shape_src);
+  absl::c_fill(absl::MakeSpan(result.mutable_data(), result.size()), value);
+  return result;
+}
+
+py::array_t<bool> IsInObjectSet(const py::array& array, PyObject* set_ptr,
+                                bool invert) {
+  auto contig = AsAlignedCContiguous<PyObject*>(array);
+  auto result = NewBoolCArray(contig);
+  bool* out = result.mutable_data();
+  PyObject* const* vals = contig.data();
+  py::object prev_val;
+  bool prev_out = invert;
+  for (size_t i = 0, n = contig.size(); i < n; ++i) {
+    if (PyObject* val = vals[i]; val != prev_val.ptr()) {
+      prev_val = py::reinterpret_borrow<py::object>(val);
+      if (val == nullptr) {
+        prev_out = invert;
+      } else {
+        const int contains = PySet_Contains(set_ptr, val);
+        if (contains < 0) {
+          throw py::error_already_set();
+        }
+        prev_out = invert != (contains != 0);
+      }
+    }
+    out[i] = prev_out;
+  }
+  return result;
+}
+
+// Skips out-of-range integers while keeping `py::cast<IntT>` non-int errors.
+template <typename IntT>
+absl::flat_hash_set<IntT> CastIntSet(const py::iterable& test_elements) {
+  absl::flat_hash_set<IntT> result;
   result.reserve(py::len_hint(test_elements));
   for (py::handle elem : test_elements) {
     if (!PyIndex_Check(elem.ptr())) {
-      py::cast<Number>(elem);
+      py::cast<IntT>(elem);
     }
     int overflow = 0;
     const int64_t val = PyLong_AsLongLongAndOverflow(elem.ptr(), &overflow);
     if (PyErr_Occurred()) {
       throw py::error_already_set();
     }
-    if (overflow == 0 && val >= std::numeric_limits<Number>::min() &&
-        val <= std::numeric_limits<Number>::max()) {
-      result.insert(static_cast<Number>(val));
+    if (overflow == 0 && val >= std::numeric_limits<IntT>::min() &&
+        val <= std::numeric_limits<IntT>::max()) {
+      result.insert(static_cast<IntT>(val));
     }
   }
   return result;
 }
 
-template <typename Number>
-void ApplyIsIn(absl::Span<bool> result, absl::Span<const Number> values,
-               py::anyset test_elements, bool invert) {
-  auto test_elements_set =
-      CastIntSet<Number>(py::reinterpret_borrow<py::iterable>(test_elements));
-  py::gil_scoped_release release;
-  for (size_t i = 0, e = values.size(); i < e; ++i) {
-    result[i] = invert != test_elements_set.contains(values[i]);
-  }
-}
-
-template <typename T>
-py::array_t<bool> IsIn(const py::array_t<T, py::array::c_style>& array,
-                       py::anyset test_elements, bool invert) {
-  py::array_t<bool, py::array::c_style> result(
-      absl::MakeConstSpan(array.shape(), array.ndim()));
-  const size_t size = array.size();
-  auto result_span = absl::MakeSpan(result.mutable_data(), size);
-  if (test_elements.attr("__len__")().cast<ssize_t>() == 0) {
-    absl::c_fill(result_span, invert);
-  } else {
-    auto array_span = absl::MakeConstSpan(array.data(), size);
-    ApplyIsIn(result_span, array_span, std::move(test_elements), invert);
+template <typename IntT>
+py::array_t<bool> IsInIntSet(const py::array& array,
+                             const py::anyset& test_elements, bool invert) {
+  auto contig = AsAlignedCContiguous<IntT>(array);
+  absl::flat_hash_set<IntT> test_set =
+      CastIntSet<IntT>(py::reinterpret_borrow<py::iterable>(test_elements));
+  auto result = NewBoolCArray(contig);
+  bool* out = result.mutable_data();
+  const IntT* vals = contig.data();
+  const size_t n = contig.size();
+  {
+    py::gil_scoped_release release;
+    for (size_t i = 0; i < n; ++i) {
+      out[i] = invert != test_set.contains(vals[i]);
+    }
   }
   return result;
 }
@@ -178,72 +220,80 @@ void PopulateStringIsInResult(
   } while (iter_next(iter));
 }
 
-py::array_t<bool> isin(const py::array& array, py::anyset test_elements,
+py::array_t<bool> IsIn(py::handle array_arg, const py::anyset& test_elements,
                        bool invert) {
-  // Ensure the array is of the correct StringDType
-  PyArrayObject* array_obj = reinterpret_cast<PyArrayObject*>(array.ptr());
+  py::array array = PyArray_CheckExact(array_arg.ptr())
+                        ? py::reinterpret_borrow<py::array>(array_arg)
+                        : py::array::ensure(array_arg);
+  if (!array) {
+    throw py::type_error("Incompatible array argument.");
+  }
+
+  auto* array_obj = reinterpret_cast<PyArrayObject*>(array.ptr());
   PyArray_Descr* descr = PyArray_DESCR(array_obj);
 
-  if (descr->type_num != NPY_VSTRING) {
-    const npy_intp elsize = PyDataType_ELSIZE(descr);
-    // Reuse `int32_t`/`int64_t` kernels (`uint64` falls back to `PyObject*`).
-    if (PyDataType_ISSIGNED(descr) && elsize <= sizeof(int32_t)) {
-      return IsIn(py::cast<py::array_t<int32_t, py::array::c_style>>(array),
-                  std::move(test_elements), invert);
+  if (descr->type_num == NPY_VSTRING) {
+    absl::flat_hash_set<absl::string_view> test_elements_set;
+    if (!test_elements.empty()) {
+      test_elements_set =
+          py::cast<absl::flat_hash_set<absl::string_view>>(test_elements);
     }
-    if ((PyDataType_ISSIGNED(descr) && elsize == sizeof(int64_t)) ||
-        (PyDataType_ISUNSIGNED(descr) && elsize <= sizeof(uint32_t))) {
-      return IsIn(py::cast<py::array_t<int64_t, py::array::c_style>>(array),
-                  std::move(test_elements), invert);
+
+    PyArrayObject* op[2] = {array_obj, nullptr};
+    npy_uint32 op_flags[2] = {
+        NPY_ITER_READONLY,
+        NPY_ITER_WRITEONLY | NPY_ITER_ALLOCATE,
+    };
+    constexpr npy_uint32 kFlags =
+        NPY_ITER_ZEROSIZE_OK | NPY_ITER_EXTERNAL_LOOP | NPY_ITER_REFS_OK;
+
+    py::dtype bool_dtype = py::dtype::of<bool>();
+    PyArray_Descr* op_dtypes[2] = {
+        nullptr, reinterpret_cast<PyArray_Descr*>(bool_dtype.ptr())};
+
+    std::unique_ptr<NpyIter, decltype(&NpyIter_Deallocate)> iter(
+        NpyIter_MultiNew(
+            /*nop=*/2, op, kFlags,
+            /*order=*/NPY_KEEPORDER,
+            /*casting=*/NPY_NO_CASTING, op_flags, op_dtypes),
+        &NpyIter_Deallocate);
+
+    if (iter == nullptr) {
+      // NpyIter_MultiNew sets the python error.
+      throw py::error_already_set();
     }
-    // Fall back to the object-based IsIn, for backwards compatibility.
-    return IsIn(py::cast<py::array_t<PyObject*, py::array::c_style>>(array),
-                std::move(test_elements), invert);
+
+    PopulateStringIsInResult(iter.get(), descr, test_elements_set, invert);
+
+    py::array_t<bool> result = py::reinterpret_borrow<py::array_t<bool>>(
+        reinterpret_cast<PyObject*>(NpyIter_GetOperandArray(iter.get())[1]));
+
+    // Circumvent iterator deallocation in the successful case so that we can
+    // correctly check deallocation status.
+    if (NpyIter_Deallocate(iter.release()) != NPY_SUCCEED) {
+      throw py::error_already_set();
+    }
+
+    return result;
   }
 
-  absl::flat_hash_set<absl::string_view> test_elements_set =
-      py::cast<absl::flat_hash_set<absl::string_view>>(test_elements);
-
-  PyArrayObject* op[2] = {array_obj, nullptr};
-  npy_uint32 op_flags[2] = {
-      NPY_ITER_READONLY,
-      NPY_ITER_WRITEONLY | NPY_ITER_ALLOCATE,
-  };
-  npy_uint32 flags =
-      NPY_ITER_ZEROSIZE_OK | NPY_ITER_EXTERNAL_LOOP | NPY_ITER_REFS_OK;
-
-  py::dtype bool_dtype = py::dtype::of<bool>();
-  PyArray_Descr* op_dtypes[2] = {
-      nullptr, reinterpret_cast<PyArray_Descr*>(bool_dtype.ptr())};
-
-  std::unique_ptr<NpyIter, decltype(&NpyIter_Deallocate)> iter(
-      NpyIter_MultiNew(
-          /*nop=*/2, op, flags,
-          /*order=*/NPY_KEEPORDER,
-          /*casting=*/NPY_NO_CASTING, op_flags, op_dtypes),
-      &NpyIter_Deallocate);
-
-  if (iter == nullptr) {
-    // NpyIter_MultiNew sets the python error.
-    throw py::error_already_set();
+  if (test_elements.empty()) {
+    return MakeConstantBoolArray(array, invert);
   }
-
-  PopulateStringIsInResult(iter.get(), descr, test_elements_set, invert);
-
-  py::array_t<bool> result = py::reinterpret_borrow<py::array_t<bool>>(
-      reinterpret_cast<PyObject*>(NpyIter_GetOperandArray(iter.get())[1]));
-
-  // Circumvent iterator deallocation in the successful case so that we can
-  // correctly check deallocation status.
-  if (NpyIter_Deallocate(iter.release()) != NPY_SUCCEED) {
-    throw py::error_already_set();
+  const npy_intp elsize = PyArray_ITEMSIZE(array_obj);
+  // Reuse `int32_t`/`int64_t` kernels (`uint64` falls back to `IsInObjectSet`).
+  if (PyDataType_ISSIGNED(descr) && elsize <= sizeof(int32_t)) {
+    return IsInIntSet<int32_t>(array, test_elements, invert);
   }
-
-  return result;
+  if ((PyDataType_ISSIGNED(descr) && elsize == sizeof(int64_t)) ||
+      (PyDataType_ISUNSIGNED(descr) && elsize <= sizeof(uint32_t))) {
+    return IsInIntSet<int64_t>(array, test_elements, invert);
+  }
+  return IsInObjectSet(array, test_elements.ptr(), invert);
 }
 
-constexpr char kIsInDoc[] = R"(
-Computes whether each element is in test_elements.
+constexpr char kIsInDoc[] =
+    R"(Computes whether each element is in test_elements.
 
 Same use as np.isin, but much faster. If len(array) = n, len(test_elements) = m:
 * This function has complexity O(n).
@@ -271,14 +321,8 @@ void RegisterModuleMembership(pybind11::module m) {
   if (_import_array() < 0) {
     throw py::error_already_set();
   }
-  m.def("isin", &IsIn<int64_t>, py::arg("array"), py::arg("test_elements"),
-        py::kw_only(), py::arg("invert") = false, py::doc(kIsInDoc + 1));
-  m.def("isin", &IsIn<int32_t>, py::arg("array"), py::arg("test_elements"),
-        py::kw_only(), py::arg("invert") = false, py::doc(kIsInDoc + 1));
-  m.def("isin", &IsIn<PyObject*>, py::arg("array"), py::arg("test_elements"),
-        py::kw_only(), py::arg("invert") = false, py::doc(kIsInDoc + 1));
-  m.def("isin", &isin, py::arg("array"), py::arg("test_elements"),
-        py::kw_only(), py::arg("invert") = false, py::doc(kIsInDoc + 1));
+  m.def("isin", &IsIn, py::arg("array"), py::arg("test_elements"),
+        py::kw_only(), py::arg("invert") = false, py::doc(kIsInDoc));
 }
 
 }  // namespace alphafold3

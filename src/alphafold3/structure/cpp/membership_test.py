@@ -337,6 +337,26 @@ class MembershipTest(parameterized.TestCase):
         strict=True,
     )
 
+  def test_isin_object_array_mutated_during_eq(self):
+    arr = np.empty(2, dtype=object)
+
+    class MutatingKey:
+
+      def __hash__(self):
+        return 1
+
+      def __eq__(self, other):
+        arr[0] = None
+        return other == 1
+
+    arr[0] = MutatingKey()
+    arr[1] = 1
+    np.testing.assert_array_equal(
+        membership.isin(arr, {1}),
+        np.array([True, True], dtype=bool),
+        strict=True,
+    )
+
 
 if __name__ == '__main__':
   absltest.main()
