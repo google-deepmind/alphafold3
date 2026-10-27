@@ -181,6 +181,35 @@ class Table:
       )
     self.key.flags.writeable = False  # Make key immutable.
 
+  @classmethod
+  def _from_validated_columns(
+      cls, columns_by_name: Mapping[str, np.ndarray]
+  ) -> Self:
+    """Constructs a Table from row slices of an already-validated Table.
+
+    Row-slicing an already-validated Table preserves column names, equal row
+    counts, non-negative keys, and finite values, so only immutability needs to
+    be re-applied on the newly allocated column arrays.
+
+    Args:
+      columns_by_name: Mapping from every column name to its sliced array.
+
+    Returns:
+      A new immutable Table instance of `cls`.
+    """
+    instance = cls.__new__(cls)
+    for col_name, col in columns_by_name.items():
+      col.flags.writeable = False
+      object.__setattr__(instance, col_name, col)
+    return instance
+
+  def _take(self, selector: np.ndarray) -> Self:
+    """Returns the rows picked by an index array or boolean mask."""
+    return self._from_validated_columns({
+        col: _take_rows(col_arr, selector)
+        for col, col_arr in self.items.items()
+    })
+
   def __getstate__(self) -> dict[str, Any]:
     """Returns members with cached properties removed for pickling."""
     cached_props = {
@@ -228,13 +257,11 @@ class Table:
 
   def apply_array(self, arr: np.ndarray) -> Self:
     """Returns a sliced table using a key (!= index) array or a boolean mask."""
-    if arr.dtype == bool and np.all(arr):
+    if arr.dtype != bool:
+      return self._take(indexing.index_of(arr, self.key))
+    if np.all(arr):
       return self  # Shortcut: No-op, so just return.
-
-    return self.copy_and_update(**{
-        column_name: self.apply_array_to_column(column_name, arr)
-        for column_name in self.columns
-    })
+    return self._take(arr)
 
   def apply_index(self, index_arr: np.ndarray) -> Self:
     """Returns a sliced table using an index (!= key) array."""
@@ -254,9 +281,7 @@ class Table:
     ):
       return self  # Shortcut: No-op, so just return.
 
-    return self.copy_and_update(
-        **{col: self.get_column(col)[..., index_arr] for col in self.columns}
-    )
+    return self._take(index_arr)
 
   def apply_array_to_column(
       self,
