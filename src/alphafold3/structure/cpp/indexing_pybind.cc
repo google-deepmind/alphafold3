@@ -26,11 +26,13 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <vector>
 
 #include "numpy/ndarrayobject.h"
 #include "numpy/ndarraytypes.h"
 #include "numpy/npy_common.h"
 #include "absl/algorithm/container.h"
+#include "absl/base/optimization.h"
 #include "absl/types/span.h"
 #include "alphafold3/structure/cpp/key_lookup.h"
 #include "pybind11/gil.h"
@@ -42,6 +44,7 @@ namespace {
 
 namespace py = pybind11;
 
+using ::alphafold3::GatherByKey;
 using ::alphafold3::ResolveKeys;
 
 // Returns a native-endian, aligned, C-contiguous int64 view or copy of `array`.
@@ -59,10 +62,6 @@ py::array_t<int64_t> AsAlignedCContiguousInt64(const py::array& array) {
   return py::reinterpret_steal<py::array_t<int64_t>>(copy);
 }
 
-absl::Span<const int64_t> AsSpan(const py::array_t<int64_t>& a) {
-  return {a.data(), static_cast<size_t>(a.size())};
-}
-
 [[noreturn]] void ThrowMissingKeys() {
   throw py::index_error("Keys missing from table.");
 }
@@ -76,7 +75,7 @@ void ValidateKeyArrays(const py::array& keys, const py::array& table_keys) {
 }
 
 bool IsIdentityKeys(absl::Span<const int64_t> table_span) {
-  if (table_span.front() != 0 ||
+  if (table_span.empty() || table_span.front() != 0 ||
       table_span.back() != static_cast<int64_t>(table_span.size() - 1)) {
     return false;
   }
@@ -86,6 +85,13 @@ bool IsIdentityKeys(absl::Span<const int64_t> table_span) {
     }
   }
   return true;
+}
+
+bool AllKeysInRange(absl::Span<const int64_t> key_span, size_t num_rows) {
+  const uint64_t limit = num_rows;
+  return absl::c_all_of(key_span, [limit](int64_t k) {
+    return static_cast<uint64_t>(k) < limit;
+  });
 }
 
 py::array_t<int64_t> IndexOf(const py::array& keys,
@@ -99,8 +105,8 @@ py::array_t<int64_t> IndexOf(const py::array& keys,
   }
   auto contig_table = AsAlignedCContiguousInt64(table_keys);
   auto contig_keys = AsAlignedCContiguousInt64(keys);
-  const auto table_span = AsSpan(contig_table);
-  const auto key_span = AsSpan(contig_keys);
+  const auto table_span = absl::MakeConstSpan(contig_table);
+  const auto key_span = absl::MakeConstSpan(contig_keys);
   const bool can_borrow = contig_keys.ptr() != keys.ptr() || !keys.writeable();
   bool all_present = false;
   if (can_borrow) {
@@ -109,10 +115,7 @@ py::array_t<int64_t> IndexOf(const py::array& keys,
       py::gil_scoped_release release;
       is_identity = IsIdentityKeys(table_span);
       if (is_identity) {
-        const uint64_t num_rows = table_span.size();
-        all_present = absl::c_all_of(key_span, [num_rows](int64_t k) {
-          return static_cast<uint64_t>(k) < num_rows;
-        });
+        all_present = AllKeysInRange(key_span, table_span.size());
       }
     }
     if (is_identity) {
@@ -136,7 +139,6 @@ py::array_t<int64_t> IndexOf(const py::array& keys,
 }
 
 py::object NonzeroIndices(const py::array& mask) {
-  static_assert(sizeof(bool) == 1);
   auto* obj = reinterpret_cast<PyArrayObject*>(mask.ptr());
   if (!PyArray_ISBOOL(obj) || mask.ndim() != 1) {
     throw py::index_error("Mask must be a 1D bool array.");
@@ -181,6 +183,112 @@ py::object NonzeroIndices(const py::array& mask) {
   return out;
 }
 
+template <typename T>
+bool GatherTyped(absl::Span<const int64_t> key_span,
+                 absl::Span<const int64_t> table_span, const void* values_data,
+                 void* out_data) {
+  return GatherByKey<T>(
+      key_span, table_span,
+      absl::MakeConstSpan(static_cast<const T*>(values_data),
+                          table_span.size()),
+      absl::MakeSpan(static_cast<T*>(out_data), key_span.size()));
+}
+
+py::array GatherObjectArray(absl::Span<const int64_t> key_span,
+                            absl::Span<const int64_t> table_span,
+                            const py::array& values) {
+  std::vector<int64_t> rows(key_span.size());
+  bool all_present = false;
+  {
+    py::gil_scoped_release release;
+    all_present = ResolveKeys(key_span, table_span, absl::MakeSpan(rows));
+  }
+  if (!all_present) {
+    ThrowMissingKeys();
+  }
+  py::array out_array(values.dtype(), static_cast<py::ssize_t>(rows.size()));
+  const auto* const src = static_cast<PyObject* const*>(values.data());
+  auto* const dst = static_cast<PyObject**>(out_array.mutable_data());
+  for (size_t i = 0; i < rows.size(); ++i) {
+    PyObject* obj = src[rows[i]];
+    Py_XINCREF(obj);
+    dst[i] = obj;
+  }
+  return out_array;
+}
+
+bool ValidateValueArray(const py::array& values, const py::array& table_keys) {
+  auto* values_arr = reinterpret_cast<PyArrayObject*>(values.ptr());
+  if (values.ndim() != 1 || values.size() != table_keys.size() ||
+      !PyArray_CHKFLAGS(values_arr, NPY_ARRAY_CARRAY_RO)) {
+    throw py::value_error(
+        "values must be a 1D aligned C-contiguous array matching table_keys.");
+  }
+  const py::dtype dt = values.dtype();
+  const char kind = dt.kind();
+  const py::ssize_t elsize = dt.itemsize();
+  const bool is_pod =
+      (kind == 'b' || kind == 'i' || kind == 'u' || kind == 'f') &&
+      (elsize == 1 || elsize == 2 || elsize == 4 || elsize == 8);
+  if (!PyArray_ISNBO(dt.byteorder()) || (kind != 'O' && !is_pod)) {
+    throw py::type_error(
+        "values must have a native-endian object, bool, integer, or floating "
+        "dtype of 1, 2, 4, or 8 bytes.");
+  }
+  return kind == 'O';
+}
+
+py::array TakeByKey(const py::array& values, const py::array& keys,
+                    const py::array& table_keys) {
+  ValidateKeyArrays(keys, table_keys);
+  const bool is_object = ValidateValueArray(values, table_keys);
+  if (keys.size() == 0) {
+    return py::array(values.dtype(), 0);
+  }
+  if (table_keys.size() == 0) {
+    ThrowMissingKeys();
+  }
+  auto contig_table = AsAlignedCContiguousInt64(table_keys);
+  auto contig_keys = AsAlignedCContiguousInt64(keys);
+  const auto key_span = absl::MakeConstSpan(contig_keys);
+  const auto table_span = absl::MakeConstSpan(contig_table);
+  if (is_object) {
+    return GatherObjectArray(key_span, table_span, values);
+  }
+  py::array out_array(values.dtype(), keys.size());
+  const py::ssize_t itemsize = values.itemsize();
+  const void* const values_data = values.data();
+  void* const out_data = out_array.mutable_data();
+  bool all_present;
+  {
+    py::gil_scoped_release release;
+    switch (itemsize) {
+      case 1:
+        all_present =
+            GatherTyped<uint8_t>(key_span, table_span, values_data, out_data);
+        break;
+      case 2:
+        all_present =
+            GatherTyped<uint16_t>(key_span, table_span, values_data, out_data);
+        break;
+      case 4:
+        all_present =
+            GatherTyped<uint32_t>(key_span, table_span, values_data, out_data);
+        break;
+      case 8:
+        all_present =
+            GatherTyped<uint64_t>(key_span, table_span, values_data, out_data);
+        break;
+      default:
+        ABSL_UNREACHABLE();
+    }
+  }
+  if (!all_present) {
+    ThrowMissingKeys();
+  }
+  return out_array;
+}
+
 }  // namespace
 
 namespace alphafold3 {
@@ -206,6 +314,31 @@ Raises:
 constexpr char kNonzeroIndicesDoc[] =
     R"(Returns int64 indices of True elements in a 1D bool mask, or None if all True.)";
 
+constexpr char kTakeByKeyDoc[] =
+    R"(Gathers 1D values at the positions of 1D keys in 1D table_keys.
+
+Equivalent to `values[index_of(keys, table_keys)]`, fused to avoid
+materializing an intermediate index array.
+
+Args:
+  values: 1D aligned C-contiguous native-endian NumPy array with the same
+    length as `table_keys` and dtype `bool`, 1/2/4/8-byte integer or
+    floating-point, or `object`.
+  keys: 1D signed-integer NumPy array of query keys.
+  table_keys: 1D signed-integer NumPy array of table keys (if duplicate keys
+    exist, the last matching index is used).
+
+Returns:
+  A new 1D NumPy array with the same length as `keys` and dtype as `values`.
+
+Raises:
+  IndexError: If `keys` or `table_keys` is not a 1D signed-integer array, or
+    any element of `keys` is absent from `table_keys`.
+  ValueError: If `values` is not a 1D aligned C-contiguous array with the same
+    length as `table_keys`.
+  TypeError: If `values` has an unsupported or byte-swapped dtype.
+)";
+
 void RegisterModuleIndexing(pybind11::module m) {
   if (_import_array() < 0) {
     throw py::error_already_set();
@@ -214,6 +347,9 @@ void RegisterModuleIndexing(pybind11::module m) {
         py::arg("table_keys").noconvert(), py::doc(kIndexOfDoc));
   m.def("nonzero_indices", &NonzeroIndices, py::arg("mask").noconvert(),
         py::doc(kNonzeroIndicesDoc));
+  m.def("take_by_key", &TakeByKey, py::arg("values").noconvert(),
+        py::arg("keys").noconvert(), py::arg("table_keys").noconvert(),
+        py::doc(kTakeByKeyDoc));
 }
 
 }  // namespace alphafold3

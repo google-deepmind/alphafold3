@@ -38,3 +38,30 @@ def index_of(keys: np.ndarray, table_keys: np.ndarray) -> np.ndarray[np.int64]:
   """
 def nonzero_indices(mask: np.ndarray) -> np.ndarray[np.int64] | None:
   """Returns int64 indices of True elements in a 1D bool mask, or None if all True."""
+
+def take_by_key(
+    values: np.ndarray, keys: np.ndarray, table_keys: np.ndarray
+) -> np.ndarray:
+  """Gathers 1D values at the positions of 1D keys in 1D table_keys.
+
+  Equivalent to `values[index_of(keys, table_keys)]`, fused to avoid
+  materializing an intermediate index array.
+
+  Args:
+    values: 1D aligned C-contiguous native-endian NumPy array with the same
+      length as `table_keys` and dtype `bool`, 1/2/4/8-byte integer or
+      floating-point, or `object`.
+    keys: 1D signed-integer NumPy array of query keys.
+    table_keys: 1D signed-integer NumPy array of table keys (if duplicate keys
+      exist, the last matching index is used).
+
+  Returns:
+    A new 1D NumPy array with the same length as `keys` and dtype as `values`.
+
+  Raises:
+    IndexError: If `keys` or `table_keys` is not a 1D signed-integer array, or
+      any element of `keys` is absent from `table_keys`.
+    ValueError: If `values` is not a 1D aligned C-contiguous array with the same
+      length as `table_keys`.
+    TypeError: If `values` has an unsupported or byte-swapped dtype.
+  """

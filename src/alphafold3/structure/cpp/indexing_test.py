@@ -17,6 +17,9 @@
 # if received directly from Google. Use is subject to terms of use available at
 # https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md
 
+from concurrent import futures
+import sys
+
 from absl.testing import absltest
 from absl.testing import parameterized
 from alphafold3.cpp import indexing
@@ -158,6 +161,19 @@ class IndexingTest(parameterized.TestCase):
     self.assertTrue(copied.flags.writeable)
     np.testing.assert_array_equal(copied, writeable_keys, strict=True)
 
+  @parameterized.parameters(0, 10)
+  def test_index_of_concurrent_threads(self, start):
+    table_keys = np.arange(start, start + 300, dtype=np.int64)
+    keys = table_keys[::-1].copy()
+    keys.flags.writeable = False
+    expected = np.arange(299, -1, -1, dtype=np.int64)
+    with futures.ThreadPoolExecutor(max_workers=8) as pool:
+      results = list(
+          pool.map(lambda _: indexing.index_of(keys, table_keys), range(32))
+      )
+    for result in results:
+      np.testing.assert_array_equal(result, expected, strict=True)
+
   @parameterized.named_parameters(
       dict(
           testcase_name='empty_table',
@@ -288,6 +304,216 @@ class IndexingTest(parameterized.TestCase):
   @parameterized.parameters(0, 5)
   def test_nonzero_indices_all_true_returns_none(self, size):
     self.assertIsNone(indexing.nonzero_indices(np.ones(size, dtype=bool)))
+
+  @parameterized.product(
+      case=(
+          (list(range(300)), list(range(299, -1, -1))),
+          ([7, 8, 9], [9, 7, 8]),
+          (list(range(0, 200, 2)), [198, 198, 0, 64]),
+          ([10, 14, 19], [19, 10, 14, 10]),
+          ([10_000_000, 10, 5_000_000], [5_000_000, 5_000_000, 10_000_000, 10]),
+          ([0, 0, 2], [0, 2]),
+          ([1, 2], []),
+          ([], []),
+      ),
+      dtype=(np.int32, object),
+  )
+  def test_take_by_key_regimes(self, case, dtype):
+    table_keys = np.array(case[0], dtype=np.int64)
+    keys = np.array(case[1], dtype=np.int64)
+    values = (
+        np.arange(table_keys.size, dtype=np.int32)
+        if dtype is np.int32
+        else np.array([f'V{i}' for i in range(table_keys.size)], dtype=object)
+    )
+    expected = values[indexing.index_of(keys, table_keys)]
+    np.testing.assert_array_equal(
+        indexing.take_by_key(values, keys, table_keys), expected, strict=True
+    )
+
+  @parameterized.named_parameters(
+      (
+          'pod_1b_bool',
+          np.array([True, False, True], dtype=bool),
+          np.array([30, 20, 10], dtype=np.int64),
+          np.array([10, 20, 30], dtype=np.int64),
+      ),
+      (
+          'pod_2b_int16',
+          np.array([-5, 12, 99], dtype=np.int16),
+          np.array([30, 10, 20, 30], dtype=np.int32),
+          np.array([10, 20, 30], dtype=np.int64),
+      ),
+      (
+          'pod_2b_float16',
+          np.array([1.5, -2.5, 3.25], dtype=np.float16),
+          np.array([20, 10], dtype=np.int16),
+          np.array([10, 20, 30], dtype=np.int32),
+      ),
+      (
+          'pod_4b_float32',
+          np.array([1.5, -2.5, 3.25], dtype=np.float32),
+          np.array([20, 10], dtype=np.int16),
+          np.array([10, 20, 30], dtype=np.int32),
+      ),
+      (
+          'pod_8b_float64',
+          np.array([1.5, -2.5], dtype=np.float64),
+          np.array([1, 0, 1], dtype=np.longlong),
+          np.array([0, 1], dtype=np.longlong),
+      ),
+      (
+          'neg_strided_keys',
+          np.array([10, 20, 30], dtype=np.int32),
+          np.array([30, 99, 10, 99, 20], dtype=np.int64)[::-2],
+          np.array([30, 99, 20, 99, 10], dtype=np.int64)[::-2],
+      ),
+  )
+  def test_take_by_key_dtypes(self, values, keys, table_keys):
+    np.testing.assert_array_equal(
+        indexing.take_by_key(values, keys, table_keys),
+        values[indexing.index_of(keys, table_keys)],
+        strict=True,
+    )
+
+  def test_take_by_key_object_refcounts_conserved(self):
+    item_a = object()
+    item_b = object()
+    values = np.array([item_a, item_b], dtype=object)
+    table_keys = np.array([10, 20], dtype=np.int64)
+    base_a = sys.getrefcount(item_a)
+    base_b = sys.getrefcount(item_b)
+
+    gathered = indexing.take_by_key(
+        values, np.array([10, 10, 20], dtype=np.int64), table_keys
+    )
+    self.assertEqual(sys.getrefcount(item_a), base_a + 2)
+    self.assertEqual(sys.getrefcount(item_b), base_b + 1)
+    del gathered
+    self.assertEqual(sys.getrefcount(item_a), base_a)
+    self.assertEqual(sys.getrefcount(item_b), base_b)
+
+    with self.assertRaisesRegex(IndexError, 'Keys missing'):
+      indexing.take_by_key(
+          values, np.array([10, 99, 20], dtype=np.int64), table_keys
+      )
+    self.assertEqual(sys.getrefcount(item_a), base_a)
+    self.assertEqual(sys.getrefcount(item_b), base_b)
+
+  @parameterized.parameters(np.int32, object)
+  def test_take_by_key_concurrent_threads(self, dtype):
+    table_keys = np.arange(10, 310, dtype=np.int64)
+    keys = table_keys[::-1].copy()
+    values = (
+        np.arange(table_keys.size, dtype=np.int32)
+        if dtype is np.int32
+        else np.array([f'V{i}' for i in range(table_keys.size)], dtype=object)
+    )
+    expected = values[::-1]
+    with futures.ThreadPoolExecutor(max_workers=8) as pool:
+      results = list(
+          pool.map(
+              lambda _: indexing.take_by_key(values, keys, table_keys),
+              range(32),
+          )
+      )
+    for result in results:
+      np.testing.assert_array_equal(result, expected, strict=True)
+
+  @parameterized.named_parameters(
+      (
+          'empty_table',
+          np.array([], dtype=np.int32),
+          np.array([0], dtype=np.int64),
+          np.array([], dtype=np.int64),
+          IndexError,
+      ),
+      (
+          'missing_key',
+          np.array(['A', 'B'], dtype=object),
+          np.array([0, 5], dtype=np.int64),
+          np.array([0, 1], dtype=np.int64),
+          IndexError,
+      ),
+      (
+          '2d_keys',
+          np.array([1, 2], dtype=np.int32),
+          np.array([[0, 1]], dtype=np.int64),
+          np.array([0, 1], dtype=np.int64),
+          IndexError,
+      ),
+      (
+          '2d_values',
+          np.array([[1, 2]], dtype=np.int32),
+          np.array([0], dtype=np.int64),
+          np.array([0, 1], dtype=np.int64),
+          ValueError,
+      ),
+      (
+          'length_mismatch_empty_keys',
+          np.array([1], dtype=np.int32),
+          np.array([], dtype=np.int64),
+          np.array([0, 1], dtype=np.int64),
+          ValueError,
+      ),
+      (
+          'strided_values',
+          np.array([1, 2, 3, 4], dtype=np.int32)[::2],
+          np.array([0], dtype=np.int64),
+          np.array([0, 1], dtype=np.int64),
+          ValueError,
+      ),
+      (
+          'unaligned_values',
+          np.frombuffer(
+              b'\x00' + np.array([1, 2], dtype=np.int32).tobytes(),
+              dtype=np.int32,
+              count=2,
+              offset=1,
+          ),
+          np.array([0], dtype=np.int64),
+          np.array([0, 1], dtype=np.int64),
+          ValueError,
+      ),
+      (
+          'list_values',
+          [1, 2],
+          np.array([0], dtype=np.int64),
+          np.array([0, 1], dtype=np.int64),
+          TypeError,
+      ),
+      (
+          'byte_swapped_values',
+          np.array([1, 2], dtype='>i4'),
+          np.array([0], dtype=np.int64),
+          np.array([0, 1], dtype=np.int64),
+          TypeError,
+      ),
+      (
+          'unicode_values_empty_keys',
+          np.array(['A', 'B'], dtype='<U2'),
+          np.array([], dtype=np.int64),
+          np.array([0, 1], dtype=np.int64),
+          TypeError,
+      ),
+      (
+          'string_dtype_values',
+          np.array(['A', 'B'], dtype=np.dtype('T')),
+          np.array([0], dtype=np.int64),
+          np.array([0, 1], dtype=np.int64),
+          TypeError,
+      ),
+      (
+          'complex128_values',
+          np.array([1.0 + 2.0j, 3.0], dtype=np.complex128),
+          np.array([0], dtype=np.int64),
+          np.array([0, 1], dtype=np.int64),
+          TypeError,
+      ),
+  )
+  def test_take_by_key_invalid_errors(self, values, keys, table_keys, exc):
+    with self.assertRaises(exc):
+      indexing.take_by_key(values, keys, table_keys)
 
 
 if __name__ == '__main__':
