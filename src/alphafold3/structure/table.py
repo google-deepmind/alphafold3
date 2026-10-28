@@ -28,7 +28,6 @@ from collections.abc import Callable, Collection, Iterable, Iterator, Mapping, S
 import dataclasses
 import functools
 import graphlib
-import math
 import typing
 from typing import Any, Protocol, Self, TypeAlias, TypeVar, overload
 
@@ -86,18 +85,23 @@ def _validate_filter_values(
     col_dtype: np.dtype, target_vals: Sequence[Any], *, col_name: str
 ) -> None:
   """Raises ValueError if target values are incompatible with `col_dtype`."""
-  col_is_numeric = np.issubdtype(col_dtype, np.number)
-  col_is_character = np.issubdtype(col_dtype, np.character)
-  if not (col_is_numeric or col_is_character):
+  if col_dtype == object or isinstance(col_dtype, np.dtypes.StringDType):
+    expected_dtype = None
+  elif np.issubdtype(col_dtype, np.number):
+    expected_dtype = np.number
+  elif np.issubdtype(col_dtype, np.character):
+    expected_dtype = np.character
+  else:
     return
   for target_val in target_vals:
-    val_dtype = np.asarray(target_val).dtype
-    if (col_is_numeric and not np.issubdtype(val_dtype, np.number)) or (
-        col_is_character and not np.issubdtype(val_dtype, np.character)
+    if not (
+        isinstance(target_val, str) or target_val is None
+        if expected_dtype is None
+        else np.issubdtype(np.asarray(target_val).dtype, expected_dtype)
     ):
       raise ValueError(
           f'Cannot filter column {col_name} (with type {col_dtype}) by value'
-          f' {target_val} (with type {type(target_val)}.'
+          f' {target_val} (with type {type(target_val)}).'
       )
 
 
@@ -117,13 +121,7 @@ def _eval_value_predicate(
   if not target_vals or size == 0:
     return np.zeros((size,), dtype=bool)
   if col_dtype == object:
-    # Exclude NaN so Python `set` identity lookup cannot match NaN singletons.
-    non_nan_targets = {
-        v
-        for v in target_vals
-        if not (isinstance(v, (float, np.floating)) and math.isnan(v))
-    }
-    return membership.isin(col_arr, non_nan_targets)
+    return membership.isin(col_arr, set(target_vals))
   if len(target_vals) == 1:
     return _as_bool_mask(col_arr == target_vals[0], size=size)
   if col_dtype in (np.int64, np.int32) and all(

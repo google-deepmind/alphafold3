@@ -19,7 +19,7 @@
 
 from collections.abc import Collection, Mapping
 import dataclasses
-from typing import Any, ClassVar, Self
+from typing import Any, ClassVar, Final, Self
 
 from absl.testing import absltest
 from absl.testing import parameterized
@@ -41,6 +41,9 @@ class TwoColTable(table.Table):
 @dataclasses.dataclass(frozen=True)
 class MultiDimColTable(table.Table):
   multi_data: np.ndarray
+
+
+_NAN: Final[float] = float('nan')
 
 
 class TableTest(parameterized.TestCase):
@@ -373,15 +376,45 @@ class TableTest(parameterized.TestCase):
         strict=True,
     )
 
-  def test_make_filter_mask_object_column_nan_singleton(self):
-    nan = float('nan')
+  @parameterized.named_parameters(
+      dict(testcase_name='object_int', dtype=object, predicate=1),
+      dict(testcase_name='object_bool', dtype=object, predicate=True),
+      dict(testcase_name='object_nan', dtype=object, predicate=_NAN),
+      dict(
+          testcase_name='object_nan_tuple',
+          dtype=object,
+          predicate=(_NAN, 'B'),
+      ),
+      dict(testcase_name='object_bytes', dtype=object, predicate=b'A'),
+      dict(
+          testcase_name='string_dtype_int',
+          dtype=np.dtypes.StringDType(),
+          predicate=(1, 2),
+      ),
+      dict(
+          testcase_name='string_dtype_nan',
+          dtype=np.dtypes.StringDType(),
+          predicate=_NAN,
+      ),
+  )
+  def test_make_filter_mask_string_or_object_invalid_predicate_raises(
+      self, dtype, predicate
+  ):
     tbl = OneColTable(
         key=np.array([0, 1], dtype=np.int64),
-        data=np.array([nan, 'B'], dtype=object),
+        data=np.array(['A', 'B'], dtype=dtype),
+    )
+    with self.assertRaisesRegex(ValueError, 'Cannot filter column data'):
+      tbl.make_filter_mask(data=predicate)
+
+  def test_make_filter_mask_object_column_multi_value_with_none(self):
+    tbl = OneColTable(
+        key=np.arange(4, dtype=np.int64),
+        data=np.array(['A', 'B', None, _NAN], dtype=object),
     )
     np.testing.assert_array_equal(
-        tbl.make_filter_mask(data=(nan, 'B')),
-        np.array([False, True]),
+        tbl.make_filter_mask(data=('B', None)),
+        np.array([False, True, True, False]),
         strict=True,
     )
 
