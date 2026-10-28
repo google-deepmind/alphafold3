@@ -723,6 +723,28 @@ class TableTest(parameterized.TestCase):
     with self.assertRaises(IndexError):
       tbl.apply_array(np.array([True, False]))
 
+  @parameterized.named_parameters(
+      dict(
+          testcase_name='str_dtype',
+          data=np.array(['X', 'Y', 'Z'], dtype=str),
+          expected=np.array(['Z', 'Y'], dtype='<U1'),
+      ),
+      dict(
+          testcase_name='strided_object',
+          data=np.array(['A', 'skip', 'B', 'skip', 'C'], dtype=object)[::2],
+          expected=np.array(['C', 'B'], dtype=object),
+      ),
+  )
+  def test_apply_array_to_column_fallback_columns(self, data, expected):
+    tbl = OneColTable(
+        key=np.array([100_000, 10, 5_000], dtype=np.int64), data=data
+    )
+    gathered = tbl.apply_array_to_column(
+        'data', np.array([5_000, 10], dtype=np.int64)
+    )
+    np.testing.assert_array_equal(gathered, expected, strict=True)
+    self.assertNotIn('index_by_key', tbl.__dict__)
+
 
 @dataclasses.dataclass(frozen=True)
 class Residues(table.Table):

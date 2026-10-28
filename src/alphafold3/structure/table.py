@@ -307,8 +307,21 @@ class Table:
       arr: np.ndarray,
   ) -> np.ndarray:
     """Returns a sliced column array using a key array or a boolean mask."""
-    selector = arr if arr.dtype == bool else indexing.index_of(arr, self.key)
-    return _take_rows(self.get_column(column_name), selector)
+    col_arr = self.get_column(column_name)
+    if arr.dtype == bool:
+      return _take_rows(col_arr, arr)
+    # Fast path: gather 1D native-endian aligned C-contiguous POD/object columns
+    # directly in C++ without allocating an intermediate row-index array.
+    if (
+        col_arr.ndim == 1
+        and col_arr.flags.c_contiguous
+        and col_arr.flags.aligned
+        and col_arr.dtype.isnative
+        and col_arr.dtype.kind in 'biufO'
+        and col_arr.dtype.itemsize <= 8
+    ):
+      return indexing.take_by_key(col_arr, arr, self.key)
+    return _take_rows(col_arr, indexing.index_of(arr, self.key))
 
   def get_value_by_index(self, column_name: str, index: int) -> Any:
     return self.get_column(column_name)[index]
