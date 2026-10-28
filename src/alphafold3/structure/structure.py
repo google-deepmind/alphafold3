@@ -2606,7 +2606,7 @@ class Structure(table.Database):
         count=self._atoms.size,
     )
     valid = atom_idx >= 0
-    res_idx = res_table.index_by_key[self._atoms.res_key[valid]]
+    res_idx = indexing.index_of(self._atoms.res_key[valid], res_table.key)
     atom_idx = atom_idx[valid]
     atom_positions[res_idx, atom_idx, 0] = self._atoms.x[valid]
     atom_positions[res_idx, atom_idx, 1] = self._atoms.y[valid]

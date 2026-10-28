@@ -3343,6 +3343,50 @@ class StructureTest(test_utils.StructureTestCase):
         res_arrays.atom_occupancy.shape, (0, atom_types.ATOM37_NUM)
     )
 
+  @parameterized.parameters(True, False)
+  def test_to_res_arrays_sparse_res_keys(self, include_missing_residues):
+    struc = structure.from_mmcif(
+        test_utils.read_test_cif_file('2pv7'),
+        model_id=structure.ModelID.FIRST,
+        include_bonds=False,
+    )
+    sparse_keys = struc.residues_table.key * 100_000 + 10_000_000
+    perm = np.arange(struc.residues_table.size)[::-1]
+    sparse = struc.copy_and_update(
+        residues=struc.residues_table.apply_array(perm).copy_and_update(
+            key=sparse_keys[perm]
+        ),
+        atoms=struc.atoms_table.copy_and_update(
+            res_key=sparse_keys[struc.atoms_table.res_key]
+        ),
+        skip_validation=True,
+    )
+    expected = struc.to_res_arrays(
+        include_missing_residues=include_missing_residues
+    )
+    actual = sparse.to_res_arrays(
+        include_missing_residues=include_missing_residues
+    )
+    expected_perm = np.arange(expected.atom_positions.shape[0])[::-1]
+    np.testing.assert_array_equal(
+        actual.atom_positions,
+        expected.atom_positions[expected_perm],
+        strict=True,
+    )
+    np.testing.assert_array_equal(
+        actual.atom_mask, expected.atom_mask[expected_perm], strict=True
+    )
+    np.testing.assert_array_equal(
+        actual.atom_b_factor, expected.atom_b_factor[expected_perm], strict=True
+    )
+    np.testing.assert_array_equal(
+        actual.atom_occupancy,
+        expected.atom_occupancy[expected_perm],
+        strict=True,
+    )
+    self.assertNotIn('index_by_key', sparse.residues_table.__dict__)
+    self.assertNotIn('index_by_key', sparse.present_residues.__dict__)
+
   def test_to_res_arrays_single_model_leading_dim_raises(self):
     # 2pv7 is a single-model mmCIF, so ModelID.ALL adds a size-1 leading dim.
     batched = structure.from_mmcif(
