@@ -24,6 +24,7 @@ from collections.abc import Mapping, Sequence
 import dataclasses
 from typing import Self
 
+from alphafold3.cpp import indexing
 from alphafold3.cpp import membership
 from alphafold3.structure import table
 import numpy as np
@@ -65,26 +66,13 @@ class Bonds(table.Table):
       atom_key: np.ndarray,
   ) -> tuple[np.ndarray, np.ndarray]:
     """Returns the indices of the from/dest atoms in the atom_key array."""
-    from_atom_missing = ~np.isin(self.from_atom_key, atom_key)
-    dest_atom_missing = ~np.isin(self.dest_atom_key, atom_key)
-    if np.any(from_atom_missing):
-      raise ValueError(
-          f'No atoms for from_atom_key {self.from_atom_key[from_atom_missing]}'
+    try:
+      return (
+          indexing.index_of(self.from_atom_key, atom_key),
+          indexing.index_of(self.dest_atom_key, atom_key),
       )
-    if np.any(dest_atom_missing):
-      raise ValueError(
-          f'No atoms for dest_atom_key {self.dest_atom_key[dest_atom_missing]}'
-      )
-    sort_indices = np.argsort(atom_key)
-    from_indices_sorted = np.searchsorted(
-        atom_key, self.from_atom_key, sorter=sort_indices
-    )
-    dest_indices_sorted = np.searchsorted(
-        atom_key, self.dest_atom_key, sorter=sort_indices
-    )
-    from_indices = sort_indices[from_indices_sorted]
-    dest_indices = sort_indices[dest_indices_sorted]
-    return from_indices, dest_indices
+    except IndexError as e:
+      raise ValueError('Bond atom key missing from atom_key.') from e
 
   def restrict_to_atoms(self, atom_key: np.ndarray) -> Self:
     """Returns a Bonds table retaining only bonds with both atoms in atom_key."""
