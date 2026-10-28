@@ -69,15 +69,15 @@ KeyStats<IntT> AnalyzeKeys(absl::Span<const IntT> table_keys) {
           strictly_increasing};
 }
 
-template <typename LookupFn>
+template <typename LookupFn, typename SinkFn>
 bool ResolveWithLastKeyCache(absl::Span<const int64_t> query_keys,
-                             LookupFn lookup, absl::Span<int64_t> out) {
+                             LookupFn lookup, SinkFn emit) {
   int64_t prev_key = query_keys[0];
   int64_t prev_row = lookup(prev_key);
   if (prev_row < 0) {
     return false;
   }
-  out[0] = prev_row;
+  emit(0, prev_row);
   for (size_t i = 1; i < query_keys.size(); ++i) {
     if (const int64_t key = query_keys[i]; key != prev_key) {
       prev_row = lookup(key);
@@ -86,9 +86,83 @@ bool ResolveWithLastKeyCache(absl::Span<const int64_t> query_keys,
       }
       prev_key = key;
     }
-    out[i] = prev_row;
+    emit(i, prev_row);
   }
   return true;
+}
+
+template <typename SinkFn>
+bool ResolveKeysToSink(absl::Span<const int64_t> query_keys,
+                       absl::Span<const int64_t> table_keys, SinkFn emit) {
+  if (query_keys.empty()) {
+    return true;
+  }
+  if (table_keys.empty()) {
+    return false;
+  }
+  const KeyStats<int64_t> stats = AnalyzeKeys(table_keys);
+  if (stats.strictly_increasing && stats.span == table_keys.size() - 1) {
+    const uint64_t num_rows = table_keys.size();
+    for (size_t i = 0; i < query_keys.size(); ++i) {
+      const uint64_t offset = static_cast<uint64_t>(query_keys[i]) - stats.umin;
+      if (offset >= num_rows) {
+        return false;
+      }
+      emit(i, static_cast<int64_t>(offset));
+    }
+    return true;
+  }
+  if (stats.non_decreasing &&
+      query_keys.size() <= table_keys.size() / kBinarySearchTargetRatio) {
+    return ResolveWithLastKeyCache(
+        query_keys,
+        [&](int64_t key) -> int64_t {
+          auto it = absl::c_upper_bound(table_keys, key);
+          return (it != table_keys.begin() && *std::prev(it) == key)
+                     ? static_cast<int64_t>(std::prev(it) - table_keys.begin())
+                     : -1;
+        },
+        emit);
+  }
+  if (table_keys.size() <=
+          static_cast<size_t>(std::numeric_limits<int32_t>::max()) &&
+      stats.span < kDenseLutMaxBytes / sizeof(int32_t) &&
+      (stats.span * sizeof(int32_t)) / kDenseLutRatio <=
+          query_keys.size() + table_keys.size()) {
+    std::vector<int32_t> lut(static_cast<size_t>(stats.span) + 1, -1);
+    for (size_t i = 0; i < table_keys.size(); ++i) {
+      const uint64_t offset = static_cast<uint64_t>(table_keys[i]) - stats.umin;
+      if (offset > stats.span) {
+        return false;
+      }
+      lut[static_cast<size_t>(offset)] = static_cast<int32_t>(i);
+    }
+    for (size_t i = 0; i < query_keys.size(); ++i) {
+      const uint64_t offset = static_cast<uint64_t>(query_keys[i]) - stats.umin;
+      if (offset > stats.span) {
+        return false;
+      }
+      const int32_t row = lut[static_cast<size_t>(offset)];
+      if (row < 0) {
+        return false;
+      }
+      emit(i, row);
+    }
+    return true;
+  }
+  absl::flat_hash_map<int64_t, int64_t> index_by_key;
+  index_by_key.reserve(table_keys.size());
+  for (size_t i = 0; i < table_keys.size(); ++i) {
+    const int64_t key = table_keys[i];
+    index_by_key[key] = static_cast<int64_t>(i);
+  }
+  return ResolveWithLastKeyCache(
+      query_keys,
+      [&](int64_t key) -> int64_t {
+        auto it = index_by_key.find(key);
+        return it != index_by_key.end() ? it->second : -1;
+      },
+      emit);
 }
 
 template <typename IntT, typename PredFn>
@@ -121,75 +195,8 @@ bool ResolveKeys(absl::Span<const int64_t> query_keys,
                  absl::Span<const int64_t> table_keys,
                  absl::Span<int64_t> out) {
   CHECK_EQ(out.size(), query_keys.size());
-  if (query_keys.empty()) {
-    return true;
-  }
-  if (table_keys.empty()) {
-    return false;
-  }
-  const KeyStats<int64_t> stats = AnalyzeKeys(table_keys);
-  if (stats.strictly_increasing && stats.span == table_keys.size() - 1) {
-    const uint64_t num_rows = table_keys.size();
-    for (size_t i = 0; i < query_keys.size(); ++i) {
-      const uint64_t offset = static_cast<uint64_t>(query_keys[i]) - stats.umin;
-      if (offset >= num_rows) {
-        return false;
-      }
-      out[i] = static_cast<int64_t>(offset);
-    }
-    return true;
-  }
-  if (stats.non_decreasing &&
-      query_keys.size() <= table_keys.size() / kBinarySearchTargetRatio) {
-    return ResolveWithLastKeyCache(
-        query_keys,
-        [&](int64_t key) -> int64_t {
-          auto it = absl::c_upper_bound(table_keys, key);
-          return (it != table_keys.begin() && *std::prev(it) == key)
-                     ? static_cast<int64_t>(std::prev(it) - table_keys.begin())
-                     : -1;
-        },
-        out);
-  }
-  if (table_keys.size() <=
-          static_cast<size_t>(std::numeric_limits<int32_t>::max()) &&
-      stats.span < kDenseLutMaxBytes / sizeof(int32_t) &&
-      (stats.span * sizeof(int32_t)) / kDenseLutRatio <=
-          query_keys.size() + table_keys.size()) {
-    std::vector<int32_t> lut(static_cast<size_t>(stats.span) + 1, -1);
-    for (size_t i = 0; i < table_keys.size(); ++i) {
-      const uint64_t offset = static_cast<uint64_t>(table_keys[i]) - stats.umin;
-      if (offset > stats.span) {
-        return false;
-      }
-      lut[static_cast<size_t>(offset)] = static_cast<int32_t>(i);
-    }
-    for (size_t i = 0; i < query_keys.size(); ++i) {
-      const uint64_t offset = static_cast<uint64_t>(query_keys[i]) - stats.umin;
-      if (offset > stats.span) {
-        return false;
-      }
-      const int32_t row = lut[static_cast<size_t>(offset)];
-      if (row < 0) {
-        return false;
-      }
-      out[i] = row;
-    }
-    return true;
-  }
-  absl::flat_hash_map<int64_t, int64_t> index_by_key;
-  index_by_key.reserve(table_keys.size());
-  for (size_t i = 0; i < table_keys.size(); ++i) {
-    const int64_t key = table_keys[i];
-    index_by_key[key] = static_cast<int64_t>(i);
-  }
-  return ResolveWithLastKeyCache(
-      query_keys,
-      [&](int64_t key) -> int64_t {
-        auto it = index_by_key.find(key);
-        return it != index_by_key.end() ? it->second : -1;
-      },
-      out);
+  return ResolveKeysToSink(query_keys, table_keys,
+                           [out](size_t i, int64_t row) { out[i] = row; });
 }
 
 template <typename T>
@@ -198,14 +205,10 @@ bool GatherByKey(absl::Span<const int64_t> query_keys,
                  absl::Span<const T> table_values, absl::Span<T> out) {
   CHECK_EQ(table_values.size(), table_keys.size());
   CHECK_EQ(out.size(), query_keys.size());
-  std::vector<int64_t> rows(query_keys.size());
-  if (!ResolveKeys(query_keys, table_keys, absl::MakeSpan(rows))) {
-    return false;
-  }
-  for (std::size_t i = 0; i < rows.size(); ++i) {
-    out[i] = table_values[rows[i]];
-  }
-  return true;
+  return ResolveKeysToSink(query_keys, table_keys,
+                           [table_values, out](size_t i, int64_t row) {
+                             out[i] = table_values[row];
+                           });
 }
 
 template bool GatherByKey<uint8_t>(absl::Span<const int64_t> query_keys,
