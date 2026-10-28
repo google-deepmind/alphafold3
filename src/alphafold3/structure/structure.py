@@ -1002,6 +1002,44 @@ class Structure(table.Database):
         zip(self.chain_id, res_ids, ins_codes, self.atom_name, strict=True)
     )
 
+  def _has_identical_atom_layout(self, other: 'Structure') -> bool:
+    """Returns True if self and other have identical chains, residues, and atoms."""
+    if (
+        len(self.chains_table) != len(other.chains_table)
+        or len(self.residues_table) != len(other.residues_table)
+        or len(self.atoms_table) != len(other.atoms_table)
+    ):
+      return False
+    return (
+        np.array_equal(self.chains_table.id, other.chains_table.id)
+        and np.array_equal(self.residues_table.id, other.residues_table.id)
+        and np.array_equal(self.atoms_table.name, other.atoms_table.name)
+        and np.array_equal(
+            indexing.index_of(
+                self.residues_table.chain_key, self.chains_table.key
+            ),
+            indexing.index_of(
+                other.residues_table.chain_key, other.chains_table.key
+            ),
+        )
+        and np.array_equal(
+            indexing.index_of(
+                self.atoms_table.chain_key, self.chains_table.key
+            ),
+            indexing.index_of(
+                other.atoms_table.chain_key, other.chains_table.key
+            ),
+        )
+        and np.array_equal(
+            indexing.index_of(
+                self.atoms_table.res_key, self.residues_table.key
+            ),
+            indexing.index_of(
+                other.atoms_table.res_key, other.residues_table.key
+            ),
+        )
+    )
+
   def order_and_drop_atoms_to_match(
       self,
       other: 'Structure',
@@ -1050,6 +1088,8 @@ class Structure(table.Database):
       MissingAtomError: If there are atoms present in the other structure that
         cannot be found in this structure.
     """
+    if self is other or self._has_identical_atom_layout(other):
+      return self  # Shortcut: The operation is a no-op, so just return itself.
     atom_index_map = {atom_id: i for i, atom_id in enumerate(self.atom_ids)}
     try:
       if allow_missing_atoms:

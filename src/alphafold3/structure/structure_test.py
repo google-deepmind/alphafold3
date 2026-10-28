@@ -4615,6 +4615,31 @@ class StructureTest(test_utils.StructureTestCase):
     self.assertEqual(struc.num_residues(count_unresolved=False), 2)
     self.assertEqual(struc.num_atoms, 2)
 
+  def test_order_and_drop_atoms_to_match_identical_layout_returns_self(self):
+    struc = self.make_test_structure(
+        chain_id=np.array(['A', 'B'], dtype=object),
+        res_id=np.array([1, 2], dtype=np.int32),
+        atom_name=np.array(['CA', 'CB'], dtype=object),
+    )
+    shifted = self.make_test_structure(
+        chain_id=np.array(['A', 'B'], dtype=object),
+        res_id=np.array([1, 2], dtype=np.int32),
+        atom_name=np.array(['CA', 'CB'], dtype=object),
+        atom_x=np.array([10.0, 20.0]),
+    )
+    self.assertIs(struc.order_and_drop_atoms_to_match(shifted), struc)
+
+  def test_order_and_drop_atoms_to_match_reordered_atoms(self):
+    struc = self.make_test_structure(
+        chain_id=np.array(['A', 'B'], dtype=object),
+        res_id=np.array([1, 2], dtype=np.int32),
+        atom_name=np.array(['CA', 'CB'], dtype=object),
+    )
+    reversed_struc = struc.reorder_chains(['B', 'A'])
+    reordered = struc.order_and_drop_atoms_to_match(reversed_struc)
+    self.assertIsNot(reordered, struc)
+    np.testing.assert_array_equal(reordered.atom_name, reversed_struc.atom_name)
+
 
 if __name__ == '__main__':
   absltest.main()
