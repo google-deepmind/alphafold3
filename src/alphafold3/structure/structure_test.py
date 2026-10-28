@@ -4285,6 +4285,65 @@ class StructureTest(test_utils.StructureTestCase):
     np.testing.assert_array_equal(permuted.is_water_mask, water_mask[perm])
     np.testing.assert_array_equal(permuted.is_nucleic_mask, nucleic_mask[perm])
 
+  @parameterized.named_parameters(
+      dict(
+          testcase_name='mixed_polymers',
+          chain_type=[
+              *[mmcif_names.PROTEIN_CHAIN] * 2,
+              *[mmcif_names.RNA_CHAIN] * 2,
+              *[mmcif_names.DNA_CHAIN] * 2,
+              *[mmcif_names.NON_POLYMER_CHAIN] * 2,
+          ],
+          expected_atom_name=['CA', 'OXT', 'C1', 'OXT', 'OP3'],
+      ),
+      dict(
+          testcase_name='protein_without_oxt_and_ligand_oxt',
+          chain_type=[
+              *[mmcif_names.NON_POLYMER_CHAIN] * 4,
+              *[mmcif_names.PROTEIN_CHAIN] * 2,
+              *[mmcif_names.NON_POLYMER_CHAIN] * 2,
+          ],
+          expected_atom_name=[
+              'CA',
+              'OXT',
+              'OP3',
+              'OXT',
+              'OP3',
+              'C1',
+              'OXT',
+              'OP3',
+          ],
+      ),
+      dict(
+          testcase_name='ligands_only',
+          chain_type=[mmcif_names.NON_POLYMER_CHAIN] * 8,
+          expected_atom_name=[
+              'CA',
+              'OXT',
+              'OP3',
+              'OXT',
+              'OP3',
+              'C1',
+              'OXT',
+              'OP3',
+          ],
+      ),
+  )
+  def test_without_terminal_oxygens(self, chain_type, expected_atom_name):
+    struc = self.make_test_structure(
+        chain_id=np.array(list('AABBCCDD'), dtype=object),
+        res_id=np.ones(8, dtype=np.int32),
+        chain_type=np.array(chain_type, dtype=object),
+        atom_name=np.array(
+            ['CA', 'OXT', 'OP3', 'OXT', 'OP3', 'C1', 'OXT', 'OP3'], dtype=object
+        ),
+    )
+    np.testing.assert_array_equal(
+        struc.without_terminal_oxygens().atom_name,
+        np.array(expected_atom_name, dtype=object),
+        strict=True,
+    )
+
   @parameterized.parameters([True, False])
   def test_drop_non_standard_protein_atoms(self, drop_oxt):
     chain_type = [

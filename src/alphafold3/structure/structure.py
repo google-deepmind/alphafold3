@@ -1777,17 +1777,25 @@ class Structure(table.Database):
 
   def without_terminal_oxygens(self) -> Self:
     """Returns the structure without terminal oxygen atoms."""
-    terminal_oxygen_filter = np.zeros(self.num_atoms, dtype=bool)
-    for chain_type, atom_name in mmcif_names.TERMINAL_OXYGENS.items():
-      chain_keys = self._chains.key[self._chains.type == chain_type]
-      chain_atom_filter = np.logical_and(
-          self._atoms.name == atom_name,
-          np.isin(self._atoms.chain_key, chain_keys),
-      )
-      np.logical_or(
-          terminal_oxygen_filter, chain_atom_filter, out=terminal_oxygen_filter
-      )
-    return self.filter_out(terminal_oxygen_filter)
+    terminal_oxygen_by_chain = np.array(
+        [mmcif_names.TERMINAL_OXYGENS.get(t) for t in self._chains.type],
+        dtype=object,
+    )
+    if not (atoms_to_remove := set(terminal_oxygen_by_chain) - {None}):
+      return self
+    # Scan atom names once, then check chain types only for the candidates.
+    candidates = np.flatnonzero(
+        membership.isin(self._atoms.name, atoms_to_remove)
+    )
+    expected = terminal_oxygen_by_chain[
+        indexing.index_of(self._atoms.chain_key[candidates], self._chains.key)
+    ]
+    drop_indices = candidates[self._atoms.name[candidates] == expected]
+    if drop_indices.size == 0:
+      return self
+    keep_mask = np.ones(self.num_atoms, dtype=bool)
+    keep_mask[drop_indices] = False
+    return self.filter(keep_mask)
 
   def reset_author_naming_scheme(self) -> Self:
     """Remove author chain/residue ids, entity info and use internal ids."""
