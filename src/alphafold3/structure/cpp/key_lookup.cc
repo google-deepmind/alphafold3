@@ -192,6 +192,39 @@ bool ResolveKeys(absl::Span<const int64_t> query_keys,
       out);
 }
 
+template <typename T>
+bool GatherByKey(absl::Span<const int64_t> query_keys,
+                 absl::Span<const int64_t> table_keys,
+                 absl::Span<const T> table_values, absl::Span<T> out) {
+  CHECK_EQ(table_values.size(), table_keys.size());
+  CHECK_EQ(out.size(), query_keys.size());
+  std::vector<int64_t> rows(query_keys.size());
+  if (!ResolveKeys(query_keys, table_keys, absl::MakeSpan(rows))) {
+    return false;
+  }
+  for (std::size_t i = 0; i < rows.size(); ++i) {
+    out[i] = table_values[rows[i]];
+  }
+  return true;
+}
+
+template bool GatherByKey<uint8_t>(absl::Span<const int64_t> query_keys,
+                                   absl::Span<const int64_t> table_keys,
+                                   absl::Span<const uint8_t> table_values,
+                                   absl::Span<uint8_t> out);
+template bool GatherByKey<uint16_t>(absl::Span<const int64_t> query_keys,
+                                    absl::Span<const int64_t> table_keys,
+                                    absl::Span<const uint16_t> table_values,
+                                    absl::Span<uint16_t> out);
+template bool GatherByKey<uint32_t>(absl::Span<const int64_t> query_keys,
+                                    absl::Span<const int64_t> table_keys,
+                                    absl::Span<const uint32_t> table_values,
+                                    absl::Span<uint32_t> out);
+template bool GatherByKey<uint64_t>(absl::Span<const int64_t> query_keys,
+                                    absl::Span<const int64_t> table_keys,
+                                    absl::Span<const uint64_t> table_values,
+                                    absl::Span<uint64_t> out);
+
 template <typename IntT>
 void ContainsKeys(absl::Span<const IntT> query_keys,
                   absl::Span<const IntT> table_keys, bool invert,

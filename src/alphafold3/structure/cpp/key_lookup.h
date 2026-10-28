@@ -32,6 +32,25 @@ namespace alphafold3 {
 bool ResolveKeys(absl::Span<const int64_t> query_keys,
                  absl::Span<const int64_t> table_keys, absl::Span<int64_t> out);
 
+// Gathers `table_values[row]` for each key in `query_keys` into `out`.
+template <typename T>
+bool GatherByKey(absl::Span<const int64_t> query_keys,
+                 absl::Span<const int64_t> table_keys,
+                 absl::Span<const T> table_values, absl::Span<T> out);
+
+extern template bool GatherByKey<uint8_t>(
+    absl::Span<const int64_t> query_keys, absl::Span<const int64_t> table_keys,
+    absl::Span<const uint8_t> table_values, absl::Span<uint8_t> out);
+extern template bool GatherByKey<uint16_t>(
+    absl::Span<const int64_t> query_keys, absl::Span<const int64_t> table_keys,
+    absl::Span<const uint16_t> table_values, absl::Span<uint16_t> out);
+extern template bool GatherByKey<uint32_t>(
+    absl::Span<const int64_t> query_keys, absl::Span<const int64_t> table_keys,
+    absl::Span<const uint32_t> table_values, absl::Span<uint32_t> out);
+extern template bool GatherByKey<uint64_t>(
+    absl::Span<const int64_t> query_keys, absl::Span<const int64_t> table_keys,
+    absl::Span<const uint64_t> table_values, absl::Span<uint64_t> out);
+
 // Writes `invert != (query_keys[i] in table_keys)` into `out[i]`.
 template <typename IntT>
 void ContainsKeys(absl::Span<const IntT> query_keys,
