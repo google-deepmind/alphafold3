@@ -2600,11 +2600,12 @@ class Structure(table.Database):
     atom_b_factor = np.zeros(shape, dtype=np.float32)
     atom_occupancy = np.zeros(shape, dtype=np.float32)
 
-    atom_idx = np.fromiter(
-        (atom_order.get(name, -1) for name in self._atoms.name),
-        dtype=np.int64,
-        count=self._atoms.size,
+    atom_order_dict = (
+        atom_order if isinstance(atom_order, dict) else dict(atom_order)
     )
+    atom_idx = string_array.remap(
+        self._atoms.name, atom_order_dict, default_value=-1
+    ).astype(np.int64)
     valid = atom_idx >= 0
     res_idx = indexing.index_of(self._atoms.res_key[valid], res_table.key)
     atom_idx = atom_idx[valid]
