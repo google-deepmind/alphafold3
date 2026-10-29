@@ -17,6 +17,7 @@
 # if received directly from Google. Use is subject to terms of use available at
 # https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md
 
+from concurrent import futures
 import sys
 
 from absl.testing import absltest
@@ -185,12 +186,35 @@ class MembershipTest(parameterized.TestCase):
     )
     np.testing.assert_array_equal(result.tolist(), exp_results)
 
-  @parameterized.parameters(False, True)
-  def test_isin_string_array_null_string_na_object(self, invert):
+  @parameterized.product(
+      targets=({'None', 'A'}, {None, 'A'}),
+      invert=(False, True),
+  )
+  def test_isin_string_array_null_string_na_object(self, targets, invert):
     arr = np.array([None, 'A'], dtype=np.dtypes.StringDType(na_object=None))
-    result = membership.isin(arr, {'None', 'A'}, invert=invert)
-    expected = [invert, not invert]
-    self.assertSequenceEqual(result.tolist(), expected)
+    result = membership.isin(arr, targets, invert=invert)
+    expected = np.array([invert, not invert], dtype=bool)
+    np.testing.assert_array_equal(result, expected, strict=True)
+
+  @parameterized.product(
+      targets_and_expected=(
+          ({'N/A'}, [True, False]),
+          ({'A'}, [False, True]),
+          ({'N/A', 'A'}, [True, True]),
+          ({'B'}, [False, False]),
+      ),
+      invert=(False, True),
+  )
+  def test_isin_string_array_string_na_object(
+      self, targets_and_expected, invert
+  ):
+    targets, base_expected = targets_and_expected
+    arr = np.array(['N/A', 'A'], dtype=np.dtypes.StringDType(na_object='N/A'))
+    result = membership.isin(arr, targets, invert=invert)
+    expected = np.array(base_expected, dtype=bool)
+    if invert:
+      expected = ~expected
+    np.testing.assert_array_equal(result, expected, strict=True)
 
   @parameterized.parameters(object, str, np.dtype('T'))
   def test_isin_string_array_multi_dim(self, dtype):
@@ -469,6 +493,23 @@ class MembershipTest(parameterized.TestCase):
   def test_isin_array_incompatible_dtypes(self, arr, test_arr):
     with self.assertRaises(TypeError):
       membership.isin(arr, test_arr)
+
+  @parameterized.parameters(np.int64, np.int32, object, np.dtype('T'))
+  def test_isin_concurrent_threads(self, dtype):
+    if dtype in (np.int64, np.int32):
+      arr = np.arange(300, dtype=dtype)
+      targets = {10, 50, 150, 299}
+      expected = np.isin(arr, np.array(sorted(targets), dtype=dtype))
+    else:
+      arr = np.array([f'A{i % 20}' for i in range(300)], dtype=dtype)
+      targets = {'A1', 'A7', 'A19'}
+      expected = np.isin(arr.astype(object), list(targets))
+    with futures.ThreadPoolExecutor(max_workers=8) as pool:
+      results = list(
+          pool.map(lambda _: membership.isin(arr, targets), range(32))
+      )
+    for result in results:
+      np.testing.assert_array_equal(result, expected, strict=True)
 
 
 if __name__ == '__main__':

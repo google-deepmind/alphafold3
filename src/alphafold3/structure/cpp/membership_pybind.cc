@@ -28,6 +28,7 @@
 #include <cstdint>
 #include <limits>
 #include <memory>
+#include <string>
 #include <type_traits>
 
 #include "numpy/ndarrayobject.h"
@@ -189,6 +190,10 @@ py::array_t<bool> IsInIntArray(const py::array& array,
   return IsInTypedIntArray<int64_t>(array, test_elements, invert);
 }
 
+absl::string_view ToStringView(const char* buf, size_t size) {
+  return size == 0 ? absl::string_view() : absl::string_view(buf, size);
+}
+
 // `iter` is a two-operand iterator created by `NpyIter_MultiNew`, where
 // operand 0 is the read-only NPY_VSTRING input array and operand 1 is the
 // NPY_BOOL output array allocated by the iterator. `descr` must be the
@@ -196,8 +201,7 @@ py::array_t<bool> IsInIntArray(const py::array& array,
 // string data.
 void PopulateStringIsInResult(
     NpyIter* iter, PyArray_Descr* descr,
-    const absl::flat_hash_set<absl::string_view>& test_elements_set,
-    bool invert) {
+    const absl::flat_hash_set<std::string>& test_elements_set, bool invert) {
   if (NpyIter_GetIterSize(iter) == 0) {
     return;
   }
@@ -207,15 +211,6 @@ void PopulateStringIsInResult(
       throw py::error_already_set();
     }
     return;
-  }
-
-  PyArray_StringDTypeObject* descr_as_array =
-      reinterpret_cast<PyArray_StringDTypeObject*>(descr);
-  std::unique_ptr<npy_string_allocator, decltype(&NpyString_release_allocator)>
-      allocator(NpyString_acquire_allocator(descr_as_array),
-                &NpyString_release_allocator);
-  if (allocator == nullptr) {
-    throw py::error_already_set();
   }
 
   // Stored in a local variable to avoid reinitializing it every time.
@@ -230,33 +225,48 @@ void PopulateStringIsInResult(
   char** data_pointer = NpyIter_GetDataPtrArray(iter);
   npy_intp* stride_pointer = NpyIter_GetInnerStrideArray(iter);
   npy_intp* inner_size_pointer = NpyIter_GetInnerLoopSizePtr(iter);
-  do {
-    const char* string_data = data_pointer[0];
-    char* result_data = data_pointer[1];
-    npy_intp string_stride = stride_pointer[0];
-    npy_intp result_stride = stride_pointer[1];
-    npy_intp count = *inner_size_pointer;
-    for (npy_intp i = 0; i < count; ++i) {
-      // Access StringDType array element.
-      const auto* current_packed_string =
-          reinterpret_cast<const npy_packed_static_string*>(string_data);
-      npy_static_string str = {0, nullptr};
-      switch (NpyString_load(allocator.get(), current_packed_string, &str)) {
-        case 0:  // The string is not null.
-          *reinterpret_cast<npy_bool*>(result_data) =
-              invert !=
-              test_elements_set.contains(absl::string_view(str.buf, str.size));
+
+  int load_status = 0;
+  {
+    py::gil_scoped_release release;
+    PyArray_StringDTypeObject* descr_as_array =
+        reinterpret_cast<PyArray_StringDTypeObject*>(descr);
+    const bool null_in_set = descr_as_array->has_string_na &&
+                             test_elements_set.contains(ToStringView(
+                                 descr_as_array->default_string.buf,
+                                 descr_as_array->default_string.size));
+    std::unique_ptr<npy_string_allocator,
+                    decltype(&NpyString_release_allocator)>
+        allocator(NpyString_acquire_allocator(descr_as_array),
+                  &NpyString_release_allocator);
+    do {
+      const char* string_data = data_pointer[0];
+      char* result_data = data_pointer[1];
+      const npy_intp string_stride = stride_pointer[0];
+      const npy_intp result_stride = stride_pointer[1];
+      const npy_intp count = *inner_size_pointer;
+      for (npy_intp i = 0; i < count; ++i) {
+        const auto* current_packed_string =
+            reinterpret_cast<const npy_packed_static_string*>(string_data);
+        npy_static_string str = {0, nullptr};
+        load_status =
+            NpyString_load(allocator.get(), current_packed_string, &str);
+        if (load_status < 0) {
           break;
-        case 1:  // String is null.
-          *reinterpret_cast<npy_bool*>(result_data) = invert;
-          break;
-        default:
-          throw py::error_already_set();
+        }
+        const bool in_set =
+            load_status == 0
+                ? test_elements_set.contains(ToStringView(str.buf, str.size))
+                : (load_status == 1 && null_in_set);
+        *reinterpret_cast<npy_bool*>(result_data) = invert != in_set;
+        string_data += string_stride;
+        result_data += result_stride;
       }
-      string_data += string_stride;
-      result_data += result_stride;
-    }
-  } while (iter_next(iter));
+    } while (load_status >= 0 && iter_next(iter));
+  }
+  if (load_status < 0) {
+    throw py::value_error("Failed to load StringDType string.");
+  }
 }
 
 py::array_t<bool> IsIn(py::handle array_arg, const py::anyset& test_elements,
@@ -272,10 +282,17 @@ py::array_t<bool> IsIn(py::handle array_arg, const py::anyset& test_elements,
   PyArray_Descr* descr = PyArray_DESCR(array_obj);
 
   if (descr->type_num == NPY_VSTRING) {
-    absl::flat_hash_set<absl::string_view> test_elements_set;
-    if (!test_elements.empty()) {
-      test_elements_set =
-          py::cast<absl::flat_hash_set<absl::string_view>>(test_elements);
+    absl::flat_hash_set<std::string> test_elements_set;
+    test_elements_set.reserve(PySet_GET_SIZE(test_elements.ptr()));
+    for (py::handle elem : test_elements) {
+      if (PyUnicode_Check(elem.ptr())) {
+        Py_ssize_t size = 0;
+        const char* data = PyUnicode_AsUTF8AndSize(elem.ptr(), &size);
+        if (data == nullptr) {
+          throw py::error_already_set();
+        }
+        test_elements_set.emplace(data, static_cast<size_t>(size));
+      }
     }
 
     PyArrayObject* op[2] = {array_obj, nullptr};
