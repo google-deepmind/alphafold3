@@ -4684,6 +4684,26 @@ class StructureTest(test_utils.StructureTestCase):
     self.assertIsNot(reordered, struc)
     np.testing.assert_array_equal(reordered.atom_name, reversed_struc.atom_name)
 
+  def test_order_and_drop_atoms_to_match_shifted_and_gapped_chain_keys(self):
+    base = self.make_test_structure(
+        chain_id=np.array(['A', 'B', 'C'], dtype=object),
+        res_id=np.array([1, 1, 1], dtype=np.int32),
+        res_name=np.array(['ALA', 'ALA', 'ALA'], dtype=object),
+        atom_name=np.array(['CA', 'CA', 'CA'], dtype=object),
+        atom_x=np.array([0.0, 5.0, 10.0], dtype=np.float32),
+        atom_y=np.zeros(3, dtype=np.float32),
+        atom_z=np.zeros(3, dtype=np.float32),
+    )
+    ab = base.filter(chain_id=('A', 'B'))
+    bc_as_ab = base.filter(chain_id=('B', 'C')).rename_chain_ids(
+        {'B': 'A', 'C': 'B'}
+    )
+    ac_as_ab = base.filter(chain_id=('A', 'C')).rename_chain_ids({'C': 'B'})
+    matched_contiguous = bc_as_ab.order_and_drop_atoms_to_match(ab)
+    np.testing.assert_array_equal(matched_contiguous.coords, bc_as_ab.coords)
+    matched_gapped = ac_as_ab.order_and_drop_atoms_to_match(ab)
+    np.testing.assert_array_equal(matched_gapped.coords, ac_as_ab.coords)
+
 
 if __name__ == '__main__':
   absltest.main()

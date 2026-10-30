@@ -303,6 +303,24 @@ class ResArrays:
   atom_occupancy: np.ndarray
 
 
+def _same_foreign_key_indices(
+    *,
+    self_fk: np.ndarray,
+    self_pk: np.ndarray,
+    other_fk: np.ndarray,
+    other_pk: np.ndarray,
+) -> bool:
+  """Returns True if foreign keys map to identical primary-key row indices."""
+  if self_pk.size <= 1:
+    return True
+  if np.array_equal(self_pk, other_pk) and np.array_equal(self_fk, other_fk):
+    return True
+  return np.array_equal(
+      indexing.index_of(self_fk, self_pk),
+      indexing.index_of(other_fk, other_pk),
+  )
+
+
 class Structure(table.Database):
   """Structure class for representing and processing molecular structures."""
 
@@ -1014,29 +1032,23 @@ class Structure(table.Database):
         np.array_equal(self.chains_table.id, other.chains_table.id)
         and np.array_equal(self.residues_table.id, other.residues_table.id)
         and np.array_equal(self.atoms_table.name, other.atoms_table.name)
-        and np.array_equal(
-            indexing.index_of(
-                self.residues_table.chain_key, self.chains_table.key
-            ),
-            indexing.index_of(
-                other.residues_table.chain_key, other.chains_table.key
-            ),
+        and _same_foreign_key_indices(
+            self_fk=self.residues_table.chain_key,
+            self_pk=self.chains_table.key,
+            other_fk=other.residues_table.chain_key,
+            other_pk=other.chains_table.key,
         )
-        and np.array_equal(
-            indexing.index_of(
-                self.atoms_table.chain_key, self.chains_table.key
-            ),
-            indexing.index_of(
-                other.atoms_table.chain_key, other.chains_table.key
-            ),
+        and _same_foreign_key_indices(
+            self_fk=self.atoms_table.chain_key,
+            self_pk=self.chains_table.key,
+            other_fk=other.atoms_table.chain_key,
+            other_pk=other.chains_table.key,
         )
-        and np.array_equal(
-            indexing.index_of(
-                self.atoms_table.res_key, self.residues_table.key
-            ),
-            indexing.index_of(
-                other.atoms_table.res_key, other.residues_table.key
-            ),
+        and _same_foreign_key_indices(
+            self_fk=self.atoms_table.res_key,
+            self_pk=self.residues_table.key,
+            other_fk=other.atoms_table.res_key,
+            other_pk=other.residues_table.key,
         )
     )
 
