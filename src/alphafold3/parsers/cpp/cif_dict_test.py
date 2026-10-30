@@ -18,6 +18,7 @@
 # https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md
 
 from collections.abc import Mapping, Sequence
+from concurrent import futures
 import pickle
 
 from absl.testing import absltest
@@ -736,6 +737,49 @@ class CifDictTest(parameterized.TestCase):
     else:
       with self.assertRaises(exception):
         self.cif_2pv7.get_array(key, dtype=dtype, gather=gather)
+
+  def test_concurrent_calls(self):
+    cif_str = self.cif_2pv7.to_string()
+    multi_cif = 'data_A\nloop_\n_k.x\n1\n2\ndata_B\nloop_\n_k.x\n3\n4\n'
+    gather_idx = np.array([[0, 10, 100], [5, 50, 500]], dtype=np.int32)
+    expected_x = self.cif_2pv7.get_array('_atom_site.Cartn_x', dtype=np.float32)
+    expected_slice = self.cif_2pv7.get_array(
+        '_atom_site.id', dtype=np.int32, gather=slice(5, 250, 3)
+    )
+    expected_gather = self.cif_2pv7.get_array(
+        '_atom_site.id', dtype=np.int64, gather=gather_idx
+    )
+    expected_comp = self.cif_2pv7.get_array(
+        '_atom_site.label_comp_id', dtype=object
+    )
+    expected_tokens = len(cif_dict.tokenize(cif_str))
+
+    def check(_: int) -> None:
+      np.testing.assert_array_equal(
+          self.cif_2pv7.get_array('_atom_site.Cartn_x', dtype=np.float32),
+          expected_x,
+      )
+      np.testing.assert_array_equal(
+          self.cif_2pv7.get_array(
+              '_atom_site.id', dtype=np.int32, gather=slice(5, 250, 3)
+          ),
+          expected_slice,
+      )
+      np.testing.assert_array_equal(
+          self.cif_2pv7.get_array(
+              '_atom_site.id', dtype=np.int64, gather=gather_idx
+          ),
+          expected_gather,
+      )
+      np.testing.assert_array_equal(
+          self.cif_2pv7.get_array('_atom_site.label_comp_id', dtype=object),
+          expected_comp,
+      )
+      self.assertLen(cif_dict.tokenize(cif_str), expected_tokens)
+      self.assertLen(cif_dict.parse_multi_data_cif(multi_cif), 2)
+
+    with futures.ThreadPoolExecutor(max_workers=8) as executor:
+      list(executor.map(check, range(16)))
 
 
 if __name__ == '__main__':

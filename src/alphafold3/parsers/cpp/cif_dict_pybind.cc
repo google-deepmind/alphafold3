@@ -25,6 +25,7 @@
 #include <cstring>
 #include <limits>
 #include <memory>
+#include <optional>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -54,68 +55,64 @@ namespace {
 namespace py = pybind11;
 
 template <typename Item, typename ForEach>
-bool GatherArray(size_t num_dims, npy_intp* shape_array, npy_intp* stride_array,
-                 const char* data, absl::Span<const std::string> values,
-                 ForEach&& for_each_cb) {
-  if (num_dims == 1) {
-    const npy_intp shape = shape_array[0];
-    const npy_intp stride = stride_array[0];
-    for (size_t i = 0; i < shape; ++i) {
+bool GatherArray(size_t num_dims, const npy_intp* shape_array,
+                 const npy_intp* stride_array, const char* data,
+                 absl::Span<const std::string> values,
+                 const ForEach& for_each_cb, std::string& index_error) {
+  if (num_dims <= 1) {
+    const npy_intp shape = num_dims == 1 ? shape_array[0] : 1;
+    const npy_intp stride = num_dims == 1 ? stride_array[0] : 0;
+    for (npy_intp i = 0; i < shape; ++i) {
       Item index;
       std::memcpy(&index, data + stride * i, sizeof(Item));
-      if (index < 0 || index >= values.size()) {
-        PyErr_SetString(PyExc_IndexError,
-                        absl::StrCat("index ", index,
-                                     " is out of bounds for column with size ",
-                                     values.size())
-                            .c_str());
+      if (index < 0 || static_cast<size_t>(index) >= values.size()) {
+        index_error = absl::StrCat("index ", index,
+                                   " is out of bounds for column with size ",
+                                   values.size());
         return false;
       }
       if (!for_each_cb(values[index])) {
         return false;
       }
     }
-  } else if (num_dims == 0) {
-    Item index;
-    std::memcpy(&index, data, sizeof(Item));
-    if (index < 0 || index >= values.size()) {
-      PyErr_SetString(
-          PyExc_IndexError,
-          absl::StrCat("index ", index,
-                       " is out of bounds for column with size ", values.size())
-              .c_str());
+    return true;
+  }
+  const npy_intp shape = shape_array[0];
+  const npy_intp stride = stride_array[0];
+  for (npy_intp i = 0; i < shape; ++i) {
+    if (!GatherArray<Item>(num_dims - 1, shape_array + 1, stride_array + 1,
+                           data + stride * i, values, for_each_cb,
+                           index_error)) {
       return false;
-    }
-    if (!for_each_cb(values[index])) {
-      return false;
-    }
-  } else {
-    const npy_intp shape = shape_array[0];
-    const npy_intp stride = stride_array[0];
-    for (size_t i = 0; i < shape; ++i) {
-      if (!GatherArray<Item>(num_dims - 1, shape_array + 1, stride_array + 1,
-                             data + stride * i, values, for_each_cb)) {
-        return false;
-      }
     }
   }
   return true;
 }
 
-template <typename Size, typename ForEach>
+template <bool kReleaseGil = false, typename Size, typename ForEach>
 bool Gather(PyObject* gather, absl::Span<const std::string> values,
-            Size&& size_cb, ForEach&& for_each_cb) {
+            Size&& size_cb, const ForEach& for_each_cb) {
+  auto run_loop = [](auto&& fn) {
+    if constexpr (kReleaseGil) {
+      py::gil_scoped_release gil_release;
+      return fn();
+    } else {
+      return fn();
+    }
+  };
   if (gather == Py_None) {
     npy_intp dim = static_cast<npy_intp>(values.size());
     if (!size_cb(absl::MakeSpan(&dim, 1))) {
       return false;
     }
-    for (const std::string& v : values) {
-      if (!for_each_cb(v)) {
-        return false;
+    return run_loop([&] {
+      for (const std::string& v : values) {
+        if (!for_each_cb(v)) {
+          return false;
+        }
       }
-    }
-    return true;
+      return true;
+    });
   }
   if (PySlice_Check(gather)) {
     Py_ssize_t start, stop, step, slice_length;
@@ -127,66 +124,49 @@ bool Gather(PyObject* gather, absl::Span<const std::string> values,
     if (!size_cb(absl::MakeSpan(&dim, 1))) {
       return false;
     }
-    for (size_t i = 0; i < slice_length; ++i) {
-      if (!for_each_cb(values[start + i * step])) {
-        return false;
+    return run_loop([&] {
+      for (Py_ssize_t i = 0; i < slice_length; ++i) {
+        if (!for_each_cb(values[start + i * step])) {
+          return false;
+        }
       }
-    }
-    return true;
+      return true;
+    });
   }
   if (PyArray_Check(gather)) {
     PyArrayObject* gather_array = reinterpret_cast<PyArrayObject*>(gather);
-    auto shape =
-        absl::MakeSpan(PyArray_DIMS(gather_array), PyArray_NDIM(gather_array));
+    const int ndim = PyArray_NDIM(gather_array);
+    const npy_intp* shape = PyArray_DIMS(gather_array);
+    const npy_intp* strides = PyArray_STRIDES(gather_array);
+    const char* bytes = PyArray_BYTES(gather_array);
+    auto gather_typed = [&](auto item_tag) {
+      using Item = decltype(item_tag);
+      if (!size_cb(absl::MakeSpan(shape, ndim))) {
+        return false;
+      }
+      std::string index_error;
+      const bool ok = run_loop([&] {
+        return GatherArray<Item>(ndim, shape, strides, bytes, values,
+                                 for_each_cb, index_error);
+      });
+      if (!ok && !index_error.empty()) {
+        PyErr_SetString(PyExc_IndexError, index_error.c_str());
+      }
+      return ok;
+    };
     switch (PyArray_TYPE(gather_array)) {
       case NPY_INT16:
-        if (!size_cb(shape)) {
-          return false;
-        }
-        return GatherArray<std::int16_t>(shape.size(), shape.data(),
-                                         PyArray_STRIDES(gather_array),
-                                         PyArray_BYTES(gather_array), values,
-                                         std::forward<ForEach>(for_each_cb));
+        return gather_typed(int16_t{});
       case NPY_UINT16:
-        if (!size_cb(shape)) {
-          return false;
-        }
-        return GatherArray<std::uint16_t>(shape.size(), shape.data(),
-                                          PyArray_STRIDES(gather_array),
-                                          PyArray_BYTES(gather_array), values,
-                                          std::forward<ForEach>(for_each_cb));
+        return gather_typed(uint16_t{});
       case NPY_INT32:
-        if (!size_cb(shape)) {
-          return false;
-        }
-        return GatherArray<std::int32_t>(shape.size(), shape.data(),
-                                         PyArray_STRIDES(gather_array),
-                                         PyArray_BYTES(gather_array), values,
-                                         std::forward<ForEach>(for_each_cb));
+        return gather_typed(int32_t{});
       case NPY_UINT32:
-        if (!size_cb(shape)) {
-          return false;
-        }
-        return GatherArray<std::uint32_t>(shape.size(), shape.data(),
-                                          PyArray_STRIDES(gather_array),
-                                          PyArray_BYTES(gather_array), values,
-                                          std::forward<ForEach>(for_each_cb));
+        return gather_typed(uint32_t{});
       case NPY_INT64:
-        if (!size_cb(shape)) {
-          return false;
-        }
-        return GatherArray<std::int64_t>(shape.size(), shape.data(),
-                                         PyArray_STRIDES(gather_array),
-                                         PyArray_BYTES(gather_array), values,
-                                         std::forward<ForEach>(for_each_cb));
+        return gather_typed(int64_t{});
       case NPY_UINT64:
-        if (!size_cb(shape)) {
-          return false;
-        }
-        return GatherArray<std::uint64_t>(shape.size(), shape.data(),
-                                          PyArray_STRIDES(gather_array),
-                                          PyArray_BYTES(gather_array), values,
-                                          std::forward<ForEach>(for_each_cb));
+        return gather_typed(uint64_t{});
       default:
         PyErr_SetString(PyExc_TypeError, "Unsupported NumPy array type.");
         return false;
@@ -267,7 +247,8 @@ inline PyObject* Convert(PyObject* gather, PyArray_Descr* type,
                          absl::Span<const std::string> values, C&& converter) {
   py::object ret;
   T* dst;
-  if (Gather(
+  std::optional<std::string> bad_value;
+  if (Gather</*kReleaseGil=*/true>(
           gather, values,
           [&dst, &ret, type](absl::Span<const npy_intp> size) {
             // Construct uninitialised NumPy array of type T.
@@ -285,14 +266,17 @@ inline PyObject* Convert(PyObject* gather, PyArray_Descr* type,
                 PyArray_DATA(reinterpret_cast<PyArrayObject*>(ret.ptr())));
             return true;
           },
-          [&dst, &converter](const std::string& value) {
+          [&dst, &converter, &bad_value](const std::string& value) {
             if (!converter(value, dst++)) {
-              PyErr_SetString(PyExc_ValueError, value.c_str());
+              bad_value = value;
               return false;
             }
             return true;
           })) {
     return ret.release().ptr();
+  }
+  if (bad_value) {
+    PyErr_SetString(PyExc_ValueError, bad_value->c_str());
   }
   return nullptr;
 }
@@ -419,7 +403,7 @@ void RegisterModuleCifDict(pybind11::module m) {
         }
         return *std::move(tokens);
       },
-      py::arg("cif_string"));
+      py::arg("cif_string"), py::call_guard<py::gil_scoped_release>());
 
   m.def("split_line", [](absl::string_view line) {
     absl::StatusOr<std::vector<absl::string_view>> tokens = SplitLine(line);
@@ -432,7 +416,11 @@ void RegisterModuleCifDict(pybind11::module m) {
   m.def(
       "parse_multi_data_cif",
       [](absl::string_view cif_string) {
-        auto result = ParseMultiDataCifDict(cif_string);
+        absl::StatusOr<absl::flat_hash_map<std::string, CifDict>> result;
+        {
+          py::gil_scoped_release gil_release;
+          result = ParseMultiDataCifDict(cif_string);
+        }
         if (!result.ok()) {
           throw py::value_error(result.status().ToString());
         }
