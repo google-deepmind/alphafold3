@@ -44,6 +44,7 @@
 #include "absl/strings/str_split.h"
 #include "absl/strings/string_view.h"
 #include "absl/strings/strip.h"
+#include "absl/types/span.h"
 
 namespace alphafold3 {
 namespace {
@@ -647,13 +648,12 @@ absl::StatusOr<
     std::vector<absl::flat_hash_map<absl::string_view, absl::string_view>>>
 CifDict::ExtractLoopAsList(absl::string_view prefix) const {
   std::vector<absl::string_view> column_names;
-  std::vector<std::vector<absl::string_view>> column_data;
+  std::vector<absl::Span<const std::string>> column_data;
 
   for (const auto& element : *dict_) {
     if (absl::StartsWith(element.first, prefix)) {
       column_names.emplace_back(element.first);
-      auto& cells = column_data.emplace_back();
-      cells.insert(cells.begin(), element.second.begin(), element.second.end());
+      column_data.emplace_back(element.second);
     }
   }
   // Make sure all columns have the same number of rows.
