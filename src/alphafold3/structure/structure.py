@@ -3428,16 +3428,21 @@ def multichain_residue_index(
     A monotonically increasing residue index, with at least
     `between_chain_buffer` residues in between each chain.
   """
-  if struc.num_atoms:
-    res_id_range = np.max(struc.res_id) - np.min(struc.res_id)
-    assert res_id_range < chain_offset
-  chain_id_int = struc.chain_id
-  monotonic_chain_id_int = np.concatenate(
-      ([0], np.cumsum(chain_id_int[1:] != chain_id_int[:-1]))
+  if struc.num_atoms == 0:
+    return np.empty(0, dtype=np.int64)
+  res_id_range = np.max(struc.res_id) - np.min(struc.res_id)
+  assert res_id_range < chain_offset
+  if struc.num_chains <= 1:
+    return struc.res_id.astype(np.int64, copy=False)
+  chain_keys = (
+      struc.atoms_table.chain_key
+      if len(set(struc.chains)) == struc.num_chains
+      else struc.chain_id
   )
-  return struc.res_id + monotonic_chain_id_int * (
-      chain_offset + between_chain_buffer
-  )
+  chain_index = np.empty(chain_keys.size, dtype=np.int64)
+  chain_index[0] = 0
+  np.cumsum(chain_keys[1:] != chain_keys[:-1], out=chain_index[1:])
+  return struc.res_id + chain_index * (chain_offset + between_chain_buffer)
 
 
 def make_empty_structure() -> Structure:

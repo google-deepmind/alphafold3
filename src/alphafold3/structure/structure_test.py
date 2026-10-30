@@ -4854,6 +4854,75 @@ class StructureTest(test_utils.StructureTestCase):
     self.assertEqual(split[0].coords.shape, (2, 0, 3))
     self.assertEqual(split[1].coords.shape, (2, 2, 3))
 
+  def test_multichain_residue_index_single_and_multi_chain(self):
+    empty = structure.make_empty_structure()
+    self.assertEqual(structure.multichain_residue_index(empty).shape, (0,))
+
+    mono = self.make_test_structure(
+        chain_id=np.array(['A', 'A'], dtype=object),
+        res_id=np.array([3, 7], dtype=np.int32),
+        res_name=np.array(['ALA', 'GLY'], dtype=object),
+        atom_name=np.array(['CA', 'CA'], dtype=object),
+    )
+    mono_idx = structure.multichain_residue_index(mono)
+    self.assertEqual(mono_idx.dtype, np.int64)
+    np.testing.assert_array_equal(mono_idx, np.array([3, 7], dtype=np.int64))
+
+    dimer = self.make_test_structure(
+        chain_id=np.array(['A', 'B'], dtype=object),
+        res_id=np.array([3, 7], dtype=np.int32),
+        res_name=np.array(['ALA', 'GLY'], dtype=object),
+        atom_name=np.array(['CA', 'CA'], dtype=object),
+    )
+    dimer_idx = structure.multichain_residue_index(dimer)
+    self.assertEqual(dimer_idx.dtype, np.int64)
+    np.testing.assert_array_equal(
+        dimer_idx, np.array([3, 10007], dtype=np.int64)
+    )
+
+    zero_atom_multichain = structure.Structure(
+        chains=structure.Chains.from_defaults(
+            key=np.array([0, 1], dtype=np.int64),
+            id=np.array(['A', 'B'], dtype=object),
+        ),
+        residues=structure.Residues.from_defaults(
+            key=np.array([0, 1], dtype=np.int64),
+            chain_key=np.array([0, 1], dtype=np.int64),
+            id=np.array([1, 2], dtype=np.int32),
+            name=np.array(['ALA', 'GLY'], dtype=object),
+        ),
+        atoms=structure.Atoms.make_empty(),
+        bonds=structure.Bonds.make_empty(),
+    )
+    self.assertEqual(
+        structure.multichain_residue_index(zero_atom_multichain).shape, (0,)
+    )
+
+  def test_multichain_residue_index_duplicate_chain_ids(self):
+    dup_chains = structure.Structure(
+        chains=structure.Chains.from_defaults(
+            key=np.array([0, 1], dtype=np.int64),
+            id=np.array(['A', 'A'], dtype=object),
+        ),
+        residues=structure.Residues.from_defaults(
+            key=np.array([0, 1], dtype=np.int64),
+            chain_key=np.array([0, 1], dtype=np.int64),
+            id=np.array([3, 7], dtype=np.int32),
+            name=np.array(['ALA', 'GLY'], dtype=object),
+        ),
+        atoms=structure.Atoms.from_defaults(
+            key=np.array([0, 1], dtype=np.int64),
+            chain_key=np.array([0, 1], dtype=np.int64),
+            res_key=np.array([0, 1], dtype=np.int64),
+            name=np.array(['CA', 'CA'], dtype=object),
+        ),
+        bonds=structure.Bonds.make_empty(),
+    )
+    np.testing.assert_array_equal(
+        structure.multichain_residue_index(dup_chains),
+        np.array([3, 7], dtype=np.int64),
+    )
+
 
 if __name__ == '__main__':
   absltest.main()
