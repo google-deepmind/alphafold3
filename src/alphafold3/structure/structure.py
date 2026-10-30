@@ -1558,6 +1558,12 @@ class Structure(table.Database):
         filtered_residues = filtered_residues.apply_array(
             membership.isin(filtered_residues.key, filtered_atoms.res_key)
         )
+    if (
+        filtered_chains is self._chains
+        and filtered_residues is self._residues
+        and filtered_atoms is self._atoms
+    ):
+      return self  # Shortcut: The filter is a no-op, so just return itself.
     return self.copy_and_update(
         chains=filtered_chains,
         residues=filtered_residues,

@@ -4704,6 +4704,19 @@ class StructureTest(test_utils.StructureTestCase):
     matched_gapped = ac_as_ab.order_and_drop_atoms_to_match(ab)
     np.testing.assert_array_equal(matched_gapped.coords, ac_as_ab.coords)
 
+  def test_filter_by_chains_noop_returns_self(self):
+    mono = self.make_test_structure(
+        chain_id=np.array(['A', 'A'], dtype=object),
+        res_id=np.array([1, 2], dtype=np.int32),
+        res_name=np.array(['ALA', 'GLY'], dtype=object),
+        atom_name=np.array(['CA', 'CA'], dtype=object),
+    )
+    self.assertIs(mono.filter(chain_id='A'), mono)
+    self.assertIs(
+        mono.filter(chain_id='A', cascade_delete=structure.CascadeDelete.FULL),
+        mono,
+    )
+
 
 if __name__ == '__main__':
   absltest.main()
