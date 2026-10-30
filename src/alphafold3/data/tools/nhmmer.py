@@ -308,10 +308,12 @@ def _merge_nhmmer_results(
   assert len(set(nh_res.target_sequence for nh_res in nhmmer_results)) == 1
   assert len(set(nh_res.e_value for nh_res in nhmmer_results)) == 1
 
-  # Parse the TBL output, create a mapping from unique hit ID to TBL line.
-  parsed_tbl = {}
-  for nhmmer_result in nhmmer_results:
+  # Create an iterator and merge a3m info with tbl info per shard.
+  def _merged_a3m_tbl_iter(
+      nhmmer_result: msa_tool.MsaToolResult,
+  ) -> Iterable[tuple[str, str, str, str]]:
     assert nhmmer_result.tblout is not None
+    parsed_tbl = {}
     for line in nhmmer_result.tblout.splitlines():
       if not line.startswith('#'):
         line_fields = line.split(maxsplit=15)
@@ -322,10 +324,8 @@ def _merge_nhmmer_results(
         unique_id = f'{accession}/{alignment_from}-{alignment_to}'
         parsed_tbl[unique_id] = line
 
-  # Create an iterator and merge a3m info with tbl info.
-  def _merged_a3m_tbl_iter(a3m: str) -> Iterable[tuple[str, str, str, str]]:
     # Don't parse the entire a3m, lazily parse only as many sequences as needed.
-    iterator = iter(parsers.lazy_parse_fasta_string(a3m))
+    iterator = iter(parsers.lazy_parse_fasta_string(nhmmer_result.a3m))
     next(iterator)  # Skip the query which isn't present in tblout.
     for sequence, description in iterator:
       name = description.partition(' ')[0]
@@ -333,16 +333,18 @@ def _merge_nhmmer_results(
         # Skip sequences for which we don't have tbl information.
         yield sequence, description, tbl_info, name
 
-  def sort_key(seq_data: tuple[str, str, str, str]) -> tuple[float, str]:
+  def sort_key(seq_data: tuple[str, str, str, str]) -> tuple[float, float, str]:
     unused_seq, unused_description, tbl_info, name = seq_data
     # Nucleic tblout has 16 space delimited columns. "-" used if no value
-    # present. We want e-value in column 12, so do only 13 splits. Use the name
-    # in case of an e-value tie.
-    return float(tbl_info.split(maxsplit=13)[12]), name
+    # present. We want e-value (column 13) and bit score (column 14), so do only
+    # 14 splits. E-value and bit score are equivalent, but bit score might have
+    # higher resolution. Use the name in case of a tie.
+    e_value, bit_score = tbl_info.split(maxsplit=14)[12:14]
+    return float(e_value), -float(bit_score), name
 
   # A3M/TBL is sorted by e-value and name, hence we can merge them efficiently.
   merged_a3m_and_tblout = heapq.merge(
-      *[_merged_a3m_tbl_iter(res.a3m) for res in nhmmer_results],
+      *[_merged_a3m_tbl_iter(res) for res in nhmmer_results],
       key=sort_key,
   )
 

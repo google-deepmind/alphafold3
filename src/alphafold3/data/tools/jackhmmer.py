@@ -288,18 +288,18 @@ def _merge_jackhmmer_results(
   assert len(set(jh_res.target_sequence for jh_res in jh_results)) == 1
   assert len(set(jh_res.e_value for jh_res in jh_results)) == 1
 
-  # Parse the TBL output, create a mapping from hit name to TBL line.
-  parsed_tbl = {}
-  for jh_result in jh_results:
+  # Create an iterator and merge a3m info with tbl info per shard.
+  def _merged_a3m_tbl_iter(
+      jh_result: msa_tool.MsaToolResult,
+  ) -> Iterable[tuple[str, str, str, str]]:
     assert jh_result.tblout is not None
-    for line in jh_result.tblout.splitlines():
-      if not line.startswith('#'):
-        parsed_tbl[line.partition(' ')[0]] = line
-
-  # Create an iterator and merge a3m info with tbl info.
-  def _merged_a3m_tbl_iter(a3m: str) -> Iterable[tuple[str, str, str, str]]:
+    parsed_tbl = {
+        line.partition(' ')[0]: line
+        for line in jh_result.tblout.splitlines()
+        if not line.startswith('#')
+    }
     # Don't parse the entire a3m, lazily parse only as many sequences as needed.
-    iterator = iter(parsers.lazy_parse_fasta_string(a3m))
+    iterator = iter(parsers.lazy_parse_fasta_string(jh_result.a3m))
     next(iterator)  # Skip the query which isn't present in tblout.
     for sequence, description in iterator:
       name = description.partition(' ')[0].partition('/')[0]
@@ -318,7 +318,7 @@ def _merge_jackhmmer_results(
 
   # A3M/TBL is sorted by e-value and name, hence we can merge them efficiently.
   merged_a3m_and_tblout = heapq.merge(
-      *[_merged_a3m_tbl_iter(res.a3m) for res in jh_results],
+      *[_merged_a3m_tbl_iter(res) for res in jh_results],
       key=sort_key,
   )
 
