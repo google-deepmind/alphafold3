@@ -2400,6 +2400,11 @@ class Structure(table.Database):
       A list of `Structure`s, one for each chain. The order is the same as the
       chain order in the original Structure.
     """
+    num_chains = self._chains.size
+    if num_chains == 0:
+      return []
+    if num_chains == 1 and self._atoms.size > 0:
+      return [self]
     return [self.filter(chain_id=chain_id) for chain_id in self.chains]
 
   def transform_states_to_chains(self) -> Self:

@@ -4717,6 +4717,44 @@ class StructureTest(test_utils.StructureTestCase):
         mono,
     )
 
+  def test_split_by_chain_empty_and_single_chain_fast_path(self):
+    empty_struc = structure.Structure(
+        chains=structure.Chains.make_empty(),
+        residues=structure.Residues.make_empty(),
+        atoms=structure.Atoms.make_empty(),
+        bonds=structure.Bonds.make_empty(),
+    )
+    self.assertEqual(empty_struc.split_by_chain(), [])
+
+    mono = self.make_test_structure(
+        chain_id=np.array(['A', 'A'], dtype=object),
+        res_id=np.array([1, 2], dtype=np.int32),
+        res_name=np.array(['ALA', 'GLY'], dtype=object),
+        atom_name=np.array(['CA', 'CA'], dtype=object),
+    )
+    split = mono.split_by_chain()
+    self.assertLen(split, 1)
+    self.assertIs(split[0], mono)
+
+    empty_chain_struc = structure.Structure(
+        chains=structure.Chains.from_defaults(
+            key=np.array([0], dtype=np.int64),
+            id=np.array(['A'], dtype=object),
+        ),
+        residues=structure.Residues.from_defaults(
+            key=np.array([0], dtype=np.int64),
+            chain_key=np.array([0], dtype=np.int64),
+            id=np.array([1], dtype=np.int32),
+            name=np.array(['ALA'], dtype=object),
+        ),
+        atoms=structure.Atoms.make_empty(),
+        bonds=structure.Bonds.make_empty(),
+    )
+    empty_split = empty_chain_struc.split_by_chain()
+    self.assertLen(empty_split, 1)
+    self.assertEqual(empty_split[0].num_chains, 0)
+    self.assertEqual(empty_split[0].num_atoms, 0)
+
 
 if __name__ == '__main__':
   absltest.main()
