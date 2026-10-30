@@ -1524,6 +1524,16 @@ class Structure(table.Database):
         chains=chains, residues=residues, atoms=atoms, bonds=bonds
     )
 
+  def _has_sorted_chain_keys(self) -> bool:
+    """Returns True if chain keys are strictly increasing across tables."""
+    return bool(
+        np.all(self._chains.key[1:] > self._chains.key[:-1])
+        and np.all(
+            self._residues.chain_key[1:] >= self._residues.chain_key[:-1]
+        )
+        and np.all(self._atoms.chain_key[1:] >= self._atoms.chain_key[:-1])
+    )
+
   def _filter_by_chains(
       self,
       chain_mask: np.ndarray,
@@ -1668,11 +1678,7 @@ class Structure(table.Database):
         and mask is None
         and not res_predicates
         and not atom_predicates
-        and np.all(self._chains.key[1:] > self._chains.key[:-1])
-        and np.all(
-            self._residues.chain_key[1:] >= self._residues.chain_key[:-1]
-        )
-        and np.all(self._atoms.chain_key[1:] >= self._atoms.chain_key[:-1])
+        and self._has_sorted_chain_keys()
     ):
       return self._filter_by_chains(
           chain_mask, invert=invert, cascade_delete=cascade_delete
