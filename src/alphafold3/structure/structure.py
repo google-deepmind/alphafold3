@@ -2396,7 +2396,7 @@ class Structure(table.Database):
       unstacked.append(leading_dim_slice[slice_i])
     return unstacked
 
-  def split_by_chain(self) -> Sequence[Self]:
+  def split_by_chain(self) -> list[Self]:
     """Splits a Structure into single-chain Structures, one for each chain.
 
     The obtained structures can be merged back together into the original
@@ -2411,7 +2411,50 @@ class Structure(table.Database):
       return []
     if num_chains == 1 and self._atoms.size > 0:
       return [self]
-    return [self.filter(chain_id=chain_id) for chain_id in self.chains]
+
+    atom_starts = atom_ends = bonds_by_chain = None
+    if (
+        self._has_sorted_chain_keys()
+        and len(set(self._chains.id)) == num_chains
+    ):
+      atom_starts = np.searchsorted(
+          self._atoms.chain_key, self._chains.key, side='left'
+      )
+      atom_ends = np.searchsorted(
+          self._atoms.chain_key, self._chains.key, side='right'
+      )
+      if int(np.sum(atom_ends - atom_starts)) == self._atoms.size:
+        bonds_by_chain = self._bonds.split_by_atom_ranges(
+            atom_key=self._atoms.key, atom_ends=atom_ends
+        )
+    if atom_starts is None or atom_ends is None or bonds_by_chain is None:
+      return [self.filter(chain_id=chain_id) for chain_id in self.chains]
+
+    res_starts = np.searchsorted(
+        self._residues.chain_key, self._chains.key, side='left'
+    )
+    res_ends = np.searchsorted(
+        self._residues.chain_key, self._chains.key, side='right'
+    )
+
+    result: list[Self] = []
+    for chain_idx in range(num_chains):
+      a_start, a_end = atom_starts[chain_idx], atom_ends[chain_idx]
+      if a_start == a_end:
+        c_start = c_end = r_start = r_end = 0
+      else:
+        c_start, c_end = chain_idx, chain_idx + 1
+        r_start, r_end = res_starts[chain_idx], res_ends[chain_idx]
+      result.append(
+          self.copy_and_update(
+              chains=self._chains.slice_range(start=c_start, end=c_end),
+              residues=self._residues.slice_range(start=r_start, end=r_end),
+              atoms=self._atoms.slice_range(start=a_start, end=a_end),
+              bonds=bonds_by_chain[chain_idx],
+              skip_validation=True,
+          )
+      )
+    return result
 
   def transform_states_to_chains(self) -> Self:
     """Transforms states to chains.

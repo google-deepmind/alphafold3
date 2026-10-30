@@ -4755,6 +4755,100 @@ class StructureTest(test_utils.StructureTestCase):
     self.assertEqual(empty_split[0].num_chains, 0)
     self.assertEqual(empty_split[0].num_atoms, 0)
 
+  def test_split_by_chain_intra_and_inter_chain_bonds(self):
+    with_bonds = structure.Structure(
+        chains=structure.Chains.from_defaults(
+            key=np.array([10, 20, 30], dtype=np.int64),
+            id=np.array(['A', 'B', 'C'], dtype=object),
+        ),
+        residues=structure.Residues.from_defaults(
+            key=np.array([100, 101, 200, 300], dtype=np.int64),
+            chain_key=np.array([10, 20, 20, 30], dtype=np.int64),
+            id=np.array([1, 1, 2, 1], dtype=np.int32),
+        ),
+        atoms=structure.Atoms.from_defaults(
+            key=np.array([1000, 1001, 2000, 2001], dtype=np.int64),
+            chain_key=np.array([20, 20, 30, 30], dtype=np.int64),
+            res_key=np.array([200, 200, 300, 300], dtype=np.int64),
+        ),
+        bonds=structure.Bonds(
+            key=np.array([0, 1, 2], dtype=np.int64),
+            type=np.array(['covale', 'covale', 'covale'], dtype=object),
+            role=np.array(['?', '?', '?'], dtype=object),
+            from_atom_key=np.array([2000, 1000, 1001], dtype=np.int64),
+            dest_atom_key=np.array([2001, 2000, 1000], dtype=np.int64),
+        ),
+    )
+    split_chains = with_bonds.split_by_chain()
+    self.assertLen(split_chains, 3)
+    for part, cid in zip(split_chains, ('A', 'B', 'C'), strict=True):
+      self.assertStructuresEqual(part, with_bonds.filter(chain_id=cid))
+
+  def test_split_by_chain_unsorted_keys(self):
+    chain_keys = np.array([2, 1], dtype=np.int64)
+    res_keys = np.array([0, 1], dtype=np.int64)
+    unsorted_keys = structure.Structure(
+        chains=structure.Chains.from_defaults(
+            key=chain_keys, id=np.array(['B', 'A'], dtype=object)
+        ),
+        residues=structure.Residues.from_defaults(
+            chain_key=chain_keys, id=np.array([1, 1], dtype=np.int32)
+        ),
+        atoms=structure.Atoms.from_defaults(
+            chain_key=chain_keys, res_key=res_keys
+        ),
+        bonds=structure.Bonds.make_empty(),
+    )
+    split_chains = unsorted_keys.split_by_chain()
+    self.assertLen(split_chains, 2)
+    for part, cid in zip(split_chains, ('B', 'A'), strict=True):
+      self.assertStructuresEqual(part, unsorted_keys.filter(chain_id=cid))
+
+  @parameterized.named_parameters(
+      dict(testcase_name='adjacent_duplicates', chain_ids=('A', 'A')),
+      dict(testcase_name='non_adjacent_duplicates', chain_ids=('A', 'B', 'A')),
+  )
+  def test_split_by_chain_duplicate_chain_ids(self, chain_ids):
+    n = len(chain_ids)
+    keys = np.arange(n, dtype=np.int64)
+    struc = structure.Structure(
+        chains=structure.Chains.from_defaults(
+            id=np.array(chain_ids, dtype=object)
+        ),
+        residues=structure.Residues.from_defaults(
+            chain_key=keys, id=np.arange(1, n + 1, dtype=np.int32)
+        ),
+        atoms=structure.Atoms.from_defaults(chain_key=keys, res_key=keys),
+        bonds=structure.Bonds.make_empty(),
+    )
+    self.assertLen(struc.split_by_chain(), n)
+
+  def test_split_by_chain_multiple_empty_and_multistate_chains(self):
+    coords = np.arange(12, dtype=np.float32).reshape(2, 2, 3)
+    struc = structure.Structure(
+        chains=structure.Chains.from_defaults(
+            id=np.array(['A', 'B', 'C'], dtype=object)
+        ),
+        residues=structure.Residues.from_defaults(
+            chain_key=np.array([0, 1], dtype=np.int64),
+            id=np.array([1, 1], dtype=np.int32),
+        ),
+        atoms=structure.Atoms.from_defaults(
+            chain_key=np.array([1, 1], dtype=np.int64),
+            res_key=np.array([1, 1], dtype=np.int64),
+            x=coords[..., 0],
+            y=coords[..., 1],
+            z=coords[..., 2],
+        ),
+        bonds=structure.Bonds.make_empty(),
+    )
+    split = struc.split_by_chain()
+    self.assertLen(split, 3)
+    self.assertStructuresEqual(split[0], struc.filter(chain_id='A'))
+    self.assertStructuresEqual(split[2], struc.filter(chain_id='C'))
+    self.assertEqual(split[0].coords.shape, (2, 0, 3))
+    self.assertEqual(split[1].coords.shape, (2, 2, 3))
+
 
 if __name__ == '__main__':
   absltest.main()
