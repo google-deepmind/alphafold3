@@ -19,6 +19,7 @@
 
 #include <Python.h>
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -200,43 +201,60 @@ bool Gather(PyObject* gather, absl::Span<const std::string> values,
 // possible.
 PyObject* ConvertStrings(PyObject* gather, PyArray_Descr* type,
                          absl::Span<const std::string> values) {
+  py::object type_owner =
+      py::reinterpret_steal<py::object>(reinterpret_cast<PyObject*>(type));
   absl::flat_hash_map<absl::string_view, PyObject*> existing;
+  existing.reserve(std::min<size_t>(values.size(), 64 * 1024));
+  absl::string_view last_value;
+  PyObject* last_obj = nullptr;
 
   PyObject* ret = nullptr;
-  PyObject** dst;
+  PyObject** dst = nullptr;
   if (Gather(
           gather, values,
-          [&dst, &ret, type](absl::Span<const npy_intp> size) {
+          [&dst, &ret, &type_owner](absl::Span<const npy_intp> size) {
             ret = PyArray_NewFromDescr(
                 /*subtype=*/&PyArray_Type,
-                /*type=*/type,
+                /*type=*/
+                reinterpret_cast<PyArray_Descr*>(type_owner.release().ptr()),
                 /*nd=*/size.size(),
                 /*dims=*/size.data(),
                 /*strides=*/nullptr,
                 /*data=*/nullptr,
                 /*flags=*/0,
                 /*obj=*/nullptr);
+            if (ret == nullptr) {
+              return false;
+            }
             dst = static_cast<PyObject**>(
                 PyArray_DATA(reinterpret_cast<PyArrayObject*>(ret)));
             return true;
           },
-          [&dst, &existing](absl::string_view value) {
+          [&dst, &existing, &last_value, &last_obj](absl::string_view value) {
+            if (last_obj != nullptr && value == last_value) {
+              Py_INCREF(last_obj);
+              *dst++ = last_obj;
+              return true;
+            }
             auto [it, inserted] = existing.emplace(value, nullptr);
             if (inserted) {
               it->second =
                   PyUnicode_FromStringAndSize(value.data(), value.size());
-              PyUnicode_InternInPlace(&it->second);
+              if (it->second == nullptr) {
+                return false;
+              }
             } else {
               Py_INCREF(it->second);
             }
-            *dst++ = it->second;
+            last_value = value;
+            last_obj = it->second;
+            *dst++ = last_obj;
             return true;
           })) {
     return ret;
-  } else {
-    Py_XDECREF(ret);
-    return nullptr;
   }
+  Py_XDECREF(ret);
+  return nullptr;
 }
 
 // Creates NumPy array with given dtype given specified converter.
