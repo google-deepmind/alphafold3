@@ -731,6 +731,52 @@ class TableTest(parameterized.TestCase):
     )
     self.assertIsNone(sliced.multi_data.base)
 
+  def test_slice_range_full_cover_returns_self(self):
+    empty = MultiDimColTable(
+        key=np.empty((0,), dtype=np.int64),
+        multi_data=np.empty((1, 0), dtype=np.float32),
+    )
+    self.assertIs(empty.slice_range(start=0, end=0), empty)
+
+    tbl = MultiDimColTable(
+        key=np.arange(3, dtype=np.int64),
+        multi_data=np.array([[1.0, 2.0, 3.0]], dtype=np.float32),
+    )
+    self.assertIs(tbl.slice_range(start=0, end=3), tbl)
+
+  @parameterized.named_parameters(
+      dict(testcase_name='interior', start=1, end=3),
+      dict(testcase_name='empty_subrange', start=2, end=2),
+  )
+  def test_slice_range_copies_columns_and_preserves_multidim_shape(
+      self, start, end
+  ):
+    tbl = MultiDimColTable(
+        key=np.array([10, 20, 30, 40], dtype=np.int64),
+        multi_data=np.arange(8, dtype=np.float32).reshape(2, 4),
+    )
+    sliced = tbl.slice_range(start=start, end=end)
+    np.testing.assert_array_equal(sliced.key, tbl.key[start:end], strict=True)
+    np.testing.assert_array_equal(
+        sliced.multi_data, tbl.multi_data[:, start:end], strict=True
+    )
+    self.assertFalse(sliced.key.flags.writeable)
+    self.assertFalse(sliced.multi_data.flags.writeable)
+    self.assertIsNone(sliced.multi_data.base)
+
+  @parameterized.named_parameters(
+      dict(testcase_name='negative_start', start=-1, end=2),
+      dict(testcase_name='start_after_end', start=3, end=2),
+      dict(testcase_name='end_past_size', start=0, end=5),
+  )
+  def test_slice_range_invalid_bounds_raises(self, start, end):
+    tbl = OneColTable(
+        key=np.array([0, 1, 2], dtype=np.int64),
+        data=np.array(['A', 'B', 'C'], dtype=object),
+    )
+    with self.assertRaises(ValueError):
+      tbl.slice_range(start=start, end=end)
+
   @parameterized.named_parameters(
       dict(testcase_name='scattered_rows', kept_rows=slice(None, None, 3)),
       dict(testcase_name='long_run', kept_rows=slice(5, 30)),

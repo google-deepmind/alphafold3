@@ -176,7 +176,7 @@ class Table:
 
   @classmethod
   def _from_validated_columns(
-      cls, columns_by_name: Mapping[str, np.ndarray]
+      cls, columns: Iterable[tuple[str, np.ndarray]]
   ) -> Self:
     """Constructs a Table from row slices of an already-validated Table.
 
@@ -185,23 +185,23 @@ class Table:
     be re-applied on the newly allocated column arrays.
 
     Args:
-      columns_by_name: Mapping from every column name to its sliced array.
+      columns: Iterable of `(column_name, sliced_array)` pairs.
 
     Returns:
       A new immutable Table instance of `cls`.
     """
     instance = cls.__new__(cls)
-    for col_name, col in columns_by_name.items():
+    for col_name, col in columns:
       col.flags.writeable = False
       object.__setattr__(instance, col_name, col)
     return instance
 
   def _take(self, selector: np.ndarray) -> Self:
     """Returns the rows picked by an index array or boolean mask."""
-    return self._from_validated_columns({
-        col: _take_rows(col_arr, selector)
+    return self._from_validated_columns(
+        (col, _take_rows(col_arr, selector))
         for col, col_arr in self.items.items()
-    })
+    )
 
   def __getstate__(self) -> dict[str, Any]:
     """Returns members with cached properties removed for pickling."""
@@ -278,6 +278,35 @@ class Table:
 
     return self._take(index_arr)
 
+  def slice_range(self, *, start: int, end: int) -> Self:
+    """Returns a Table sliced to the contiguous `[start, end)` row range.
+
+    Proper slices copy column arrays so small slices never retain NumPy views
+    pinning the parent Table's memory.
+
+    Args:
+      start: Inclusive start row index (`0 <= start <= end`).
+      end: Exclusive end row index (`start <= end <= self.size`).
+
+    Returns:
+      `self` when `[start, end)` covers the entire table; otherwise a new
+      immutable `Table` containing rows `[start, end)`.
+
+    Raises:
+      ValueError: If `start` or `end` is out of `[0, self.size]` or
+        `start > end`.
+    """
+    if not 0 <= start <= end <= self.size:
+      raise ValueError(
+          f'Invalid slice range [{start}, {end}) for table of size {self.size}.'
+      )
+    if start == 0 and end == self.size:
+      return self
+    return self._from_validated_columns(
+        (col, (arr[start:end] if arr.ndim == 1 else arr[..., start:end]).copy())
+        for col, arr in self.items.items()
+    )
+
   def slice_spans(self, starts: np.ndarray, ends: np.ndarray) -> Self:
     """Returns a Table sliced to non-overlapping sorted `[start, end)` spans."""
     spans: list[slice] = []
@@ -289,15 +318,14 @@ class Table:
       else:
         spans.append(slice(start, end))
 
-    spans = spans or [slice(0, 0)]
-    if spans == [slice(0, self.size)]:
-      return self
-    # `np.concatenate` always allocates a fresh array, even for one span,
-    # so small slices never retain views pinning parent Structure memory.
-    return self._from_validated_columns({
-        col: np.concatenate([_take_rows(arr, s) for s in spans], axis=-1)
+    if not spans:
+      return self.slice_range(start=0, end=0)
+    if len(spans) == 1:
+      return self.slice_range(start=spans[0].start, end=spans[0].stop)
+    return self._from_validated_columns(
+        (col, np.concatenate([_take_rows(arr, s) for s in spans], axis=-1))
         for col, arr in self.items.items()
-    })
+    )
 
   def apply_array_to_column(
       self,
