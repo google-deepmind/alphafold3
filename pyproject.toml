@@ -72,3 +72,7 @@ manylinux-x86_64-image = "manylinux_2_28"
 
 [project.scripts]
 build_data = "alphafold3.build_data:build_data"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+addopts = ["--import-mode=importlib"]
