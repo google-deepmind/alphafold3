@@ -47,9 +47,17 @@ py::list GetOrInferTypeSymbol(const CifDict& mmcif,
     const auto& label_atom_id = mmcif["_atom_site.label_atom_id"];
     CHECK_EQ(label_comp_id.size(), num_atom);
     CHECK_EQ(label_atom_id.size(), num_atom);
+    absl::flat_hash_map<absl::string_view,
+                        absl::flat_hash_map<absl::string_view, py::object>>
+        cache;
     for (int i = 0; i < num_atom; i++) {
-      patched_type_symbol[i] =
-          atom_id_to_type_symbol(label_comp_id[i], label_atom_id[i]);
+      auto& inner = cache[absl::string_view(label_comp_id[i])];
+      auto [it, inserted] =
+          inner.try_emplace(absl::string_view(label_atom_id[i]));
+      if (inserted) {
+        it->second = atom_id_to_type_symbol(label_comp_id[i], label_atom_id[i]);
+      }
+      patched_type_symbol[i] = it->second;
     }
   } else {
     for (int i = 0; i < num_atom; i++) {
