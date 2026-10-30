@@ -30,6 +30,26 @@ from alphafold3.structure import table
 import numpy as np
 
 
+def _validate_atom_ends(atom_ends: np.ndarray, *, max_end: int) -> None:
+  """Raises ValueError if `atom_ends` is not a valid 1D range-end array."""
+  if (
+      atom_ends.ndim != 1
+      or not np.issubdtype(atom_ends.dtype, np.integer)
+      or (
+          atom_ends.size > 0
+          and (
+              int(atom_ends[0]) < 0
+              or int(atom_ends[-1]) > max_end
+              or np.any(atom_ends[1:] < atom_ends[:-1])
+          )
+      )
+  ):
+    raise ValueError(
+        'atom_ends must be a 1D non-decreasing integer array within'
+        f' [0, {max_end}].'
+    )
+
+
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Bonds(table.Table):
   """Table of atomic bonds."""
@@ -83,6 +103,69 @@ class Bonds(table.Table):
     # Evaluate both bond endpoints in one `(2, num_bonds)` membership pass.
     endpoints = np.stack((self.from_atom_key, self.dest_atom_key), axis=0)
     return self.apply_array(membership.isin(endpoints, atom_key).all(axis=0))
+
+  def split_by_atom_ranges(
+      self,
+      *,
+      atom_key: np.ndarray,
+      atom_ends: np.ndarray,
+  ) -> list[Self]:
+    """Partitions intra-range bonds across contiguous prefix atom ranges.
+
+    Args:
+      atom_key: 1D signed-integer array of atom keys.
+      atom_ends: 1D non-decreasing integer array of exclusive end indices in
+        `atom_key`; range `i` spans `[0 if i == 0 else atom_ends[i - 1],
+        atom_ends[i])`.
+
+    Returns:
+      A list of `Bonds` tables of length `atom_ends.size`, one per range,
+      omitting inter-range bonds and bonds outside `[0, atom_ends[-1])`.
+
+    Raises:
+      ValueError: If `atom_key` is not a 1D signed-integer array, `atom_ends` is
+        not a 1D non-decreasing integer array within `[0, atom_key.size]`, or
+        any bond endpoint key is missing from `atom_key`.
+    """
+    if atom_key.ndim != 1 or not np.issubdtype(
+        atom_key.dtype, np.signedinteger
+    ):
+      raise ValueError('atom_key must be a 1D signed-integer array.')
+    _validate_atom_ends(atom_ends, max_end=atom_key.size)
+    num_ranges = atom_ends.size
+    if self.size == 0:
+      return [self] * num_ranges
+    from_pos, dest_pos = self.get_atom_indices(atom_key)
+    if num_ranges == 0:
+      return []
+    atom_ends = atom_ends.astype(np.int64, copy=False)
+    from_range = np.searchsorted(atom_ends, from_pos, side='right')
+    dest_range = np.searchsorted(atom_ends, dest_pos, side='right')
+    same_range = np.flatnonzero(
+        (from_range == dest_range) & (from_range < num_ranges)
+    )
+    result = [self.slice_range(start=0, end=0)] * num_ranges
+    if same_range.size == 0:
+      return result
+
+    ranges = from_range[same_range]
+    if ranges.size > 1 and np.any(ranges[1:] < ranges[:-1]):
+      order = np.argsort(ranges, kind='stable')
+      ranges = ranges[order]
+      same_range = same_range[order]
+
+    splits = np.flatnonzero(ranges[1:] != ranges[:-1]) + 1
+    for start_pos, end_pos in zip(
+        (0, *splits), (*splits, ranges.size), strict=True
+    ):
+      rows = same_range[start_pos:end_pos]
+      start, end = int(rows[0]), int(rows[-1]) + 1
+      result[int(ranges[start_pos])] = (
+          self.slice_range(start=start, end=end)
+          if end - start == rows.size
+          else self._take(rows)
+      )
+    return result
 
   def to_mmcif_dict_from_atom_arrays(
       self,
