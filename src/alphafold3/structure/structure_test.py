@@ -1590,6 +1590,11 @@ class StructureTest(test_utils.StructureTestCase):
     self.assertEqual(updated.release_date, datetime.date(3000, 1, 1))
     self.assertEqual(updated.resolution, 42.0)
     self.assertEqual(updated.structure_method, 'test')
+    self.assertIs(updated.chains_table, struc.chains_table)
+    self.assertIs(updated.residues_table, struc.residues_table)
+    self.assertIs(updated.atoms_table, struc.atoms_table)
+    self.assertIs(updated.bonds, struc.bonds)
+    self.assertNotIn('chain_boundaries', updated.__dict__)
 
   def test_copy_and_update_atoms(self):
     struc = self.make_test_structure(

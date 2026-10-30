@@ -1414,6 +1414,7 @@ class Structure(table.Database):
         residues=self._residues,
         chains=self._chains,
         bonds=self._bonds,
+        skip_validation=True,
     )
 
   def copy_and_update_atoms(
