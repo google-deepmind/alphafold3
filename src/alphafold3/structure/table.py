@@ -178,14 +178,15 @@ class Table:
   def _from_validated_columns(
       cls, columns: Iterable[tuple[str, np.ndarray]]
   ) -> Self:
-    """Constructs a Table from row slices of an already-validated Table.
+    """Constructs a Table from already-validated column arrays.
 
-    Row-slicing an already-validated Table preserves column names, equal row
-    counts, non-negative keys, and finite values, so only immutability needs to
-    be re-applied on the newly allocated column arrays.
+    Row-slicing or concatenating already-validated Tables of one class keeps
+    column names, equal row counts, non-negative keys, finite values, and
+    dtypes within each column's allowed set, so only immutability needs to be
+    re-applied on the newly allocated column arrays.
 
     Args:
-      columns: Iterable of `(column_name, sliced_array)` pairs.
+      columns: Iterable of `(column_name, column_array)` pairs.
 
     Returns:
       A new immutable Table instance of `cls`.
@@ -701,6 +702,12 @@ def concat_tables(dbs: Sequence[Database]) -> dict[str, Table]:
     )
 
   first_db, *other_dbs = dbs
+  if not other_dbs:
+    return {
+        table_name: first_db.get_table(table_name)
+        for table_name in table_dependency_order(first_db)
+    }
+
   concatted_tables: dict[str, Table] = {}
   key_offsets: dict[str, list[int]] = {}
   for table_name in table_dependency_order(first_db):
@@ -718,25 +725,23 @@ def concat_tables(dbs: Sequence[Database]) -> dict[str, Table]:
       for col_name in table.columns:
         columns[col_name].append(table.get_column(col_name))
       key_offset = key_offsets[table_name][prev_index]
-      offset_key = table.key + key_offset
-      columns['key'][-1] = offset_key
-      if table.size:
-        key_offsets[table_name].append(offset_key.max() + 1)
-      else:
-        key_offsets[table_name].append(key_offsets[table_name][prev_index])
+      if table.size and key_offset:
+        columns['key'][-1] = table.key + key_offset
+      key_offsets[table_name].append(
+          columns['key'][-1].max() + 1 if table.size else key_offset
+      )
       for fkey_col_name, foreign_table_name in first_db.foreign_keys.get(
-          table_name, []
+          table_name, ()
       ):
-        fkey_columns = columns[fkey_col_name]
-        fkey_columns[-1] = (
-            fkey_columns[-1] + key_offsets[foreign_table_name][prev_index]
-        )
+        if fk_offset := key_offsets[foreign_table_name][prev_index]:
+          columns[fkey_col_name][-1] = columns[fkey_col_name][-1] + fk_offset
 
-    concatted_columns = {
-        column_name: np.concatenate(values, axis=-1)
-        for column_name, values in columns.items()
-    }
-    concatted_tables[table_name] = (type(first_table))(**concatted_columns)
+    # Concatenating validated same-class tables keeps every column dtype within
+    # its allowed set and keys non-negative, so skip re-validation.
+    concatted_tables[table_name] = type(first_table)._from_validated_columns(  # pylint: disable=protected-access
+        (name, np.concatenate(values, axis=-1))
+        for name, values in columns.items()
+    )
   return concatted_tables
 
 

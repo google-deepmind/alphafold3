@@ -1014,6 +1014,58 @@ class DatabaseTest(absltest.TestCase):
             len(concatted.get_table(table_name).key),
         )
 
+  def test_concat_single_database_reuses_tables(self):
+    polymer = Polymer(
+        residues=Residues(
+            key=np.array([0], dtype=np.int64),
+            id=np.array([1], dtype=object),
+        ),
+        atoms=Atoms(
+            key=np.array([0], dtype=np.int64),
+            name=np.array(['CA'], dtype=object),
+            coords=np.zeros((3, 1), dtype=np.float32),
+            res_key=np.array([0], dtype=np.int64),
+        ),
+        bonds=Bonds(
+            key=np.array([], dtype=np.int64),
+            from_atom_key=np.array([], dtype=np.int64),
+            dest_atom_key=np.array([], dtype=np.int64),
+        ),
+    )
+    tables = table.concat_tables([polymer])
+    self.assertIs(tables['residues'], polymer.residues)
+    self.assertIs(tables['atoms'], polymer.atoms)
+    self.assertIs(tables['bonds'], polymer.bonds)
+    concatted = table.concat_databases([polymer])
+    self.assertIsNot(concatted, polymer)
+    self.assertIs(concatted.atoms, polymer.atoms)
+
+  def test_concat_mixed_float_dtypes(self):
+    def make_polymer(coord_dtype: Any) -> Polymer:
+      return Polymer(
+          residues=Residues(
+              key=np.array([0], dtype=np.int64),
+              id=np.array([1], dtype=object),
+          ),
+          atoms=Atoms(
+              key=np.array([0], dtype=np.int64),
+              name=np.array(['CA'], dtype=object),
+              coords=np.ones((3, 1), dtype=coord_dtype),
+              res_key=np.array([0], dtype=np.int64),
+          ),
+          bonds=Bonds(
+              key=np.array([], dtype=np.int64),
+              from_atom_key=np.array([], dtype=np.int64),
+              dest_atom_key=np.array([], dtype=np.int64),
+          ),
+      )
+
+    concatted = table.concat_databases(
+        [make_polymer(np.float16), make_polymer(np.float32)]
+    )
+    self.assertEqual(concatted.atoms.coords.dtype, np.float32)
+    self.assertFalse(concatted.atoms.coords.flags.writeable)
+
 
 if __name__ == '__main__':
   absltest.main()
