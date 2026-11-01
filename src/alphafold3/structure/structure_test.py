@@ -3978,6 +3978,8 @@ class StructureTest(test_utils.StructureTestCase):
           )
 
     with self.subTest('global_fields'):
+      self.assertIsNotNone(strucs[0].bioassembly_data)
+      self.assertIsNone(strucs[1].bioassembly_data)
       self.assertIsNone(concatted.release_date)
       self.assertIsNone(concatted.resolution)
       self.assertIsNone(concatted.structure_method)
@@ -4002,6 +4004,14 @@ class StructureTest(test_utils.StructureTestCase):
       self.assertEqual(
           cif['_atom_site.label_asym_id'], cif['_atom_site.auth_asym_id']
       )
+
+  def test_concat_single_structure_reuses_atom_and_bond_tables(self):
+    struc = structure.from_mmcif(test_utils.read_test_cif_file('2pv7'))
+    concatted = structure.concat([struc])
+    self.assertIsNotNone(struc.bioassembly_data)
+    self.assertIsNone(concatted.bioassembly_data)
+    self.assertIs(concatted.atoms_table, struc.atoms_table)
+    self.assertIs(concatted.bonds, struc.bonds)
 
   def test_enumerate_atoms(self):
     struc = self.make_test_structure(

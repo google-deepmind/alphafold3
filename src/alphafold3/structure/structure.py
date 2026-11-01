@@ -26,7 +26,7 @@ import datetime
 import enum
 import functools
 import itertools
-from typing import Any, ClassVar, Final, Literal, NamedTuple, Self, TypeAlias, TypeVar
+from typing import Any, ClassVar, Final, Literal, NamedTuple, Self, TypeAlias, TypeVar, cast
 
 from alphafold3.constants import atom_types
 from alphafold3.constants import chemical_components
@@ -3360,7 +3360,12 @@ def concat(
     )
 
   if assign_unique_chain_ids:
-    strucs = _assign_unique_chain_ids(strucs)
+    strucs = _assign_unique_chain_ids(
+        s.copy_and_update_globals(bioassembly_data=None)
+        if s.bioassembly_data is not None
+        else s
+        for s in strucs
+    )
 
   chemical_components_data = {}
   seen_label_chain_ids = set()
@@ -3377,18 +3382,17 @@ def concat(
     if struc.chemical_components_data is not None:
       chemical_components_data.update(struc.chemical_components_data.chem_comp)
 
-  concatted_struc = table.concat_databases(strucs)
-  name = name if name is not None else '_'.join(s.name for s in strucs)
+  concatted_tables = table.concat_tables(strucs)
+  chains = cast(structure_tables.Chains, concatted_tables['chains'])
   # Chain IDs (label and author) are fixed at this point, fix also entity IDs.
   if assign_unique_chain_ids or assign_unique_entity_ids:
-    numeric_ids = np.arange(1, concatted_struc.num_chains + 1)
-    entity_id = np.char.mod('%d', numeric_ids).astype(object)
-    chains = concatted_struc.chains_table.copy_and_update(entity_id=entity_id)
-  else:
-    chains = concatted_struc.chains_table
+    entity_id = np.array(
+        [f'{i}' for i in range(1, chains.size + 1)], dtype=object
+    )
+    chains = chains.copy_and_update(entity_id=entity_id)
 
-  return concatted_struc.copy_and_update(
-      name=name,
+  return Structure(
+      name=name if name is not None else '_'.join(s.name for s in strucs),
       release_date=None,
       resolution=None,
       structure_method=None,
@@ -3399,7 +3403,10 @@ def concat(
           else None
       ),
       chains=chains,
-      skip_validation=True,  # Already validated by table.concat_databases.
+      residues=cast(structure_tables.Residues, concatted_tables['residues']),
+      atoms=cast(structure_tables.Atoms, concatted_tables['atoms']),
+      bonds=cast(structure_tables.Bonds, concatted_tables['bonds']),
+      skip_validation=True,
   )
 
 
