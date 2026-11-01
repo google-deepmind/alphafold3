@@ -679,14 +679,14 @@ def table_dependency_order(db: Database) -> Iterable[str]:
   yield from graphlib.TopologicalSorter(connections).static_order()
 
 
-def concat_databases(dbs: Sequence[_DatabaseT]) -> _DatabaseT:
-  """Concatenates the tables across a sequence of databases.
+def concat_tables(dbs: Sequence[Database]) -> dict[str, Table]:
+  """Concatenates the tables across a non-empty sequence of databases.
 
   Args:
     dbs: A non-empty sequence of database instances of the same type.
 
   Returns:
-    A new database containing the concatenated tables from the input databases.
+    A mapping from table name (in dependency order) to concatenated `Table`.
 
   Raises:
     ValueError: If `dbs` is empty or `dbs` contains different Database
@@ -737,4 +737,10 @@ def concat_databases(dbs: Sequence[_DatabaseT]) -> _DatabaseT:
         for column_name, values in columns.items()
     }
     concatted_tables[table_name] = (type(first_table))(**concatted_columns)
-  return first_db.copy_and_update(**concatted_tables)
+  return concatted_tables
+
+
+def concat_databases(dbs: Sequence[_DatabaseT]) -> _DatabaseT:
+  """Concatenates the tables across a sequence of databases."""
+  tables = concat_tables(dbs)
+  return dbs[0].copy_and_update(**tables)
