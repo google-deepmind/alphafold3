@@ -17,6 +17,8 @@
 # if received directly from Google. Use is subject to terms of use available at
 # https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md
 
+from concurrent import futures
+
 from absl.testing import absltest
 from absl.testing import parameterized
 from alphafold3 import structure
@@ -474,6 +476,68 @@ class MmcifToArraysTest(parameterized.TestCase):
       mmcif_utils.map_residue_keys(
           to_obj('A', '1', 'ALA', '.'), to_obj('A', '2', 'ALA', '.')
       )
+
+  @parameterized.parameters(
+      ('HH11', 'HH21'),
+      ('HH21', 'HH11'),
+      ('HH12', 'HH22'),
+      ('HH22', 'HH12'),
+  )
+  def test_fix_arg_asymmetric_hydrogens(self, present_h, expected_h):
+    atoms = np.array(['CD', 'NH1', 'NH2', present_h], dtype=object)
+    cif = cif_dict.from_string(
+        'data_t\nloop_\n_atom_site.id\n_atom_site.pdbx_PDB_model_num\n'
+        '_atom_site.label_asym_id\n_atom_site.label_seq_id\n'
+        '_atom_site.label_comp_id\n_atom_site.label_atom_id\n'
+        '_atom_site.label_alt_id\n_atom_site.occupancy\n'
+        + '\n'.join(f'{i + 1} 1 A 1 ARG {a} . 1.0' for i, a in enumerate(atoms))
+        + '\n'
+    )
+    mmcif_utils.fix_residues(
+        mmcif_utils.read_layout(cif),
+        comp_id=np.full(4, 'ARG', dtype=object),
+        atom_id=atoms,
+        atom_x=np.array([0.0, 3.0, 1.0, 0.0], dtype=np.float32),
+        atom_y=np.zeros(4, dtype=np.float32),
+        atom_z=np.zeros(4, dtype=np.float32),
+        fix_arg=True,
+    )
+    np.testing.assert_array_equal(
+        atoms, np.array(['CD', 'NH2', 'NH1', expected_h], dtype=object)
+    )
+
+  def test_concurrent_filter_and_fix_residues(self):
+    cif = _read_test_cif_file('5inz')
+
+    def _worker(_: int) -> tuple[str, ...]:
+      index, _, layout = mmcif_utils.filter(
+          cif,
+          include_nucleotides=True,
+          include_ligands=True,
+          include_water=True,
+          model_id='1',
+      )
+      atom_id = _atom_site_str_array(cif, 'label_atom_id', gather=index[0])
+      coords = [
+          cif.get_array(
+              f'_atom_site.Cartn_{c}', dtype=np.float32, gather=index
+          )[0]
+          for c in ('x', 'y', 'z')
+      ]
+      mmcif_utils.fix_residues(
+          layout,
+          comp_id=_atom_site_str_array(cif, 'label_comp_id', gather=index[0]),
+          atom_id=atom_id,
+          atom_x=coords[0],
+          atom_y=coords[1],
+          atom_z=coords[2],
+          fix_arg=True,
+      )
+      return tuple(atom_id.tolist())
+
+    with futures.ThreadPoolExecutor(max_workers=8) as pool:
+      results = list(pool.map(_worker, range(16)))
+    self.assertLen(set(results), 1)
 
 
 if __name__ == '__main__':

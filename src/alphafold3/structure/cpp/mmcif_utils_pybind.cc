@@ -26,7 +26,6 @@
 #include <iterator>
 #include <memory>
 #include <new>
-#include <optional>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -234,30 +233,6 @@ absl::flat_hash_set<absl::string_view> SelectChains(const CifDict& mmcif,
   return keep_chain_id;
 }
 
-class ProcessResidue {
- public:
-  explicit ProcessResidue(const char* residue)
-      : residue_(PyUnicode_InternFromString(residue)) {}
-  bool IsResidue(PyObject* residue) {
-    return ArePyObjectsEqual(residue_.get(), residue);
-  }
-
-  static bool ArePyObjectsEqual(PyObject* lhs, PyObject* rhs) {
-    switch (PyObject_RichCompareBool(lhs, rhs, Py_EQ)) {
-      case -1:
-        PyErr_Clear();
-        return false;
-      case 0:
-        return false;
-      default:
-        return true;
-    }
-  }
-
- private:
-  ScopedPyObject residue_;
-};
-
 struct Position3 {
   float x;
   float y;
@@ -271,88 +246,6 @@ float DistanceSquared(Position3 v1, Position3 v2) {
   return dx * dx + dy * dy + dz * dz;
 }
 
-class FixArginine : public ProcessResidue {
- public:
-  FixArginine()
-      : ProcessResidue("ARG"),
-        cd_(PyUnicode_InternFromString("CD")),
-        nh1_(PyUnicode_InternFromString("NH1")),
-        nh2_(PyUnicode_InternFromString("NH2")),
-        hh11_(PyUnicode_InternFromString("HH11")),
-        hh21_(PyUnicode_InternFromString("HH21")),
-        hh12_(PyUnicode_InternFromString("HH12")),
-        hh22_(PyUnicode_InternFromString("HH22")) {}
-  void Fix(absl::Span<PyObject*> atom_ids, absl::Span<const float> atom_x,
-           absl::Span<const float> atom_y, absl::Span<const float> atom_z) {
-    std::ptrdiff_t cd_index = -1;
-    std::ptrdiff_t nh1_index = -1;
-    std::ptrdiff_t nh2_index = -1;
-    std::ptrdiff_t hh11_index = -1;
-    std::ptrdiff_t hh21_index = -1;
-    std::ptrdiff_t hh12_index = -1;
-    std::ptrdiff_t hh22_index = -1;
-    for (std::ptrdiff_t index = 0; index < atom_ids.size(); ++index) {
-      PyObject* atom_id = atom_ids[index];
-      if (cd_index == -1 && ArePyObjectsEqual(atom_id, cd_.get())) {
-        cd_index = index;
-      } else if (nh1_index == -1 && ArePyObjectsEqual(atom_id, nh1_.get())) {
-        nh1_index = index;
-      } else if (nh2_index == -1 && ArePyObjectsEqual(atom_id, nh2_.get())) {
-        nh2_index = index;
-      } else if (hh11_index == -1 && ArePyObjectsEqual(atom_id, hh11_.get())) {
-        hh11_index = index;
-      } else if (hh21_index == -1 && ArePyObjectsEqual(atom_id, hh21_.get())) {
-        hh21_index = index;
-      } else if (hh12_index == -1 && ArePyObjectsEqual(atom_id, hh12_.get())) {
-        hh12_index = index;
-      } else if (hh22_index == -1 && ArePyObjectsEqual(atom_id, hh22_.get())) {
-        hh22_index = index;
-      }
-    }
-    if (cd_index < 0 || nh1_index < 0 || nh2_index < 0) {
-      return;
-    }
-    Position3 cd_pos(atom_x[cd_index], atom_y[cd_index], atom_z[cd_index]);
-    Position3 nh1_pos(atom_x[nh1_index], atom_y[nh1_index], atom_z[nh1_index]);
-    Position3 nh2_pos(atom_x[nh2_index], atom_y[nh2_index], atom_z[nh2_index]);
-    if (DistanceSquared(nh1_pos, cd_pos) <= DistanceSquared(nh2_pos, cd_pos)) {
-      return;
-    }
-    std::swap(atom_ids[nh1_index], atom_ids[nh2_index]);
-    if (hh11_index >= 0 && hh21_index >= 0) {
-      std::swap(atom_ids[hh11_index], atom_ids[hh21_index]);
-    } else if (hh11_index >= 0) {
-      Py_DECREF(atom_ids[hh11_index]);
-      Py_INCREF(hh21_.get());
-      atom_ids[hh11_index] = hh21_.get();
-    } else if (hh21_index >= 0) {
-      Py_DECREF(atom_ids[hh21_index]);
-      Py_INCREF(hh11_.get());
-      atom_ids[hh21_index] = hh11_.get();
-    }
-    if (hh12_index >= 0 && hh22_index >= 0) {
-      std::swap(atom_ids[hh12_index], atom_ids[hh22_index]);
-    } else if (hh12_index >= 0) {
-      Py_DECREF(atom_ids[hh12_index]);
-      Py_INCREF(hh22_.get());
-      atom_ids[hh12_index] = hh22_.get();
-    } else if (hh22_index >= 0) {
-      Py_DECREF(atom_ids[hh22_index]);
-      Py_INCREF(hh21_.get());
-      atom_ids[hh22_index] = hh21_.get();
-    }
-  }
-
- private:
-  ScopedPyObject cd_;
-  ScopedPyObject nh1_;
-  ScopedPyObject nh2_;
-  ScopedPyObject hh11_;
-  ScopedPyObject hh21_;
-  ScopedPyObject hh12_;
-  ScopedPyObject hh22_;
-};
-
 // Returns the layout of the mmCIF `_atom_site` table.
 inline MmcifLayout ReadMmcifLayout(const CifDict& mmcif,
                                    absl::string_view model_id = "") {
@@ -364,7 +257,6 @@ inline MmcifLayout ReadMmcifLayout(const CifDict& mmcif,
 
   throw py::value_error(std::string(mmcif_layout.status().message()));
 }
-
 py::tuple MmcifFilter(         //
     const CifDict& mmcif,      //
     bool include_nucleotides,  //
@@ -445,7 +337,6 @@ void MmcifFixResidues(               //
     absl::Span<const float> atom_z,  //
     bool fix_arginine                //
 ) {
-  std::optional<FixArginine> arginine;
   std::size_t num_atoms = layout.num_atoms();
   if (comp_id.size() != num_atoms || atom_id.size() != num_atoms ||
       atom_x.size() != num_atoms || atom_y.size() != num_atoms ||
@@ -460,23 +351,82 @@ void MmcifFixResidues(               //
                      "len(atom_z)=", atom_z.size()));
   }
 
-  if (fix_arginine) {
-    arginine.emplace();
-  }
-  if (!arginine.has_value()) {
+  if (!fix_arginine) {
     return;
   }
+
+  auto is_ascii = [](PyObject* obj, const char* lit) {
+    return PyUnicode_Check(obj) &&
+           PyUnicode_CompareWithASCIIString(obj, lit) == 0;
+  };
+  ScopedPyObject hh11, hh21, hh12, hh22;
+  auto replace_atom_id = [](PyObject*& slot, ScopedPyObject& cached,
+                            const char* name) {
+    if (!cached) {
+      cached.reset(PyUnicode_InternFromString(name));
+      if (!cached) {
+        throw py::error_already_set();
+      }
+    }
+    PyObject* old = std::exchange(slot, cached.get());
+    Py_INCREF(slot);
+    Py_DECREF(old);
+  };
 
   for (std::size_t res_index = 0; res_index < layout.num_residues();
        ++res_index) {
     auto [atom_start, atom_end] = layout.atom_range(res_index);
-    std::size_t atom_count = atom_end - atom_start;
-    PyObject* resname = comp_id[atom_start];
-    if (arginine.has_value() && arginine->IsResidue(resname)) {
-      arginine->Fix(atom_id.subspan(atom_start, atom_count),
-                    atom_x.subspan(atom_start, atom_count),
-                    atom_y.subspan(atom_start, atom_count),
-                    atom_z.subspan(atom_start, atom_count));
+    if (atom_start == atom_end || !is_ascii(comp_id[atom_start], "ARG")) {
+      continue;
+    }
+    std::ptrdiff_t cd = -1, nh1 = -1, nh2 = -1;
+    std::ptrdiff_t i_hh11 = -1, i_hh21 = -1, i_hh12 = -1, i_hh22 = -1;
+    const std::ptrdiff_t atom_count = atom_end - atom_start;
+    for (std::ptrdiff_t idx = 0; idx < atom_count; ++idx) {
+      PyObject* a = atom_id[atom_start + idx];
+      if (cd < 0 && is_ascii(a, "CD")) {
+        cd = idx;
+      } else if (nh1 < 0 && is_ascii(a, "NH1")) {
+        nh1 = idx;
+      } else if (nh2 < 0 && is_ascii(a, "NH2")) {
+        nh2 = idx;
+      } else if (i_hh11 < 0 && is_ascii(a, "HH11")) {
+        i_hh11 = idx;
+      } else if (i_hh21 < 0 && is_ascii(a, "HH21")) {
+        i_hh21 = idx;
+      } else if (i_hh12 < 0 && is_ascii(a, "HH12")) {
+        i_hh12 = idx;
+      } else if (i_hh22 < 0 && is_ascii(a, "HH22")) {
+        i_hh22 = idx;
+      }
+    }
+    if (cd < 0 || nh1 < 0 || nh2 < 0) {
+      continue;
+    }
+    Position3 cd_pos{atom_x[atom_start + cd], atom_y[atom_start + cd],
+                     atom_z[atom_start + cd]};
+    Position3 nh1_pos{atom_x[atom_start + nh1], atom_y[atom_start + nh1],
+                      atom_z[atom_start + nh1]};
+    Position3 nh2_pos{atom_x[atom_start + nh2], atom_y[atom_start + nh2],
+                      atom_z[atom_start + nh2]};
+    if (DistanceSquared(nh1_pos, cd_pos) <= DistanceSquared(nh2_pos, cd_pos)) {
+      continue;
+    }
+    PyObject** res_atoms = atom_id.data() + atom_start;
+    std::swap(res_atoms[nh1], res_atoms[nh2]);
+    if (i_hh11 >= 0 && i_hh21 >= 0) {
+      std::swap(res_atoms[i_hh11], res_atoms[i_hh21]);
+    } else if (i_hh11 >= 0) {
+      replace_atom_id(res_atoms[i_hh11], hh21, "HH21");
+    } else if (i_hh21 >= 0) {
+      replace_atom_id(res_atoms[i_hh21], hh11, "HH11");
+    }
+    if (i_hh12 >= 0 && i_hh22 >= 0) {
+      std::swap(res_atoms[i_hh12], res_atoms[i_hh22]);
+    } else if (i_hh12 >= 0) {
+      replace_atom_id(res_atoms[i_hh12], hh22, "HH22");
+    } else if (i_hh22 >= 0) {
+      replace_atom_id(res_atoms[i_hh22], hh12, "HH12");
     }
   }
 }
