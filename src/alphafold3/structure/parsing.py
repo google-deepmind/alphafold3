@@ -879,6 +879,7 @@ class _ChainResBuilder:
     self._chain_entity_desc_chunks: list[np.ndarray] = []
     self._last_chain_id: str | None = None
 
+    self._res_chain_id_chunks: list[np.ndarray] = []
     self._res_chain_key_chunks: list[np.ndarray] = []
     self._res_id_chunks: list[np.ndarray] = []
     self._res_name_chunks: list[np.ndarray] = []
@@ -890,7 +891,6 @@ class _ChainResBuilder:
     self.entity_id_by_chain_id = entity_id_by_chain_id
     self.chain_type_by_entity_id = chain_type_by_entity_id
     self.entity_desc_by_entity_id = entity_desc_by_entity_id
-    self.key_for_res: dict[tuple[str, str, str, str], int] = {}
 
     self._fix_mse_residues = fix_mse_residues
     self._fix_unknown_dna = fix_unknown_dna
@@ -937,19 +937,8 @@ class _ChainResBuilder:
       self._chain_type_chunks.append(chain_type)
       self._chain_entity_desc_chunks.append(chain_entity_desc)
 
-    res_iter = zip(
-        chain_ids,
-        res_auth_seq_ids,
-        res_names,
-        res_ins_codes,
-        strict=True,
-    )
-    key_for_res_update = {
-        res_unique_id: res_key
-        for res_key, res_unique_id in enumerate(res_iter, self._num_res)
-    }
-    self.key_for_res.update(key_for_res_update)
     self._num_res += len(res_ids)
+    self._res_chain_id_chunks.append(chain_ids)
     self._res_chain_key_chunks.append(
         string_array.remap(
             chain_ids, self.chain_key_by_chain_id, inplace=False
@@ -1027,6 +1016,29 @@ class _ChainResBuilder:
         name=res_name,
         auth_seq_id=res_auth_seq_id,
         insertion_code=res_insertion_code,
+    )
+
+  def map_atom_residue_keys(
+      self,
+      *,
+      label_asym_ids: np.ndarray,
+      auth_seq_ids: np.ndarray,
+      label_comp_ids: np.ndarray,
+      pdbx_pdb_ins_codes: np.ndarray,
+  ) -> np.ndarray:
+    return mmcif_utils.map_residue_keys(
+        src_arrays=(
+            _concat_chunks(self._res_chain_id_chunks, object),
+            _concat_chunks(self._res_auth_seq_id_chunks, object),
+            _concat_chunks(self._res_name_chunks, object),
+            _concat_chunks(self._res_insertion_code_chunks, object),
+        ),
+        query_arrays=(
+            label_asym_ids,
+            auth_seq_ids,
+            label_comp_ids,
+            pdbx_pdb_ins_codes,
+        ),
     )
 
 
@@ -1631,14 +1643,11 @@ def get_tables(
 
   # If any of the residue lookups failed, the mmCIF is corrupted.
   try:
-    atom_res_key_per_res = string_array.remap_multiple(
-        (
-            res_label_asym_ids,
-            res_auth_seq_ids,
-            res_label_comp_ids,
-            res_pdb_ins_codes,
-        ),
-        mapping=chain_res_builder.key_for_res,
+    atom_res_key_per_res = chain_res_builder.map_atom_residue_keys(
+        label_asym_ids=res_label_asym_ids,
+        auth_seq_ids=res_auth_seq_ids,
+        label_comp_ids=res_label_comp_ids,
+        pdbx_pdb_ins_codes=res_pdb_ins_codes,
     )
   except KeyError as e:
     raise ValueError(
