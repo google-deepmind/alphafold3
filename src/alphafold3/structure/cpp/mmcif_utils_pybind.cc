@@ -20,6 +20,7 @@
 #include <Python.h>
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <iterator>
@@ -480,6 +481,65 @@ void MmcifFixResidues(               //
   }
 }
 
+using ObjArray =
+    py::array_t<PyObject*, py::array::c_style | py::array::forcecast>;
+
+// Returns views into the UTF-8 buffers of the `str` elements of `array`, valid
+// for as long as `array` keeps its elements alive.
+std::vector<absl::string_view> ExtractStringViews(const ObjArray& array,
+                                                  std::size_t expected_size,
+                                                  absl::string_view name) {
+  if (array.size() != expected_size) {
+    throw py::value_error(absl::StrCat(name, " must have length ",
+                                       expected_size, ", got ", array.size()));
+  }
+  std::vector<absl::string_view> result;
+  result.reserve(expected_size);
+  for (PyObject* obj : absl::MakeConstSpan(array.data(), expected_size)) {
+    Py_ssize_t size;
+    const char* buf = PyUnicode_AsUTF8AndSize(obj, &size);
+    if (buf == nullptr) throw py::error_already_set();
+    result.emplace_back(buf, size);
+  }
+  return result;
+}
+
+py::array_t<int64_t> MapResidueKeys(
+    const std::array<ObjArray, 4>& src_arrays,
+    const std::array<ObjArray, 4>& query_arrays) {
+  const std::size_t num_src = src_arrays[0].size();
+  const std::size_t num_query = query_arrays[0].size();
+  std::array<std::vector<absl::string_view>, 4> src, query;
+  for (int c = 0; c < 4; ++c) {
+    src[c] = ExtractStringViews(src_arrays[c], num_src, "src_arrays");
+    query[c] = ExtractStringViews(query_arrays[c], num_query, "query_arrays");
+  }
+  py::array_t<int64_t> result(num_query);
+  absl::Span<int64_t> out = absl::MakeSpan(result.mutable_data(), num_query);
+  std::string missing_key;
+  {
+    py::gil_scoped_release release;
+    using ResKey = std::array<absl::string_view, 4>;
+    absl::flat_hash_map<ResKey, int64_t> index_by_key;
+    index_by_key.reserve(num_src);
+    for (std::size_t i = 0; i < num_src; ++i) {
+      index_by_key[{src[0][i], src[1][i], src[2][i], src[3][i]}] = i;
+    }
+    for (std::size_t i = 0; i < num_query; ++i) {
+      const ResKey key = {query[0][i], query[1][i], query[2][i], query[3][i]};
+      auto it = index_by_key.find(key);
+      if (it == index_by_key.end()) {
+        missing_key = absl::StrCat("('", key[0], "', '", key[1], "', '",
+                                   key[2], "', '", key[3], "')");
+        break;
+      }
+      out[i] = it->second;
+    }
+  }
+  if (!missing_key.empty()) throw py::key_error(missing_key);
+  return result;
+}
+
 std::vector<bool> SelectedPolymerResidueMask(
     const MmcifLayout& layout,
     const std::vector<absl::string_view>& atom_site_label_asym_ids,  //
@@ -760,6 +820,11 @@ void RegisterModuleMmcifUtils(pybind11::module m) {
         py::arg("fix_arg") = false,     //
         py::doc(kMmcifFixResidues + 1)  //
   );
+
+  m.def("map_residue_keys", MapResidueKeys, py::arg("src_arrays"),
+        py::arg("query_arrays"),
+        "Maps 4-column residue keys in query_arrays to their row index in "
+        "src_arrays.");
 
   m.def("selected_polymer_residue_mask", SelectedPolymerResidueMask,
         py::arg("layout"),                         //

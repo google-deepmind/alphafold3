@@ -441,6 +441,40 @@ class MmcifToArraysTest(parameterized.TestCase):
 
     np.testing.assert_array_equal(branch_mask, exp_branch_mask)
 
+  @parameterized.named_parameters(
+      (
+          'matches',
+          (
+              ['A', 'A', 'B'],
+              ['1', '2', '1'],
+              ['ALA', 'GLY', 'SER'],
+              ['.', 'A', '.'],
+          ),
+          (
+              ['B', 'A', 'A', 'B'],
+              ['1', '2', '1', '1'],
+              ['SER', 'GLY', 'ALA', 'SER'],
+              ['.', 'A', '.', '.'],
+          ),
+          [2, 1, 0, 2],
+      ),
+      ('empty', ([], [], [], []), ([], [], [], []), []),
+  )
+  def test_map_residue_keys(self, src, query, expected):
+    to_obj = lambda cols: [np.array(c, dtype=object) for c in cols]
+    np.testing.assert_array_equal(
+        mmcif_utils.map_residue_keys(to_obj(src), to_obj(query)),
+        np.array(expected, dtype=np.int64),
+        strict=True,
+    )
+
+  def test_map_residue_keys_missing_raises_key_error(self):
+    to_obj = lambda *v: [np.array([x], dtype=object) for x in v]
+    with self.assertRaisesRegex(KeyError, "'A', '2', 'ALA', '.'"):
+      mmcif_utils.map_residue_keys(
+          to_obj('A', '1', 'ALA', '.'), to_obj('A', '2', 'ALA', '.')
+      )
+
 
 if __name__ == '__main__':
   absltest.main()
