@@ -490,146 +490,152 @@ py::array_t<int64_t> MapResidueKeys(
   return result;
 }
 
-std::vector<bool> SelectedPolymerResidueMask(
+py::array_t<bool> SelectedPolymerResidueMask(
     const MmcifLayout& layout,
-    const std::vector<absl::string_view>& atom_site_label_asym_ids,  //
-    const std::vector<absl::string_view>& atom_site_label_seq_ids,   //
-    const std::vector<absl::string_view>& atom_site_label_comp_ids,  //
-    const std::vector<absl::string_view>& poly_seq_asym_ids,         //
-    const std::vector<absl::string_view>& poly_seq_seq_ids,          //
-    const std::vector<absl::string_view>& poly_seq_mon_ids           //
+    const ObjArray& atom_site_label_asym_ids_arr,  //
+    const ObjArray& atom_site_label_seq_ids_arr,   //
+    const ObjArray& atom_site_label_comp_ids_arr,  //
+    const ObjArray& poly_seq_asym_ids_arr,         //
+    const ObjArray& poly_seq_seq_ids_arr,          //
+    const ObjArray& poly_seq_mon_ids_arr           //
 ) {
-  absl::flat_hash_map<std::pair<absl::string_view, absl::string_view>,
-                      absl::string_view>
-      selected;
-  selected.reserve(layout.num_residues());
-  // layout.residues() is O(1) while layout.residue_starts() is O(num_res).
-  const std::vector<std::size_t>& residue_starts = layout.residue_starts();
-  for (int i = 0; i < layout.residues().size(); ++i) {
-    std::size_t res_start = residue_starts[i];
-    std::size_t res_end = layout.residues()[i];
-    if (res_start == res_end) {
-      continue;  // Skip empty residues (containing no atoms).
+  const std::size_t num_res = layout.residues().size();
+  const std::size_t num_poly = poly_seq_asym_ids_arr.size();
+  auto atom_site_label_asym_ids = ExtractStringViews(
+      atom_site_label_asym_ids_arr, num_res, "atom_site_label_asym_ids");
+  auto atom_site_label_seq_ids = ExtractStringViews(
+      atom_site_label_seq_ids_arr, num_res, "atom_site_label_seq_ids");
+  auto atom_site_label_comp_ids = ExtractStringViews(
+      atom_site_label_comp_ids_arr, num_res, "atom_site_label_comp_ids");
+  auto poly_seq_asym_ids =
+      ExtractStringViews(poly_seq_asym_ids_arr, num_poly, "poly_seq_asym_ids");
+  auto poly_seq_seq_ids =
+      ExtractStringViews(poly_seq_seq_ids_arr, num_poly, "poly_seq_seq_ids");
+  auto poly_seq_mon_ids =
+      ExtractStringViews(poly_seq_mon_ids_arr, num_poly, "poly_seq_mon_ids");
+
+  py::array_t<bool> mask(num_poly);
+  bool* out = mask.mutable_data();
+  {
+    py::gil_scoped_release release;
+    absl::flat_hash_map<std::pair<absl::string_view, absl::string_view>,
+                        absl::string_view>
+        selected;
+    selected.reserve(layout.num_residues());
+    // layout.residues() is O(1) while layout.residue_starts() is O(num_res).
+    const std::vector<std::size_t>& residue_starts = layout.residue_starts();
+    for (std::size_t i = 0; i < num_res; ++i) {
+      if (residue_starts[i] == layout.residues()[i] ||
+          atom_site_label_seq_ids[i] == ".") {
+        continue;  // Skip empty residues and non-polymers.
+      }
+      selected[{atom_site_label_asym_ids[i], atom_site_label_seq_ids[i]}] =
+          atom_site_label_comp_ids[i];
     }
 
-    absl::string_view label_seq_id = atom_site_label_seq_ids[i];
-    if (label_seq_id == ".") {
-      continue;  // Skip non-polymers.
-    }
-
-    absl::string_view label_asym_id = atom_site_label_asym_ids[i];
-    absl::string_view label_comp_id = atom_site_label_comp_ids[i];
-    selected[std::make_pair(label_asym_id, label_seq_id)] = label_comp_id;
-  }
-
-  std::vector<bool> mask;
-  mask.reserve(poly_seq_mon_ids.size());
-  for (int i = 0; i < poly_seq_mon_ids.size(); ++i) {
-    absl::string_view poly_seq_asym_id = poly_seq_asym_ids[i];
-    absl::string_view poly_seq_seq_id = poly_seq_seq_ids[i];
-    absl::string_view poly_seq_mon_id = poly_seq_mon_ids[i];
-
-    auto it = selected.find(std::make_pair(poly_seq_asym_id, poly_seq_seq_id));
-    if (it != selected.end()) {
-      mask.push_back(it->second == poly_seq_mon_id);
-    } else {
-      mask.push_back(true);  // Missing residues are not heterogeneous.
+    for (std::size_t i = 0; i < num_poly; ++i) {
+      auto it = selected.find({poly_seq_asym_ids[i], poly_seq_seq_ids[i]});
+      // Missing residues are not heterogeneous.
+      out[i] = it == selected.end() || it->second == poly_seq_mon_ids[i];
     }
   }
   return mask;
 }
 
-std::pair<std::vector<bool>, std::vector<bool>> SelectedLigandResidueMask(
-    const MmcifLayout& layout,                                           //
-    const std::vector<absl::string_view>& atom_site_label_asym_ids,      //
-    const std::vector<absl::string_view>& atom_site_label_seq_ids,       //
-    const std::vector<absl::string_view>& atom_site_auth_seq_ids,        //
-    const std::vector<absl::string_view>& atom_site_label_comp_ids,      //
-    const std::vector<absl::string_view>& atom_site_pdbx_pdb_ins_codes,  //
-    const std::vector<absl::string_view>& nonpoly_asym_ids,              //
-    const std::vector<absl::string_view>& nonpoly_auth_seq_ids,          //
-    const std::vector<absl::string_view>& nonpoly_pdb_ins_codes,         //
-    const std::vector<absl::string_view>& nonpoly_mon_ids,               //
-    const std::vector<absl::string_view>& branch_asym_ids,               //
-    const std::vector<absl::string_view>& branch_auth_seq_ids,           //
-    const std::vector<absl::string_view>& branch_pdb_ins_codes,          //
-    const std::vector<absl::string_view>& branch_mon_ids) {
-  absl::flat_hash_map<
-      std::tuple<absl::string_view, absl::string_view, absl::string_view>,
-      absl::string_view>
-      selected;
-  selected.reserve(layout.num_residues());
-  // layout.residues() is O(1) while layout.residue_starts() is O(num_res).
-  const std::vector<std::size_t>& residue_starts = layout.residue_starts();
-  for (int i = 0; i < layout.residues().size(); ++i) {
-    std::size_t res_start = residue_starts[i];
-    std::size_t res_end = layout.residues()[i];
-    if (res_start == res_end) {
-      continue;  // Skip empty residues (containing no atoms).
+std::pair<py::array_t<bool>, py::array_t<bool>> SelectedLigandResidueMask(
+    const MmcifLayout& layout,                         //
+    const ObjArray& atom_site_label_asym_ids_arr,      //
+    const ObjArray& atom_site_label_seq_ids_arr,       //
+    const ObjArray& atom_site_auth_seq_ids_arr,        //
+    const ObjArray& atom_site_label_comp_ids_arr,      //
+    const ObjArray& atom_site_pdbx_pdb_ins_codes_arr,  //
+    const ObjArray& nonpoly_asym_ids_arr,              //
+    const ObjArray& nonpoly_auth_seq_ids_arr,          //
+    const ObjArray& nonpoly_pdb_ins_codes_arr,         //
+    const ObjArray& nonpoly_mon_ids_arr,               //
+    const ObjArray& branch_asym_ids_arr,               //
+    const ObjArray& branch_auth_seq_ids_arr,           //
+    const ObjArray& branch_pdb_ins_codes_arr,          //
+    const ObjArray& branch_mon_ids_arr) {
+  const std::size_t num_res = layout.residues().size();
+  const std::size_t num_nonpoly = nonpoly_asym_ids_arr.size();
+  const std::size_t num_branch = branch_asym_ids_arr.size();
+  auto atom_site_label_asym_ids = ExtractStringViews(
+      atom_site_label_asym_ids_arr, num_res, "atom_site_label_asym_ids");
+  auto atom_site_label_seq_ids = ExtractStringViews(
+      atom_site_label_seq_ids_arr, num_res, "atom_site_label_seq_ids");
+  auto atom_site_auth_seq_ids = ExtractStringViews(
+      atom_site_auth_seq_ids_arr, num_res, "atom_site_auth_seq_ids");
+  auto atom_site_label_comp_ids = ExtractStringViews(
+      atom_site_label_comp_ids_arr, num_res, "atom_site_label_comp_ids");
+  auto atom_site_pdbx_pdb_ins_codes =
+      ExtractStringViews(atom_site_pdbx_pdb_ins_codes_arr, num_res,
+                         "atom_site_pdbx_pdb_ins_codes");
+  auto nonpoly_asym_ids =
+      ExtractStringViews(nonpoly_asym_ids_arr, num_nonpoly, "nonpoly_asym_ids");
+  auto nonpoly_auth_seq_ids = ExtractStringViews(
+      nonpoly_auth_seq_ids_arr, num_nonpoly, "nonpoly_auth_seq_ids");
+  auto nonpoly_pdb_ins_codes = ExtractStringViews(
+      nonpoly_pdb_ins_codes_arr, num_nonpoly, "nonpoly_pdb_ins_codes");
+  auto nonpoly_mon_ids =
+      ExtractStringViews(nonpoly_mon_ids_arr, num_nonpoly, "nonpoly_mon_ids");
+  auto branch_asym_ids =
+      ExtractStringViews(branch_asym_ids_arr, num_branch, "branch_asym_ids");
+  auto branch_auth_seq_ids = ExtractStringViews(
+      branch_auth_seq_ids_arr, num_branch, "branch_auth_seq_ids");
+  // Insertion codes in _pdbx_branch_scheme are not required and can be
+  // missing. Default to unset ('.') in such case.
+  auto branch_pdb_ins_codes = ExtractStringViews(
+      branch_pdb_ins_codes_arr,
+      branch_pdb_ins_codes_arr.size() == 0 ? 0 : num_branch,
+      "branch_pdb_ins_codes");
+  auto branch_mon_ids =
+      ExtractStringViews(branch_mon_ids_arr, num_branch, "branch_mon_ids");
+
+  py::array_t<bool> nonpoly_mask(num_nonpoly);
+  py::array_t<bool> branch_mask(num_branch);
+  bool* nonpoly_out = nonpoly_mask.mutable_data();
+  bool* branch_out = branch_mask.mutable_data();
+  {
+    py::gil_scoped_release release;
+    absl::flat_hash_map<
+        std::tuple<absl::string_view, absl::string_view, absl::string_view>,
+        absl::string_view>
+        selected;
+    selected.reserve(layout.num_residues());
+    // layout.residues() is O(1) while layout.residue_starts() is O(num_res).
+    const std::vector<std::size_t>& residue_starts = layout.residue_starts();
+    for (std::size_t i = 0; i < num_res; ++i) {
+      if (residue_starts[i] == layout.residues()[i] ||
+          atom_site_label_seq_ids[i] != ".") {
+        continue;  // Skip empty residues and polymers.
+      }
+      absl::string_view ins_code = atom_site_pdbx_pdb_ins_codes[i];
+      ins_code = ins_code == "?" ? "." : ins_code;  // Remap unknown to unset.
+      selected[{atom_site_label_asym_ids[i], atom_site_auth_seq_ids[i],
+                ins_code}] = atom_site_label_comp_ids[i];
     }
 
-    absl::string_view label_seq_id = atom_site_label_seq_ids[i];
-    if (label_seq_id != ".") {
-      continue;  // Skip polymers.
+    for (std::size_t i = 0; i < num_nonpoly; ++i) {
+      absl::string_view ins_code = nonpoly_pdb_ins_codes[i];
+      ins_code = ins_code == "?" ? "." : ins_code;  // Remap unknown to unset.
+      auto it = selected.find(
+          {nonpoly_asym_ids[i], nonpoly_auth_seq_ids[i], ins_code});
+      // Missing residues are not heterogeneous.
+      nonpoly_out[i] = it == selected.end() || it->second == nonpoly_mon_ids[i];
     }
 
-    absl::string_view label_asym_id = atom_site_label_asym_ids[i];
-    absl::string_view auth_seq_id = atom_site_auth_seq_ids[i];
-    absl::string_view ins_code = atom_site_pdbx_pdb_ins_codes[i];
-    ins_code = ins_code == "?" ? "." : ins_code;  // Remap unknown to unset.
-    absl::string_view label_comp_id = atom_site_label_comp_ids[i];
-    selected[std::make_tuple(label_asym_id, auth_seq_id, ins_code)] =
-        label_comp_id;
+    for (std::size_t i = 0; i < num_branch; ++i) {
+      absl::string_view ins_code =
+          branch_pdb_ins_codes.empty() ? "." : branch_pdb_ins_codes[i];
+      ins_code = ins_code == "?" ? "." : ins_code;  // Remap unknown to unset.
+      auto it =
+          selected.find({branch_asym_ids[i], branch_auth_seq_ids[i], ins_code});
+      // Missing residues are not heterogeneous.
+      branch_out[i] = it == selected.end() || it->second == branch_mon_ids[i];
+    }
   }
-
-  std::vector<bool> nonpoly_mask;
-  nonpoly_mask.reserve(nonpoly_asym_ids.size());
-  for (int i = 0; i < nonpoly_asym_ids.size(); ++i) {
-    absl::string_view nonpoly_asym_id = nonpoly_asym_ids[i];
-    absl::string_view nonpoly_auth_seq_id = nonpoly_auth_seq_ids[i];
-    absl::string_view nonpoly_ins_code = nonpoly_pdb_ins_codes[i];
-    // Remap unknown to unset.
-    nonpoly_ins_code = nonpoly_ins_code == "?" ? "." : nonpoly_ins_code;
-    absl::string_view nonpoly_mon_id = nonpoly_mon_ids[i];
-
-    auto it = selected.find(std::make_tuple(
-        nonpoly_asym_id, nonpoly_auth_seq_id, nonpoly_ins_code));
-    if (it != selected.end()) {
-      nonpoly_mask.push_back(it->second == nonpoly_mon_id);
-    } else {
-      nonpoly_mask.push_back(true);  // Missing residues are not heterogeneous.
-    }
-  }
-
-  std::vector<bool> branch_mask;
-  branch_mask.reserve(branch_asym_ids.size());
-  for (int i = 0; i < branch_asym_ids.size(); ++i) {
-    absl::string_view branch_asym_id = branch_asym_ids[i];
-    absl::string_view branch_auth_seq_id = branch_auth_seq_ids[i];
-
-    // Insertion codes in _pdbx_branch_scheme are not required and can be
-    // missing. Default to unset ('.') in such case.
-    absl::string_view branch_ins_code;
-    if (i < branch_pdb_ins_codes.size()) {
-      branch_ins_code = branch_pdb_ins_codes[i];
-      // Remap unknown to unset.
-      branch_ins_code = branch_ins_code == "?" ? "." : branch_ins_code;
-    } else {
-      branch_ins_code = ".";
-    }
-
-    absl::string_view branch_mon_id = branch_mon_ids[i];
-
-    auto it = selected.find(
-        std::make_tuple(branch_asym_id, branch_auth_seq_id, branch_ins_code));
-    if (it != selected.end()) {
-      branch_mask.push_back(it->second == branch_mon_id);
-    } else {
-      branch_mask.push_back(true);  // Missing residues are not heterogeneous.
-    }
-  }
-
-  return std::make_pair(nonpoly_mask, branch_mask);
+  return {std::move(nonpoly_mask), std::move(branch_mask)};
 }
 
 constexpr char kReadMmcifLayout[] = R"(
@@ -777,34 +783,32 @@ void RegisterModuleMmcifUtils(pybind11::module m) {
         "src_arrays.");
 
   m.def("selected_polymer_residue_mask", SelectedPolymerResidueMask,
-        py::arg("layout"),                         //
-        py::arg("atom_site_label_asym_ids"),       //
-        py::arg("atom_site_label_seq_ids"),        //
-        py::arg("atom_site_label_comp_ids"),       //
-        py::arg("poly_seq_asym_ids"),              //
-        py::arg("poly_seq_seq_ids"),               //
-        py::arg("poly_seq_mon_ids"),               //
-        py::call_guard<py::gil_scoped_release>(),  //
-        py::doc(kSelectedPolymerResidueMask + 1)   //
+        py::arg("layout"),                        //
+        py::arg("atom_site_label_asym_ids"),      //
+        py::arg("atom_site_label_seq_ids"),       //
+        py::arg("atom_site_label_comp_ids"),      //
+        py::arg("poly_seq_asym_ids"),             //
+        py::arg("poly_seq_seq_ids"),              //
+        py::arg("poly_seq_mon_ids"),              //
+        py::doc(kSelectedPolymerResidueMask + 1)  //
   );
 
   m.def("selected_ligand_residue_mask", SelectedLigandResidueMask,
-        py::arg("layout"),                         //
-        py::arg("atom_site_label_asym_ids"),       //
-        py::arg("atom_site_label_seq_ids"),        //
-        py::arg("atom_site_auth_seq_ids"),         //
-        py::arg("atom_site_label_comp_ids"),       //
-        py::arg("atom_site_pdbx_pdb_ins_codes"),   //
-        py::arg("nonpoly_asym_ids"),               //
-        py::arg("nonpoly_auth_seq_ids"),           //
-        py::arg("nonpoly_pdb_ins_codes"),          //
-        py::arg("nonpoly_mon_ids"),                //
-        py::arg("branch_asym_ids"),                //
-        py::arg("branch_auth_seq_ids"),            //
-        py::arg("branch_pdb_ins_codes"),           //
-        py::arg("branch_mon_ids"),                 //
-        py::call_guard<py::gil_scoped_release>(),  //
-        py::doc(kSelectedLigandResidueMask + 1)    //
+        py::arg("layout"),                            //
+        py::arg("atom_site_label_asym_ids"),          //
+        py::arg("atom_site_label_seq_ids"),           //
+        py::arg("atom_site_auth_seq_ids"),            //
+        py::arg("atom_site_label_comp_ids"),          //
+        py::arg("atom_site_pdbx_pdb_ins_codes"),      //
+        py::arg("nonpoly_asym_ids"),                  //
+        py::arg("nonpoly_auth_seq_ids"),              //
+        py::arg("nonpoly_pdb_ins_codes"),             //
+        py::arg("nonpoly_mon_ids"),                   //
+        py::arg("branch_asym_ids"),                   //
+        py::arg("branch_auth_seq_ids"),               //
+        py::arg("branch_pdb_ins_codes"),              //
+        py::arg("branch_mon_ids"),                    //
+        py::doc(kSelectedLigandResidueMask + 1)       //
   );
 }
 

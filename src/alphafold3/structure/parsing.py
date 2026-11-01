@@ -1463,7 +1463,7 @@ def get_tables(
       poly_seq_mon_ids=poly_seq_mon_ids,
   )
 
-  if not include_other and poly_seq_mask:
+  if not include_other and poly_seq_mask.size > 0:
     # Mask filtered-out residues so that they are not treated as missing.
     # Instead, we don't want them included in the chains/residues tables at all.
     keep_mask = string_array.isin(poly_seq_asym_ids, wanted_chain_ids)
@@ -1532,9 +1532,9 @@ def get_tables(
   )
 
   if not include_water:
-    if nonpoly_mask:
+    if nonpoly_mask.size > 0:
       nonpoly_mask &= (nonpoly_mon_ids != 'HOH') & (nonpoly_mon_ids != 'DOD')
-    if branch_mask:
+    if branch_mask.size > 0:
       # Fix for bad mmCIFs that have water in the branch scheme table.
       branch_mask &= (branch_mon_ids != 'HOH') & (branch_mon_ids != 'DOD')
 

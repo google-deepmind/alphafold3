@@ -57,28 +57,28 @@ def read_layout(
 
 def selected_ligand_residue_mask(
     layout: mmcif_layout.MmcifLayout,
-    atom_site_label_asym_ids: list[str],
-    atom_site_label_seq_ids: list[str],
-    atom_site_auth_seq_ids: list[str],
-    atom_site_label_comp_ids: list[str],
-    atom_site_pdbx_pdb_ins_codes: list[str],
-    nonpoly_asym_ids: list[str],
-    nonpoly_auth_seq_ids: list[str],
-    nonpoly_pdb_ins_codes: list[str],
-    nonpoly_mon_ids: list[str],
-    branch_asym_ids: list[str],
-    branch_auth_seq_ids: list[str],
-    branch_pdb_ins_codes: list[str],
-    branch_mon_ids: list[str],
-) -> tuple[list[bool], list[bool]]: ...
+    atom_site_label_asym_ids: Sequence[str] | np.ndarray,
+    atom_site_label_seq_ids: Sequence[str] | np.ndarray,
+    atom_site_auth_seq_ids: Sequence[str] | np.ndarray,
+    atom_site_label_comp_ids: Sequence[str] | np.ndarray,
+    atom_site_pdbx_pdb_ins_codes: Sequence[str] | np.ndarray,
+    nonpoly_asym_ids: Sequence[str] | np.ndarray,
+    nonpoly_auth_seq_ids: Sequence[str] | np.ndarray,
+    nonpoly_pdb_ins_codes: Sequence[str] | np.ndarray,
+    nonpoly_mon_ids: Sequence[str] | np.ndarray,
+    branch_asym_ids: Sequence[str] | np.ndarray,
+    branch_auth_seq_ids: Sequence[str] | np.ndarray,
+    branch_pdb_ins_codes: Sequence[str] | np.ndarray,
+    branch_mon_ids: Sequence[str] | np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]: ...
 
 
 def selected_polymer_residue_mask(
     layout: mmcif_layout.MmcifLayout,
-    atom_site_label_asym_ids: list[str],
-    atom_site_label_seq_ids: list[str],
-    atom_site_label_comp_ids: list[str],
-    poly_seq_asym_ids: list[str],
-    poly_seq_seq_ids: list[str],
-    poly_seq_mon_ids: list[str],
-) -> list[bool]: ...
+    atom_site_label_asym_ids: Sequence[str] | np.ndarray,
+    atom_site_label_seq_ids: Sequence[str] | np.ndarray,
+    atom_site_label_comp_ids: Sequence[str] | np.ndarray,
+    poly_seq_asym_ids: Sequence[str] | np.ndarray,
+    poly_seq_seq_ids: Sequence[str] | np.ndarray,
+    poly_seq_mon_ids: Sequence[str] | np.ndarray,
+) -> np.ndarray: ...

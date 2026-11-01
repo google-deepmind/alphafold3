@@ -539,6 +539,47 @@ class MmcifToArraysTest(parameterized.TestCase):
       results = list(pool.map(_worker, range(16)))
     self.assertLen(set(results), 1)
 
+  def test_selected_polymer_residue_mask_accepts_sequences(self):
+    layout = mmcif_utils.read_layout(
+        cif_dict.from_string(
+            'data_t\nloop_\n_atom_site.id\n_atom_site.pdbx_PDB_model_num\n'
+            '_atom_site.label_asym_id\n_atom_site.label_seq_id\n'
+            '_atom_site.label_comp_id\n_atom_site.label_atom_id\n'
+            '_atom_site.label_alt_id\n_atom_site.occupancy\n'
+            '1 1 A 1 ALA CA . 1.0\n'
+        )
+    )
+    cols = [['A'], ['1'], ['ALA'], ['A', 'A'], ['1', '1'], ['ALA', 'GLY']]
+    arr_cols = [np.array(c, dtype=object) for c in cols]
+    np.testing.assert_array_equal(
+        mmcif_utils.selected_polymer_residue_mask(layout, *cols),
+        mmcif_utils.selected_polymer_residue_mask(layout, *arr_cols),
+        strict=True,
+    )
+
+  def test_selected_ligand_residue_mask_accepts_sequences(self):
+    layout = mmcif_utils.read_layout(
+        cif_dict.from_string(
+            'data_t\nloop_\n_atom_site.id\n_atom_site.pdbx_PDB_model_num\n'
+            '_atom_site.label_asym_id\n_atom_site.label_seq_id\n'
+            '_atom_site.label_comp_id\n_atom_site.label_atom_id\n'
+            '_atom_site.label_alt_id\n_atom_site.occupancy\n'
+            '1 1 B . ATP C1 . 1.0\n'
+        )
+    )
+    cols = [
+        ['B'], ['.'], ['10'], ['ATP'], ['.'],
+        ['B', 'B'], ['10', '10'], ['.', '.'], ['ATP', 'ADP'],
+        [], [], [], [],
+    ]  # pyformat: disable
+    arr_cols = [np.array(c, dtype=object) for c in cols]
+    for got, want in zip(
+        mmcif_utils.selected_ligand_residue_mask(layout, *cols),
+        mmcif_utils.selected_ligand_residue_mask(layout, *arr_cols),
+        strict=True,
+    ):
+      np.testing.assert_array_equal(got, want, strict=True)
+
 
 if __name__ == '__main__':
   absltest.main()
