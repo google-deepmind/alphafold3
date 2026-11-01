@@ -1113,7 +1113,7 @@ def _generate_required_tables_if_missing(
 
 def _maybe_add_missing_scheme_tables(
     cif: mmcif.Mmcif,
-    res_starts: Sequence[int],
+    res_starts: Sequence[int] | np.ndarray,
     label_asym_ids: np.ndarray,
     label_seq_ids: np.ndarray,
     label_comp_ids: np.ndarray,
@@ -1381,10 +1381,14 @@ def get_tables(
   atom_b_factor = _requested_models_float_array('_atom_site.B_iso_or_equiv')
   atom_occupancy = _requested_models_float_array('_atom_site.occupancy')
 
+  res_starts = np.asarray(layout.residue_starts(), dtype=np.int32)
+  res_ends = np.asarray(layout.residues(), dtype=np.int32)
+  res_lengths = res_ends - res_starts
+
   # Make sure the scheme (residue) tables exist in case they are not present.
   if cif_update := _maybe_add_missing_scheme_tables(
       cif,
-      res_starts=layout.residue_starts(),
+      res_starts=res_starts,
       label_asym_ids=label_asym_ids,
       label_seq_ids=label_seq_ids,
       label_comp_ids=label_comp_ids,
@@ -1453,11 +1457,17 @@ def get_tables(
   # residues (a residue with an alt-loc that is of different residue type), we
   # need to also do the same resolution in the residues table. Compute a mask
   # for the residues that were selected in the atoms table.
+  res_label_asym_ids = label_asym_ids[res_starts]
+  res_label_seq_ids = label_seq_ids[res_starts]
+  res_label_comp_ids = label_comp_ids[res_starts]
+  res_auth_seq_ids = auth_seq_ids[res_starts]
+  res_pdb_ins_codes = pdbx_pdb_ins_codes[res_starts]
+
   poly_seq_mask = mmcif_utils.selected_polymer_residue_mask(
       layout=layout,
-      atom_site_label_asym_ids=label_asym_ids[layout.residue_starts()],
-      atom_site_label_seq_ids=label_seq_ids[layout.residue_starts()],
-      atom_site_label_comp_ids=label_comp_ids[layout.residue_starts()],
+      atom_site_label_asym_ids=res_label_asym_ids,
+      atom_site_label_seq_ids=res_label_seq_ids,
+      atom_site_label_comp_ids=res_label_comp_ids,
       poly_seq_asym_ids=poly_seq_asym_ids,
       poly_seq_seq_ids=poly_seq_seq_ids,
       poly_seq_mon_ids=poly_seq_mon_ids,
@@ -1516,11 +1526,11 @@ def get_tables(
   # Compute the heterogeneous residue masks as above, this time for ligands.
   nonpoly_mask, branch_mask = mmcif_utils.selected_ligand_residue_mask(
       layout=layout,
-      atom_site_label_asym_ids=label_asym_ids[layout.residue_starts()],
-      atom_site_label_seq_ids=label_seq_ids[layout.residue_starts()],
-      atom_site_auth_seq_ids=auth_seq_ids[layout.residue_starts()],
-      atom_site_label_comp_ids=label_comp_ids[layout.residue_starts()],
-      atom_site_pdbx_pdb_ins_codes=pdbx_pdb_ins_codes[layout.residue_starts()],
+      atom_site_label_asym_ids=res_label_asym_ids,
+      atom_site_label_seq_ids=res_label_seq_ids,
+      atom_site_auth_seq_ids=res_auth_seq_ids,
+      atom_site_label_comp_ids=res_label_comp_ids,
+      atom_site_pdbx_pdb_ins_codes=res_pdb_ins_codes,
       nonpoly_asym_ids=nonpoly_asym_ids,
       nonpoly_auth_seq_ids=nonpoly_auth_seq_ids,
       nonpoly_pdb_ins_codes=nonpoly_pdb_ins_codes,
@@ -1539,7 +1549,7 @@ def get_tables(
       branch_mask &= (branch_mon_ids != 'HOH') & (branch_mon_ids != 'DOD')
 
   string_array.remap(
-      pdbx_pdb_ins_codes, mapping=_INSERTION_CODE_REMAP, inplace=True
+      res_pdb_ins_codes, mapping=_INSERTION_CODE_REMAP, inplace=True
   )
   string_array.remap(
       nonpoly_pdb_ins_codes, mapping=_INSERTION_CODE_REMAP, inplace=True
@@ -1581,11 +1591,6 @@ def get_tables(
   chains = chain_res_builder.make_chains_table()
   residues = chain_res_builder.make_residues_table()
 
-  # Construct foreign residue keys for the atoms table.
-  res_ends = np.array(layout.residues(), dtype=np.int32)
-  res_starts = np.array(layout.residue_starts(), dtype=np.int32)
-  res_lengths = res_ends - res_starts
-
   # Check just for HOH, DOD can be part e.g. of hydroxycysteine.
   if include_water:
     res_chain_types = chains.apply_array_to_column(
@@ -1596,7 +1601,7 @@ def get_tables(
       raise ValueError('Bad mmCIF file: non-water entity has water molecules.')
   else:
     # Include resolved and unresolved residues.
-    if 'HOH' in set(residues.name) | set(label_comp_ids[res_starts]):
+    if np.any(residues.name == 'HOH') or np.any(res_label_comp_ids == 'HOH'):
       raise ValueError('Bad mmCIF file: non-water entity has water molecules.')
 
   atom_chain_key = string_array.remap(
@@ -1607,10 +1612,10 @@ def get_tables(
   try:
     atom_res_key_per_res = string_array.remap_multiple(
         (
-            label_asym_ids[res_starts],
-            auth_seq_ids[res_starts],
-            label_comp_ids[res_starts],
-            pdbx_pdb_ins_codes[res_starts],
+            res_label_asym_ids,
+            res_auth_seq_ids,
+            res_label_comp_ids,
+            res_pdb_ins_codes,
         ),
         mapping=chain_res_builder.key_for_res,
     )
