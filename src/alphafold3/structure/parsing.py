@@ -30,6 +30,7 @@ from typing import TypeAlias
 from alphafold3.constants import chemical_components
 from alphafold3.constants import mmcif_names
 from alphafold3.constants import residue_names
+from alphafold3.cpp import membership
 from alphafold3.cpp import mmcif_utils
 from alphafold3.cpp import string_array
 from alphafold3.structure import bioassemblies
@@ -848,6 +849,15 @@ def from_sequences_and_bonds(
   )
 
 
+def _concat_chunks(
+    chunks: Sequence[np.ndarray], dtype: np.typing.DTypeLike
+) -> np.ndarray:
+  """Concatenates chunks into a fresh array (never aliasing the inputs)."""
+  return np.concatenate(chunks or [np.array([], dtype=dtype)]).astype(
+      dtype, copy=False
+  )
+
+
 class _ChainResBuilder:
   """Class for incrementally building chain and residue tables."""
 
@@ -861,21 +871,20 @@ class _ChainResBuilder:
       fix_mse_residues: bool,
       fix_unknown_dna: bool,
   ):
-    # Len: num_chains.
-    self.chain_key = []
-    self.chain_id = []
-    self.chain_type = []
-    self.chain_auth_asym_id = []
-    self.chain_entity_id = []
-    self.chain_entity_desc = []
+    self._chain_key_chunks: list[np.ndarray] = []
+    self._chain_id_chunks: list[np.ndarray] = []
+    self._chain_type_chunks: list[np.ndarray] = []
+    self._chain_auth_asym_id_chunks: list[np.ndarray] = []
+    self._chain_entity_id_chunks: list[np.ndarray] = []
+    self._chain_entity_desc_chunks: list[np.ndarray] = []
+    self._last_chain_id: str | None = None
 
-    # Len: num_residues.
-    self.res_key = []
-    self.res_chain_key = []
-    self.res_id = []
-    self.res_name = []
-    self.res_auth_seq_id = []
-    self.res_insertion_code = []
+    self._res_chain_key_chunks: list[np.ndarray] = []
+    self._res_id_chunks: list[np.ndarray] = []
+    self._res_name_chunks: list[np.ndarray] = []
+    self._res_auth_seq_id_chunks: list[np.ndarray] = []
+    self._res_insertion_code_chunks: list[np.ndarray] = []
+    self._num_res = 0
 
     self.chain_key_by_chain_id = chain_key_by_chain_id
     self.entity_id_by_chain_id = entity_id_by_chain_id
@@ -897,37 +906,37 @@ class _ChainResBuilder:
       res_ins_codes: np.ndarray,
   ):
     """Adds a residue (and its chain) to the tables."""
-    # Create chain table data.
     if chain_ids.size == 0:
       return
 
     chain_ids_with_prev = np.concatenate(  # pyrefly: ignore[no-matching-overload]
-        (([self.chain_id[-1] if self.chain_id else None], chain_ids))
+        (([self._last_chain_id], chain_ids))
     )
     chain_change_mask = chain_ids_with_prev[:-1] != chain_ids_with_prev[1:]
     chain_change_ids = chain_ids[chain_change_mask]
-    chain_keys = string_array.remap(
-        chain_change_ids, self.chain_key_by_chain_id, inplace=False
-    )
-    self.chain_key.extend(chain_keys)
-    self.chain_id.extend(chain_change_ids)
-    self.chain_auth_asym_id.extend(chain_auth_asym_ids[chain_change_mask])
-    chain_entity_id = string_array.remap(
-        chain_change_ids, self.entity_id_by_chain_id, inplace=False
-    )
-    self.chain_entity_id.extend(chain_entity_id)
-    chain_type = string_array.remap(
-        chain_entity_id, self.chain_type_by_entity_id, inplace=False
-    )
-    self.chain_type.extend(chain_type)
-    chain_entity_desc = string_array.remap(
-        chain_entity_id, self.entity_desc_by_entity_id, inplace=False
-    )
-    self.chain_entity_desc.extend(chain_entity_desc)
+    self._last_chain_id = chain_ids[-1]
+    if chain_change_ids.size > 0:
+      chain_keys = string_array.remap(
+          chain_change_ids, self.chain_key_by_chain_id, inplace=False
+      ).astype(np.int64)
+      chain_entity_id = string_array.remap(
+          chain_change_ids, self.entity_id_by_chain_id, inplace=False
+      )
+      chain_type = string_array.remap(
+          chain_entity_id, self.chain_type_by_entity_id, inplace=False
+      )
+      chain_entity_desc = string_array.remap(
+          chain_entity_id, self.entity_desc_by_entity_id, inplace=False
+      )
+      self._chain_key_chunks.append(chain_keys)
+      self._chain_id_chunks.append(chain_change_ids)
+      self._chain_auth_asym_id_chunks.append(
+          chain_auth_asym_ids[chain_change_mask]
+      )
+      self._chain_entity_id_chunks.append(chain_entity_id)
+      self._chain_type_chunks.append(chain_type)
+      self._chain_entity_desc_chunks.append(chain_entity_desc)
 
-    # Create residue table data.
-    num_prev_res = len(self.res_id)
-    res_keys = np.arange(num_prev_res, num_prev_res + len(res_ids))
     res_iter = zip(
         chain_ids,
         res_auth_seq_ids,
@@ -937,75 +946,87 @@ class _ChainResBuilder:
     )
     key_for_res_update = {
         res_unique_id: res_key
-        for res_key, res_unique_id in enumerate(res_iter, num_prev_res)
+        for res_key, res_unique_id in enumerate(res_iter, self._num_res)
     }
     self.key_for_res.update(key_for_res_update)
-    self.res_key.extend(res_keys)
-    self.res_chain_key.extend(
-        string_array.remap(chain_ids, self.chain_key_by_chain_id, inplace=False)
+    self._num_res += len(res_ids)
+    self._res_chain_key_chunks.append(
+        string_array.remap(
+            chain_ids, self.chain_key_by_chain_id, inplace=False
+        ).astype(np.int64)
     )
-    self.res_id.extend(res_ids)
-    self.res_name.extend(res_names)
-    self.res_auth_seq_id.extend(res_auth_seq_ids)
-    self.res_insertion_code.extend(res_ins_codes)
+    self._res_id_chunks.append(res_ids.astype(np.int32, copy=False))
+    self._res_name_chunks.append(res_names)
+    self._res_auth_seq_id_chunks.append(res_auth_seq_ids)
+    self._res_insertion_code_chunks.append(res_ins_codes)
 
   def make_chains_table(self) -> structure_tables.Chains:
     """Returns the Structure chains table."""
-    chain_key = np.array(self.chain_key, dtype=np.int64)
+    chain_key = _concat_chunks(self._chain_key_chunks, np.int64)
+    chain_id = _concat_chunks(self._chain_id_chunks, object)
+    chain_type = _concat_chunks(self._chain_type_chunks, object)
+    chain_auth_asym_id = _concat_chunks(self._chain_auth_asym_id_chunks, object)
+    chain_entity_id = _concat_chunks(self._chain_entity_id_chunks, object)
+    chain_entity_desc = _concat_chunks(self._chain_entity_desc_chunks, object)
     if not np.all(chain_key[:-1] <= chain_key[1:]):
       # If the order is inconsistent with the atoms table, sort so that it is.
-      order = np.argsort(self.chain_key, kind='stable')
+      order = np.argsort(chain_key, kind='stable')
       return structure_tables.Chains(
           key=chain_key[order],
-          id=np.array(self.chain_id, dtype=object)[order],
-          type=np.array(self.chain_type, dtype=object)[order],
-          auth_asym_id=np.array(self.chain_auth_asym_id, dtype=object)[order],
-          entity_id=np.array(self.chain_entity_id, dtype=object)[order],
-          entity_desc=np.array(self.chain_entity_desc, dtype=object)[order],
+          id=chain_id[order],
+          type=chain_type[order],
+          auth_asym_id=chain_auth_asym_id[order],
+          entity_id=chain_entity_id[order],
+          entity_desc=chain_entity_desc[order],
       )
     return structure_tables.Chains(
         key=chain_key,
-        id=np.array(self.chain_id, dtype=object),
-        type=np.array(self.chain_type, dtype=object),
-        auth_asym_id=np.array(self.chain_auth_asym_id, dtype=object),
-        entity_id=np.array(self.chain_entity_id, dtype=object),
-        entity_desc=np.array(self.chain_entity_desc, dtype=object),
+        id=chain_id,
+        type=chain_type,
+        auth_asym_id=chain_auth_asym_id,
+        entity_id=chain_entity_id,
+        entity_desc=chain_entity_desc,
     )
 
   def make_residues_table(self) -> structure_tables.Residues:
     """Returns the Structure residues table."""
-    res_name = np.array(self.res_name, dtype=object)
-    res_chain_key = np.array(self.res_chain_key, dtype=np.int64)
+    res_key = np.arange(self._num_res, dtype=np.int64)
+    res_chain_key = _concat_chunks(self._res_chain_key_chunks, np.int64)
+    res_id = _concat_chunks(self._res_id_chunks, np.int32)
+    res_name = _concat_chunks(self._res_name_chunks, object)
+    res_auth_seq_id = _concat_chunks(self._res_auth_seq_id_chunks, object)
+    res_insertion_code = _concat_chunks(self._res_insertion_code_chunks, object)
 
     if self._fix_mse_residues:
       string_array.remap(res_name, mapping={'MSE': 'MET'}, inplace=True)
 
     if self._fix_unknown_dna:
       # Remap residues from N -> DN in DNA chains only.
-      dna_chain_mask = (
-          np.array(self.chain_type, dtype=object) == mmcif_names.DNA_CHAIN
-      )
-      dna_chain_key = np.array(self.chain_key, dtype=object)[dna_chain_mask]
-      res_name[(res_name == 'N') & np.isin(res_chain_key, dna_chain_key)] = 'DN'
+      chain_type = _concat_chunks(self._chain_type_chunks, object)
+      chain_key = _concat_chunks(self._chain_key_chunks, np.int64)
+      dna_chain_key = chain_key[chain_type == mmcif_names.DNA_CHAIN]
+      res_name[
+          (res_name == 'N') & membership.isin(res_chain_key, dna_chain_key)
+      ] = 'DN'
 
     if not np.all(res_chain_key[:-1] <= res_chain_key[1:]):
       # If the order is inconsistent with the atoms table, sort so that it is.
       order = np.argsort(res_chain_key, kind='stable')
       return structure_tables.Residues(
-          key=np.array(self.res_key, dtype=np.int64)[order],
+          key=res_key[order],
           chain_key=res_chain_key[order],
-          id=np.array(self.res_id, dtype=np.int32)[order],
+          id=res_id[order],
           name=res_name[order],
-          auth_seq_id=np.array(self.res_auth_seq_id, dtype=object)[order],
-          insertion_code=np.array(self.res_insertion_code, dtype=object)[order],
+          auth_seq_id=res_auth_seq_id[order],
+          insertion_code=res_insertion_code[order],
       )
     return structure_tables.Residues(
-        key=np.array(self.res_key, dtype=np.int64),
+        key=res_key,
         chain_key=res_chain_key,
-        id=np.array(self.res_id, dtype=np.int32),
+        id=res_id,
         name=res_name,
-        auth_seq_id=np.array(self.res_auth_seq_id, dtype=object),
-        insertion_code=np.array(self.res_insertion_code, dtype=object),
+        auth_seq_id=res_auth_seq_id,
+        insertion_code=res_insertion_code,
     )
 
 
