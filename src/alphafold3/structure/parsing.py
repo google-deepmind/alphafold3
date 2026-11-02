@@ -1637,10 +1637,6 @@ def get_tables(
     if np.any(residues.name == 'HOH') or np.any(res_label_comp_ids == 'HOH'):
       raise ValueError('Bad mmCIF file: non-water entity has water molecules.')
 
-  atom_chain_key = string_array.remap(
-      label_asym_ids, mapping=chain_res_builder.chain_key_by_chain_id
-  ).astype(int)
-
   # If any of the residue lookups failed, the mmCIF is corrupted.
   try:
     atom_res_key_per_res = chain_res_builder.map_atom_residue_keys(
@@ -1659,8 +1655,14 @@ def get_tables(
         'a small number of multi-model mmCIFs.'
     ) from e
 
-  # The residue ID will be shared for all atoms within that residue.
+  # The residue and chain IDs are shared for all atoms within a residue.
   atom_res_key = np.repeat(atom_res_key_per_res, repeats=res_lengths)
+  atom_chain_key = np.repeat(
+      string_array.remap(
+          res_label_asym_ids, mapping=chain_res_builder.chain_key_by_chain_id
+      ).astype(int),
+      repeats=res_lengths,
+  )
 
   if fix_mse_residues:
     met_residues_mask = (residues.name == 'MET')[atom_res_key]
