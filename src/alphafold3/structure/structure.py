@@ -25,6 +25,7 @@ import dataclasses
 import datetime
 import enum
 import functools
+import inspect
 import itertools
 from typing import Any, ClassVar, Final, Literal, NamedTuple, Self, TypeAlias, TypeVar, cast
 
@@ -122,6 +123,7 @@ ATOM_FIELDS: Final[Mapping[str, str]] = {
     'atom_occupancy': 'occupancy',
     'atom_key': 'key',
 }
+
 
 # Fields in structure.
 ARRAY_FIELDS = frozenset({
@@ -1315,7 +1317,7 @@ class Structure(table.Database):
       self,
       *,
       include_unresolved: bool = False,
-      **changes: np.ndarray,
+      **changes: np.ndarray | Sequence[Any],
   ) -> Self:
     """Like copy_and_update but changes are arrays of length num_residues.
 
@@ -1333,7 +1335,7 @@ class Structure(table.Database):
         include values for all residues, or only those that are resolved.
       **changes: kwargs corresponding to atom array fields, e.g. atom_x or
         atom_b_factor, but with length num_residues rather than num_atoms. Note
-        that changing atom_key this way is is not supported.
+        that changing atom_key this way is not supported.
 
     Returns:
       A new `Structure` with all fields other than those specified as kwargs
@@ -1341,41 +1343,47 @@ class Structure(table.Database):
       scattered across the atom arrays and then used to overwrite these
       fields for the returned structure.
     """
-    if not all(c in set(ATOM_FIELDS) - {'atom_key'} for c in changes):
+    if not changes.keys() <= self._UPDATABLE_ATOM_FIELDS:
       raise ValueError(
           'Changes must only be to atom fields, got changes to'
           f' {changes.keys()}'
       )
+    if not changes:
+      return self
 
-    num_residues = self.num_residues(count_unresolved=include_unresolved)
-
+    target_keys = (
+        self.residues_table.key
+        if include_unresolved
+        else self.present_residues.key
+    )
+    num_residues = target_keys.size
+    res_array_by_field: dict[str, np.ndarray] = {}
     for field_name, new_values in changes.items():
-      if len(new_values) != num_residues:
+      col_dtype = self._atoms.get_column(ATOM_FIELDS[field_name]).dtype
+      arr = np.asarray(new_values)
+      if col_dtype == object and (
+          arr.size == 0
+          or np.issubdtype(arr.dtype, np.str_)
+          or isinstance(arr.dtype, np.dtypes.StringDType)
+      ):
+        arr = arr.astype(object)
+      if arr.ndim != 1:
         raise ValueError(
-            f'{field_name} array of length {len(new_values)} does not match '
+            f'{field_name} must be 1D with shape ({num_residues},), got '
+            f'{arr.shape}.'
+        )
+      if arr.shape[0] != num_residues:
+        raise ValueError(
+            f'{field_name} array of length {arr.shape[0]} does not match '
             f'{num_residues=} - is include_unresolved set correctly?'
         )
+      res_array_by_field[field_name] = arr
 
-    # We cannot assume that atom_table.res_keys are the relevant indices of the
-    # residue table.
-
-    # Therefore we need to construct a map from res_key to the new values and
-    # update the atoms_table with that.
-    if include_unresolved:
-      target_keys = self.residues_table.key
-    else:
-      target_keys = self.present_residues.key
-
-    new_atom_columns = {}
-    for field_name, new_values in changes.items():
-      value_by_key = dict(zip(target_keys, new_values, strict=True))
-      # pylint: disable=cell-var-from-loop
-      new_atom_columns[field_name] = np.vectorize(lambda x: value_by_key[x])(
-          self.atoms_table.res_key
-      )
-      # pylint: enable=cell-var-from-loop
-
-    return self.copy_and_update_atoms(**new_atom_columns)
+    res_indices = indexing.index_of(self.atoms_table.res_key, target_keys)
+    return self.copy_and_update_atoms(**{
+        field_name: res_arr[res_indices]
+        for field_name, res_arr in res_array_by_field.items()
+    })
 
   def copy_and_update_globals(
       self,
@@ -1448,6 +1456,14 @@ class Structure(table.Database):
         ),
     )
     return self.copy_and_update(atoms=new_atoms)
+
+  _UPDATABLE_ATOM_FIELDS: ClassVar[frozenset[str]] = frozenset(
+      param
+      for param, info in inspect.signature(
+          copy_and_update_atoms
+      ).parameters.items()
+      if info.kind == inspect.Parameter.KEYWORD_ONLY
+  )
 
   def copy_and_update_residues(
       self,

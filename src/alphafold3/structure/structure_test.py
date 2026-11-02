@@ -1709,6 +1709,58 @@ class StructureTest(test_utils.StructureTestCase):
             atom_b_factor=np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]),
         )
 
+  def test_copy_and_update_from_res_arrays_empty_changes(self):
+    struc = self.make_test_structure(
+        chain_id=np.array(['A', 'A'], dtype=object),
+        res_id=np.array([1, 1], dtype=np.int32),
+        atom_name=np.array(['N', 'CA'], dtype=object),
+    )
+    self.assertIs(struc.copy_and_update_from_res_arrays(), struc)
+
+  @parameterized.parameters(
+      dict(atom_name=['CA', 'CB']),
+      dict(atom_name=np.array(['CA', 'CB'], dtype='<U2')),
+      dict(atom_name=np.array(['CA', 'CB'], dtype=np.dtypes.StringDType())),
+  )
+  def test_copy_and_update_from_res_arrays_string_columns(self, atom_name):
+    struc = self.make_test_structure(
+        chain_id=np.array(['A', 'A', 'B'], dtype=object),
+        res_id=np.array([1, 1, 2], dtype=np.int32),
+        atom_name=np.array(['N', 'CA', 'C'], dtype=object),
+    )
+    updated = struc.copy_and_update_from_res_arrays(atom_name=atom_name)
+    self.assertEqual(updated.atom_name.dtype, object)
+    np.testing.assert_array_equal(
+        updated.atom_name, np.array(['CA', 'CA', 'CB'], dtype=object)
+    )
+
+  def test_copy_and_update_from_res_arrays_empty_structure(self):
+    struc = self.make_test_structure(
+        chain_id=np.array(['A'], dtype=object),
+        res_id=np.array([1], dtype=np.int32),
+        atom_name=np.array(['CA'], dtype=object),
+    ).filter(np.array([False]))
+    updated = struc.copy_and_update_from_res_arrays(
+        atom_name=[], atom_b_factor=[]
+    )
+    self.assertEqual(updated.num_atoms, 0)
+    self.assertEqual(updated.atom_name.dtype, object)
+
+  @parameterized.parameters(
+      dict(changes=dict(atom_name='CA')),
+      dict(changes=dict(atom_b_factor=np.array(1.0))),
+      dict(changes=dict(atom_x=np.zeros((2, 3)))),
+      dict(changes=dict(atom_key=np.array([0, 1]))),
+  )
+  def test_copy_and_update_from_res_arrays_invalid_inputs(self, changes):
+    struc = self.make_test_structure(
+        chain_id=np.array(['A', 'B'], dtype=object),
+        res_id=np.array([1, 2], dtype=np.int32),
+        atom_name=np.array(['N', 'CA'], dtype=object),
+    )
+    with self.assertRaises(ValueError):
+      struc.copy_and_update_from_res_arrays(**changes)
+
   @parameterized.parameters([True, False])
   def test_add_bonds(self, with_preexisting_bonds):
     if with_preexisting_bonds:
