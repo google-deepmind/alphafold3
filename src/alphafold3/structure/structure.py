@@ -2005,25 +2005,31 @@ class Structure(table.Database):
       drop_terminal_oxygens: bool = False,
   ) -> Self:
     """Drops atoms that are not in the CCD for the given residue type."""
-
-    # We don't remove any atoms in UNL, as it has no standard atoms.
-    def _keep(atom_index: int) -> bool:
-      atom_name = self._atoms.name[atom_index]
-      res_name = self._residues.name[
-          self._residues.index_by_key[self._atoms.res_key[atom_index]]
-      ]
-      if drop_unk and res_name in residue_names.UNKNOWN_TYPES:
-        return False
-      else:
-        return (
-            (not drop_non_ccd and not ccd.get(res_name))
-            or atom_name in struc_chem_comps.get_res_atom_names(ccd, res_name)
-            or res_name == residue_names.UNL
+    if not self.num_atoms:
+      standard_atom_mask = np.zeros(0, dtype=bool)
+    else:
+      res_names = self._residues.apply_array_to_column(
+          'name', self._atoms.res_key
+      )
+      standard_atom_mask = np.ones(self.num_atoms, dtype=bool)
+      for res_name in set(res_names.tolist()):
+        res_mask = (
+            np.equal(res_names, np.asarray(None, dtype=object))
+            if res_name is None
+            else (res_names == res_name)
         )
-
-    standard_atom_mask = np.array(
-        [_keep(atom_i) for atom_i in range(self.num_atoms)], dtype=bool
-    )
+        if drop_unk and res_name in residue_names.UNKNOWN_TYPES:
+          standard_atom_mask[res_mask] = False
+        # We don't remove any atoms in UNL, as it has no standard atoms.
+        elif res_name != residue_names.UNL and (
+            drop_non_ccd or ccd.get(res_name)
+        ):
+          allowed = struc_chem_comps.get_res_atom_names(ccd, res_name)
+          standard_atom_mask[res_mask] = (
+              membership.isin(self._atoms.name[res_mask], allowed)
+              if allowed
+              else False
+          )
     standard_atoms = self.filter(mask=standard_atom_mask)
     if drop_terminal_oxygens:
       standard_atoms = standard_atoms.without_terminal_oxygens()
