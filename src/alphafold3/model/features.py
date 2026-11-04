@@ -773,7 +773,11 @@ class Templates:
       else:
         entity_id = len(seen_entities) + 1
 
-      if entity_id not in polymer_entity_features[skip_chain]:
+      # Identical sequences can have different per-chain template requests.
+      template_cache_key = (
+          entity_id, tuple(templates_by_chain_id.get(chain_id, ()))
+      )
+      if template_cache_key not in polymer_entity_features[skip_chain]:
         if skip_chain:
           template_features = data3.empty_template_features(chain_num_tokens)
         else:
@@ -809,10 +813,10 @@ class Templates:
         template_features = _reduce_template_features(
             template_features, max_templates
         )
-        polymer_entity_features[skip_chain][entity_id] = template_features
+        polymer_entity_features[skip_chain][template_cache_key] = template_features
 
       seen_entities[three_letter_sequence] = entity_id
-      feats = polymer_entity_features[skip_chain][entity_id].copy()
+      feats = polymer_entity_features[skip_chain][template_cache_key].copy()
       feats['chain_id'] = chain_id
       np_chains_list.append(feats)
 
