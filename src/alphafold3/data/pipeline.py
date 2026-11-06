@@ -223,10 +223,13 @@ class DataPipelineConfig:
     hmmbuild_binary_path: Hmmbuild binary path, used to build HMM profile from
       raw MSA in template search.
     small_bfd_database_path: Small BFD database path, used for protein MSA
-      search.
+      search. The resulting MSA is combined with the UniRef90 and MGnify MSAs
+      to construct the profile for template search.
     small_bfd_z_value: The Z-value representing the database size in number of
       sequences for E-value calculation. Must be set for sharded databases.
-    mgnify_database_path: Mgnify database path, used for protein MSA search.
+    mgnify_database_path: MGnify database path, used for protein MSA search.
+      The resulting MSA is combined with the UniRef90 and Small BFD MSAs to
+      construct the profile for template search.
     mgnify_z_value: The Z-value representing the database size in number of
       sequences for E-value calculation. Must be set for sharded databases.
     uniprot_cluster_annot_database_path: Uniprot database path, used for protein
@@ -234,9 +237,9 @@ class DataPipelineConfig:
     uniprot_cluster_annot_z_value: The Z-value representing the database size in
       number of sequences for E-value calculation. Must be set for sharded
       databases.
-    uniref90_database_path: UniRef90 database path, used for MSA search, and the
-      MSA obtained by searching it is used to construct the profile for template
-      search.
+    uniref90_database_path: UniRef90 database path, used for protein MSA search.
+      The resulting MSA is combined with the Small BFD and MGnify MSAs to
+      construct the profile for template search.
     uniref90_z_value: The Z-value representing the database size in number of
       sequences for E-value calculation. Must be set for sharded databases.
     ntrna_database_path: NT-RNA database path, used for RNA MSA search.
