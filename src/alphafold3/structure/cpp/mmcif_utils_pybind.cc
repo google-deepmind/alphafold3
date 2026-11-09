@@ -34,6 +34,7 @@
 #include "numpy/ndarrayobject.h"
 #include "numpy/ndarraytypes.h"
 #include "numpy/npy_common.h"
+#include "absl/algorithm/container.h"
 #include "absl/container/flat_hash_map.h"
 #include "absl/container/flat_hash_set.h"
 #include "absl/memory/memory.h"
@@ -108,6 +109,23 @@ struct AtomSiteLoop {
                        "len(atom_id)=", atom_id.size(), ", ",              //
                        "len(label_alt_id)=", alt_id.size(), ", ",          //
                        "len(occupancy)=", occupancy.size()));
+    }
+    // Note: `_atom_site.label_atom_id` is intentionally omitted here because
+    // SMILES ligand placeholder atoms use an empty atom name (`""`).
+    const std::pair<absl::string_view, StringArrayRef> non_empty_columns[] = {
+        {"_atom_site.id", id},
+        {"_atom_site.pdbx_PDB_model_num", model_id},
+        {"_atom_site.label_asym_id", chain_id},
+        {"_atom_site.label_seq_id", seq_id},
+        {"_atom_site.label_comp_id", comp_id},
+        {"_atom_site.label_alt_id", alt_id},
+        {"_atom_site.occupancy", occupancy},
+    };
+    for (const auto& [column_name, values] : non_empty_columns) {
+      if (absl::c_linear_search(values, "")) {
+        throw py::value_error(absl::StrCat("Invalid '", column_name,
+                                           "': contains empty string."));
+      }
     }
   }
   StringArrayRef id;
@@ -191,7 +209,11 @@ absl::flat_hash_set<absl::string_view> SelectChains(const CifDict& mmcif,
 
   StringArrayRef chain_ids = mmcif["_struct_asym.id"];
   StringArrayRef entity_ids = mmcif["_struct_asym.entity_id"];
-  Indexer chain_index = MakeIndex(chain_ids);
+  if (!AreSameSize(chain_ids, entity_ids)) {
+    throw py::value_error(absl::StrCat("Invalid '_struct_asym.' loop. ",    //
+                                       "len(id)=", chain_ids.size(), ", ",  //
+                                       "len(entity_id)=", entity_ids.size()));
+  }
   Indexer entity_poly_index = MakeIndex(entity_poly.entity_id);
   Indexer entity_id_to_index = MakeIndex(entity_loop.id);
 
