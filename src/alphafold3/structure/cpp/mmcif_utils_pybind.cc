@@ -221,8 +221,16 @@ absl::flat_hash_set<absl::string_view> SelectChains(const CifDict& mmcif,
   for (std::size_t i = 0; i < chain_ids.size(); ++i) {
     absl::string_view chain_id = chain_ids[i];
     absl::string_view entity_id = entity_ids[i];
-    if (entity_id_to_index.empty() ||
-        entity_loop.type[entity_id_to_index[entity_id]] == "polymer") {
+    absl::string_view entity_type = "polymer";
+    if (!entity_id_to_index.empty()) {
+      auto entity_it = entity_id_to_index.find(entity_id);
+      if (entity_it == entity_id_to_index.end()) {
+        throw py::value_error(
+            absl::StrCat("Unknown '_struct_asym.entity_id': ", entity_id));
+      }
+      entity_type = entity_loop.type[entity_it->second];
+    }
+    if (entity_type == "polymer") {
       if (auto it = entity_poly_index.find(entity_id);
           it != entity_poly_index.end()) {
         absl::string_view poly_type = entity_poly.type[it->second];
@@ -237,8 +245,6 @@ absl::flat_hash_set<absl::string_view> SelectChains(const CifDict& mmcif,
         }
       }
     } else {
-      absl::string_view entity_type =
-          entity_loop.type[entity_id_to_index[entity_id]];
       if (include_other) {
         if (!forbidden_nonpoly_entity_types.contains(entity_type)) {
           keep_chain_id.insert(chain_id);

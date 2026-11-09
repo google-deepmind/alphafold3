@@ -631,6 +631,13 @@ class MmcifToArraysTest(parameterized.TestCase):
     with self.assertRaisesRegex(ValueError, "Invalid '_struct_asym.' loop"):
       mmcif_utils.filter(cif, include_nucleotides=False)
 
+  def test_filter_rejects_unknown_struct_asym_entity_id(self):
+    cif = _make_cif(**{'_struct_asym.entity_id': ['999']})
+    with self.assertRaisesRegex(
+        ValueError, "Unknown '_struct_asym.entity_id': 999"
+    ):
+      mmcif_utils.filter(cif, include_nucleotides=False, include_ligands=True)
+
 
 if __name__ == '__main__':
   absltest.main()
