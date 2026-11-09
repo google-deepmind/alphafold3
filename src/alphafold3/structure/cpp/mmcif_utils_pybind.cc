@@ -37,7 +37,7 @@
 #include "absl/algorithm/container.h"
 #include "absl/container/flat_hash_map.h"
 #include "absl/container/flat_hash_set.h"
-#include "absl/memory/memory.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "absl/types/span.h"
@@ -317,10 +317,14 @@ py::tuple MmcifFilter(         //
       }
     }
 
+    auto resolved = ResolveMmcifAltLocs(layout, atom_site.comp_id,
+                                        atom_site.atom_id, atom_site.alt_id,
+                                        atom_site.occupancy, chain_indices);
+    if (!resolved.ok()) {
+      throw py::value_error(std::string(resolved.status().message()));
+    }
     keep_indices =
-        absl::WrapUnique(new std::vector<std::uint64_t>(ResolveMmcifAltLocs(
-            layout, atom_site.comp_id, atom_site.atom_id, atom_site.alt_id,
-            atom_site.occupancy, chain_indices)));
+        std::make_unique<std::vector<std::uint64_t>>(*std::move(resolved));
     new_num_atoms = keep_indices->size();
 
     if (layout.num_models() > 1) {

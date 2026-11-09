@@ -25,6 +25,7 @@
 #include <string>
 #include <vector>
 
+#include "absl/status/statusor.h"
 #include "absl/types/span.h"
 #include "alphafold3/structure/cpp/mmcif_layout.h"
 
@@ -46,7 +47,7 @@ namespace alphafold3 {
 // comp_ids from '_atom_site.label_comp_id'.
 // alt_ids from '_atom_site.label_alt_id'.
 // occupancies from '_atom_site.occupancy'.
-std::vector<std::uint64_t> ResolveMmcifAltLocs(
+absl::StatusOr<std::vector<std::uint64_t>> ResolveMmcifAltLocs(
     const MmcifLayout& layout, absl::Span<const std::string> comp_ids,
     absl::Span<const std::string> atom_ids,
     absl::Span<const std::string> alt_ids,

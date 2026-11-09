@@ -30,7 +30,10 @@
 
 #include "absl/algorithm/container.h"
 #include "absl/log/log.h"
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/numbers.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "absl/types/span.h"
 #include "alphafold3/structure/cpp/mmcif_layout.h"
@@ -96,21 +99,21 @@ void ProcessAltLocGroupsWhole(std::size_t alt_loc_start,
                               std::vector<std::uint64_t>& in_out_keep_indices) {
   std::pair<std::size_t, std::size_t> best_split = {alt_loc_start,
                                                     alt_loc_count};
-  std::vector<char> alt_loc_groups;
+  std::vector<absl::string_view> alt_loc_groups;
   float best_occupancy = -std::numeric_limits<float>::infinity();
-  char best_group = alt_ids[alt_loc_start].front();
+  absl::string_view best_group = alt_ids[alt_loc_start];
   std::vector<std::pair<std::size_t, float>> occupancy_stats;
 
   // Group by residue type.
   GroupBy(comp_ids, alt_loc_start, alt_loc_count,
           [&](std::size_t start, std::size_t count) {
             // This callback selects the best residue group and the best
-            // Alt-loc char within that group.
+            // alt-loc ID within that group.
             alt_loc_groups.clear();
             occupancy_stats.clear();
             // Calculate total occupancy for residue type.
             for (std::size_t i = 0; i < count; ++i) {
-              char alt_loc_id = alt_ids[start + i].front();
+              absl::string_view alt_loc_id = alt_ids[start + i];
               float occupancy = OccupancyToFloat(occupancies[start + i]);
               if (auto loc = absl::c_find(alt_loc_groups, alt_loc_id);
                   loc == alt_loc_groups.end()) {
@@ -127,7 +130,7 @@ void ProcessAltLocGroupsWhole(std::size_t alt_loc_start,
             for (auto& stat : occupancy_stats) {
               total_occupancy += stat.second / stat.first;
             }
-            char group = *absl::c_min_element(alt_loc_groups);
+            absl::string_view group = *absl::c_min_element(alt_loc_groups);
             // Compares occupancy of residue to best seen so far.
             // Tie breaks alphabetic.
             if (total_occupancy > best_occupancy ||
@@ -139,11 +142,10 @@ void ProcessAltLocGroupsWhole(std::size_t alt_loc_start,
               for (std::size_t i = 1; i < occupancy_stats.size(); ++i) {
                 float amount =
                     occupancy_stats[i].second / occupancy_stats[i].first;
-                char group = alt_loc_groups[i];
                 if (amount > best_amount ||
-                    (amount == best_amount && group < best_group)) {
+                    (amount == best_amount && alt_loc_groups[i] < best_group)) {
                   best_amount = amount;
-                  best_group = group;
+                  best_group = alt_loc_groups[i];
                 }
               }
               best_occupancy = total_occupancy;
@@ -160,10 +162,10 @@ void ProcessAltLocGroupsWhole(std::size_t alt_loc_start,
       [&in_out_keep_indices, &alt_ids, best_group](std::size_t start,
                                                    std::size_t count) {
         // This makes sure we select an atom for each atom id even if it does
-        // not have our selected alt-loc char.
+        // not have our selected alt-loc ID.
         std::size_t best_index = start;
-        for (std::size_t i = 1; i < count; ++i) {
-          if (alt_ids[start + i].front() == best_group) {
+        for (std::size_t i = 0; i < count; ++i) {
+          if (alt_ids[start + i] == best_group) {
             best_index = start + i;
             break;
           }
@@ -189,10 +191,10 @@ void ProcessAltLocGroupPartial(
         } else {
           float best_occ = OccupancyToFloat(occupancies[start]);
           std::size_t best_index = start;
-          char best_group = alt_ids[start].front();
-          for (std::size_t i = 0; i < count; ++i) {
+          absl::string_view best_group = alt_ids[start];
+          for (std::size_t i = 1; i < count; ++i) {
             float occ = OccupancyToFloat(occupancies[start + i]);
-            char group = alt_ids[start + i].front();
+            absl::string_view group = alt_ids[start + i];
             if (occ > best_occ || (occ == best_occ && group < best_group)) {
               best_group = group;
               best_index = start + i;
@@ -208,24 +210,42 @@ void ProcessAltLocGroupPartial(
 }  // namespace
 
 // Resolves alt-locs returning the atom indices that will be left.
-std::vector<std::uint64_t> ResolveMmcifAltLocs(
+absl::StatusOr<std::vector<std::uint64_t>> ResolveMmcifAltLocs(
     const MmcifLayout& layout, absl::Span<const std::string> comp_ids,
     absl::Span<const std::string> atom_ids,
     absl::Span<const std::string> alt_ids,
     absl::Span<const std::string> occupancies,
     absl::Span<const std::size_t> chain_indices) {
+  const std::size_t required_atoms = layout.model_offset() + layout.num_atoms();
+  if (comp_ids.size() < required_atoms || atom_ids.size() < required_atoms ||
+      alt_ids.size() < required_atoms || occupancies.size() < required_atoms) {
+    return absl::InvalidArgumentError(absl::StrCat(
+        "Invalid alt-loc input sizes: required >= ", required_atoms,
+        ", got comp_ids=", comp_ids.size(), ", atom_ids=", atom_ids.size(),
+        ", alt_ids=", alt_ids.size(), ", occupancies=", occupancies.size()));
+  }
+
   std::vector<std::uint64_t> keep_indices;
   keep_indices.reserve(layout.num_atoms());
   std::size_t alt_loc_start = 0;
   for (std::size_t chain_index : chain_indices) {
+    if (chain_index >= layout.num_chains()) {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Chain index ", chain_index, " out of range for ",
+                       layout.num_chains(), " chains."));
+    }
     auto [residues_start, residues_end] = layout.residue_range(chain_index);
     for (std::size_t residue = residues_start; residue < residues_end;
          ++residue) {
       std::size_t alt_loc_count = 0;
       auto [atom_start, atom_end] = layout.atom_range(residue);
       for (std::size_t i = atom_start; i < atom_end; ++i) {
-        char alt_loc_id = alt_ids[i].front();
-        if (alt_loc_id == '.' || alt_loc_id == '?') {
+        absl::string_view alt_loc_id = alt_ids[i];
+        if (alt_loc_id.empty()) {
+          return absl::InvalidArgumentError(
+              "Invalid '_atom_site.label_alt_id': contains empty string.");
+        }
+        if (alt_loc_id == "." || alt_loc_id == "?") {
           if (alt_loc_count > 0) {
             ProcessAltLocGroupPartial(alt_loc_start, alt_loc_count, atom_ids,
                                       alt_ids, occupancies, keep_indices);
