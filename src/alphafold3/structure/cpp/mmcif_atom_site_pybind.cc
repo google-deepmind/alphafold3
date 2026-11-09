@@ -20,7 +20,7 @@
 #include <cstddef>
 
 #include "absl/container/flat_hash_map.h"
-#include "absl/log/check.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "absl/types/span.h"
 #include "alphafold3/parsers/cpp/cif_dict_lib.h"
@@ -40,29 +40,41 @@ namespace py = pybind11;
 py::list GetOrInferTypeSymbol(const CifDict& mmcif,
                               const py::object& atom_id_to_type_symbol) {
   const auto& type_symbol = mmcif["_atom_site.type_symbol"];
-  const int num_atom = mmcif["_atom_site.id"].size();
-  py::list patched_type_symbol(num_atom);
-  if (type_symbol.empty()) {
-    const auto& label_comp_id = mmcif["_atom_site.label_comp_id"];
-    const auto& label_atom_id = mmcif["_atom_site.label_atom_id"];
-    CHECK_EQ(label_comp_id.size(), num_atom);
-    CHECK_EQ(label_atom_id.size(), num_atom);
-    absl::flat_hash_map<absl::string_view,
-                        absl::flat_hash_map<absl::string_view, py::object>>
-        cache;
-    for (int i = 0; i < num_atom; i++) {
-      auto& inner = cache[absl::string_view(label_comp_id[i])];
-      auto [it, inserted] =
-          inner.try_emplace(absl::string_view(label_atom_id[i]));
-      if (inserted) {
-        it->second = atom_id_to_type_symbol(label_comp_id[i], label_atom_id[i]);
-      }
-      patched_type_symbol[i] = it->second;
+  const auto& id = mmcif["_atom_site.id"];
+  if (!type_symbol.empty()) {
+    if (!id.empty() && type_symbol.size() != id.size()) {
+      throw py::value_error(
+          absl::StrCat("Invalid '_atom_site.' loop. len(id)=", id.size(),
+                       ", len(type_symbol)=", type_symbol.size()));
     }
-  } else {
-    for (int i = 0; i < num_atom; i++) {
+    py::list patched_type_symbol(type_symbol.size());
+    for (size_t i = 0; i < type_symbol.size(); ++i) {
       patched_type_symbol[i] = type_symbol[i];
     }
+    return patched_type_symbol;
+  }
+
+  const auto& label_comp_id = mmcif["_atom_site.label_comp_id"];
+  const auto& label_atom_id = mmcif["_atom_site.label_atom_id"];
+  if (label_comp_id.size() != label_atom_id.size() ||
+      (!id.empty() && id.size() != label_comp_id.size())) {
+    throw py::value_error(
+        absl::StrCat("Invalid '_atom_site.' loop. len(id)=", id.size(),
+                     ", len(label_comp_id)=", label_comp_id.size(),
+                     ", len(label_atom_id)=", label_atom_id.size()));
+  }
+  py::list patched_type_symbol(label_comp_id.size());
+  absl::flat_hash_map<absl::string_view,
+                      absl::flat_hash_map<absl::string_view, py::object>>
+      cache;
+  for (size_t i = 0; i < label_comp_id.size(); ++i) {
+    auto& inner = cache[absl::string_view(label_comp_id[i])];
+    auto [it, inserted] =
+        inner.try_emplace(absl::string_view(label_atom_id[i]));
+    if (inserted) {
+      it->second = atom_id_to_type_symbol(label_comp_id[i], label_atom_id[i]);
+    }
+    patched_type_symbol[i] = it->second;
   }
   return patched_type_symbol;
 }
@@ -71,7 +83,11 @@ absl::flat_hash_map<absl::string_view, absl::string_view>
 GetInternalToAuthorChainIdMap(const CifDict& mmcif) {
   const auto& label_asym_ids = mmcif["_atom_site.label_asym_id"];
   const auto& auth_asym_ids = mmcif["_atom_site.auth_asym_id"];
-  CHECK_EQ(label_asym_ids.size(), auth_asym_ids.size());
+  if (label_asym_ids.size() != auth_asym_ids.size()) {
+    throw py::value_error(absl::StrCat(
+        "Invalid '_atom_site.' loop. len(label_asym_id)=",
+        label_asym_ids.size(), ", len(auth_asym_id)=", auth_asym_ids.size()));
+  }
 
   absl::flat_hash_map<absl::string_view, absl::string_view> mapping;
   for (size_t i = 0, num_rows = label_asym_ids.size(); i < num_rows; ++i) {
