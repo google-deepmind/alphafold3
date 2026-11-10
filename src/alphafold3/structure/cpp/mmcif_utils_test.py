@@ -638,6 +638,32 @@ class MmcifToArraysTest(parameterized.TestCase):
     ):
       mmcif_utils.filter(cif, include_nucleotides=False, include_ligands=True)
 
+  def test_filter_multi_model_empty_selection_does_not_crash(self):
+    cif = cif_dict.from_string(r"""
+        data_t
+        _entity.id 1
+        _entity.type water
+        _struct_asym.id A
+        _struct_asym.entity_id 1
+        loop_
+        _atom_site.id
+        _atom_site.pdbx_PDB_model_num
+        _atom_site.label_asym_id
+        _atom_site.label_seq_id
+        _atom_site.label_comp_id
+        _atom_site.label_atom_id
+        _atom_site.label_alt_id
+        _atom_site.occupancy
+        1 1 A . HOH O . 1.0
+        2 2 A . HOH O . 1.0
+    """)
+    index, wanted_chain_ids, layout = mmcif_utils.filter(
+        cif, include_nucleotides=False
+    )
+    self.assertEqual(index.shape, (2, 0))
+    self.assertEmpty(wanted_chain_ids)
+    self.assertEqual(layout.num_atoms(), 0)
+
 
 if __name__ == '__main__':
   absltest.main()
