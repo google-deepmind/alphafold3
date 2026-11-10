@@ -32,13 +32,19 @@
 #include "alphafold3/structure/cpp/mmcif_struct_conn_pybind.h"
 #include "alphafold3/structure/cpp/mmcif_utils_pybind.h"
 #include "alphafold3/structure/cpp/string_array_pybind.h"
+#include "pybind11/attr.h"
 #include "pybind11/pybind11.h"
 
 namespace alphafold3 {
 namespace {
 
 // Include all modules as submodules to simplify building.
+#if PYBIND11_VERSION_MAJOR > 2 || \
+    (PYBIND11_VERSION_MAJOR == 2 && PYBIND11_VERSION_MINOR >= 13)
+PYBIND11_MODULE(cpp, m, pybind11::mod_gil_not_used()) {
+#else
 PYBIND11_MODULE(cpp, m) {
+#endif
   RegisterModuleCifDict(m.def_submodule("cif_dict"));
   RegisterModuleFastaIterator(m.def_submodule("fasta_iterator"));
   RegisterModuleMsaConversion(m.def_submodule("msa_conversion"));

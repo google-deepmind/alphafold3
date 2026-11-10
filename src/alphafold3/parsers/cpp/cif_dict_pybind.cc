@@ -245,23 +245,28 @@ PyObject* ConvertStrings(PyObject* gather, PyArray_Descr* type,
 template <typename T, typename C>
 inline PyObject* Convert(PyObject* gather, PyArray_Descr* type,
                          absl::Span<const std::string> values, C&& converter) {
+  py::object type_owner =
+      py::reinterpret_steal<py::object>(reinterpret_cast<PyObject*>(type));
   py::object ret;
-  T* dst;
+  T* dst = nullptr;
   std::optional<std::string> bad_value;
   if (Gather</*kReleaseGil=*/true>(
           gather, values,
-          [&dst, &ret, type](absl::Span<const npy_intp> size) {
+          [&dst, &ret, &type_owner](absl::Span<const npy_intp> size) {
             // Construct uninitialised NumPy array of type T.
             ret = py::reinterpret_steal<py::object>(PyArray_NewFromDescr(
                 /*subtype=*/&PyArray_Type,
-                /*type=*/type,
+                /*type=*/
+                reinterpret_cast<PyArray_Descr*>(type_owner.release().ptr()),
                 /*nd=*/size.size(),
                 /*dims=*/size.data(),
                 /*strides=*/nullptr,
                 /*data=*/nullptr,
                 /*flags=*/0,
                 /*obj=*/nullptr));
-
+            if (!ret) {
+              return false;
+            }
             dst = static_cast<T*>(
                 PyArray_DATA(reinterpret_cast<PyArrayObject*>(ret.ptr())));
             return true;
@@ -283,7 +288,6 @@ inline PyObject* Convert(PyObject* gather, PyArray_Descr* type,
 
 PyObject* CifDictGetArray(const CifDict& self, absl::string_view key,
                           PyObject* dtype, PyObject* gather) {
-  import_array();
   PyArray_Descr* type = nullptr;
   if (dtype == Py_None) {
     type = PyArray_DescrFromType(NPY_OBJECT);
@@ -295,8 +299,8 @@ PyObject* CifDictGetArray(const CifDict& self, absl::string_view key,
   auto entry = self.dict()->find(key);
   if (entry == self.dict()->end()) {
     Py_DECREF(type);
-    PyErr_SetObject(PyExc_KeyError,
-                    PyUnicode_FromStringAndSize(key.data(), key.size()));
+    py::str key_obj(key.data(), key.size());
+    PyErr_SetObject(PyExc_KeyError, key_obj.ptr());
     return nullptr;
   }
 
@@ -380,6 +384,9 @@ PyObject* CifDictGetArray(const CifDict& self, absl::string_view key,
 }  // namespace
 
 void RegisterModuleCifDict(pybind11::module m) {
+  if (_import_array() < 0) {
+    throw py::error_already_set();
+  }
   using Value = std::vector<std::string>;
   static absl::NoDestructor<std::vector<std::string>> empty_values;
 

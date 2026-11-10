@@ -160,6 +160,7 @@ py::object NonzeroIndices(const py::array& mask) {
   py::array_t<int64_t> out(static_cast<py::ssize_t>(nnz));
   int64_t* dst = out.mutable_data();
   int64_t* const dst_end = dst + nnz;
+  bool overflow = false;
   {
     py::gil_scoped_release release;
     for (size_t i = 0, n = span.size(); i < n;) {
@@ -172,12 +173,16 @@ py::object NonzeroIndices(const py::array& mask) {
         }
       }
       if (span[i] != 0) {
+        if (dst == dst_end) {
+          overflow = true;
+          break;
+        }
         *dst++ = static_cast<int64_t>(i);
       }
       ++i;
     }
   }
-  if (dst != dst_end) {
+  if (overflow || dst != dst_end) {
     throw py::value_error("Mask modified concurrently during nonzero_indices.");
   }
   return out;

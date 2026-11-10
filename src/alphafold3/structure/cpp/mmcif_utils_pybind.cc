@@ -292,9 +292,6 @@ py::tuple MmcifFilter(         //
     bool include_water,        //
     bool include_other,        //
     absl::string_view model_id) {
-  if (_import_array() < 0) {
-    throw py::import_error("Failed to import NumPy.");
-  }
   auto layout = ReadMmcifLayout(mmcif, model_id);
   std::unique_ptr<std::vector<std::uint64_t>> keep_indices;
   size_t new_num_atoms;
@@ -347,14 +344,26 @@ py::tuple MmcifFilter(         //
                       static_cast<npy_intp>(new_num_atoms)};
   PyObject* arr =
       PyArray_SimpleNewFromData(2, shape, NPY_INT64, keep_indices->data());
+  if (arr == nullptr) {
+    throw py::error_already_set();
+  }
   // Create a capsule to hold the memory of the buffer so NumPy knows how to
   // delete it when done with it.
   PyObject* capsule = PyCapsule_New(
-      keep_indices.release(), nullptr, +[](PyObject* capsule_cleanup) {
+      keep_indices.get(), nullptr, +[](PyObject* capsule_cleanup) {
         void* memory = PyCapsule_GetPointer(capsule_cleanup, nullptr);
         delete static_cast<std::vector<std::uint64_t>*>(memory);
       });
-  PyArray_SetBaseObject(reinterpret_cast<PyArrayObject*>(arr), capsule);
+  if (capsule == nullptr) {
+    Py_DECREF(arr);
+    throw py::error_already_set();
+  }
+  keep_indices.release();
+  if (PyArray_SetBaseObject(reinterpret_cast<PyArrayObject*>(arr), capsule) <
+      0) {
+    Py_DECREF(arr);
+    throw py::error_already_set();
+  }
 
   return py::make_tuple(py::reinterpret_steal<py::object>(arr), keep_chain_ids,
                         std::move(layout));
@@ -782,6 +791,9 @@ Returns:
 }  // namespace
 
 void RegisterModuleMmcifUtils(pybind11::module m) {
+  if (_import_array() < 0) {
+    throw py::error_already_set();
+  }
   m.def("read_layout", ReadMmcifLayout,
         py::arg("mmcif"),              //
         py::arg("model_id") = "",      //

@@ -17,6 +17,8 @@
 # if received directly from Google. Use is subject to terms of use available at
 # https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md
 
+from concurrent import futures
+
 from absl.testing import absltest
 from absl.testing import parameterized
 from alphafold3 import structure
@@ -54,6 +56,17 @@ class ConfidencesTest(parameterized.TestCase):
     struc = struc.rename_chain_ids(new_id_by_old_id={'A': 'AA', 'B': 'BB'})
     fraction_disordered = confidences.fraction_disordered(struc=struc)
     self.assertAlmostEqual(fraction_disordered, 0.05666156202143951)
+
+  def test_fraction_disordered_concurrent(self):
+    struc = structure.from_mmcif(_TEST_DATA.load('2fid.cif'))
+    with futures.ThreadPoolExecutor(max_workers=4) as executor:
+      results = list(
+          executor.map(
+              lambda _: confidences.fraction_disordered(struc=struc), range(8)
+          )
+      )
+    for res in results:
+      self.assertAlmostEqual(res, 0.13533834586466165)
 
   def test_ranking_metric(self):
     full_pde = jnp.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]])

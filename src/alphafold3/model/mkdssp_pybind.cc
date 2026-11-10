@@ -24,9 +24,11 @@
 #include <cif++/file.hpp>
 #include <cif++/pdb.hpp>
 #include <dssp.hpp>
+#include <mutex>
 #include <sstream>
 
 #include "absl/strings/string_view.h"
+#include "pybind11/gil.h"
 #include "pybind11/pybind11.h"
 #include "pybind11/pytypes.h"
 
@@ -59,6 +61,9 @@ void RegisterModuleMkdssp(pybind11::module m) {
       [](absl::string_view mmcif, int model_no,
          int min_poly_proline_stretch_length,
          bool calculate_surface_accessibility) {
+        py::gil_scoped_release release;
+        static auto* const mu = new std::mutex();  // NOLINT(build/c++11)
+        std::lock_guard<std::mutex> lock(*mu);     // NOLINT(build/c++11)
         cif::file cif_file(mmcif.data(), mmcif.size());
         dssp result(cif_file.front(), model_no, min_poly_proline_stretch_length,
                     calculate_surface_accessibility);

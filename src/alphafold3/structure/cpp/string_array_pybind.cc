@@ -47,9 +47,22 @@ namespace {
 
 namespace py = pybind11;
 
+int LookupDictItemRef(PyObject* mapping, PyObject* key, PyObject** result) {
+#if PY_VERSION_HEX >= 0x030D0000
+  return PyDict_GetItemRef(mapping, key, result);
+#else
+  PyObject* borrowed = PyDict_GetItemWithError(mapping, key);
+  if (borrowed != nullptr) {
+    *result = Py_NewRef(borrowed);
+    return 1;
+  }
+  *result = nullptr;
+  return PyErr_Occurred() ? -1 : 0;
+#endif
+}
+
 PyObject* RemapNumpyArrayObjects(PyObject* array, PyObject* mapping,
                                  bool inplace, PyObject* default_value) {
-  import_array();
   if (!PyArray_Check(array)) {
     PyErr_SetString(PyExc_TypeError, "'array' must be a np.ndarray.");
     return nullptr;
@@ -112,20 +125,29 @@ PyObject* RemapNumpyArrayObjects(PyObject* array, PyObject* mapping,
     char* data = *data_pointer;
     npy_intp stride = *stride_pointer;
     npy_intp count = *inner_size_pointer;
-    for (size_t i = 0; i < count; ++i) {
+    for (npy_intp i = 0; i < count; ++i) {
       PyObject* entry;
       std::memcpy(&entry, data, sizeof(PyObject*));
-      PyObject* result = PyDict_GetItem(mapping, entry);
-      if (result != nullptr) {
-        // Replace entry.
-        Py_INCREF(result);
-        Py_XDECREF(entry);
+      PyObject* result = nullptr;
+      int found = LookupDictItemRef(mapping, entry, &result);
+      if (found < 0) {
+        if (!PyErr_ExceptionMatches(PyExc_TypeError)) {
+          NpyIter_Deallocate(iter);
+          Py_XDECREF(array);
+          return nullptr;
+        }
+        PyErr_Clear();
+        found = 0;
+      }
+      if (found > 0) {
+        // Replace entry (`result` is already a new reference).
         std::memcpy(data, &result, sizeof(PyObject*));
+        Py_XDECREF(entry);
       } else if (default_value != nullptr) {
         // Replace entry with a default value.
         Py_INCREF(default_value);
-        Py_XDECREF(entry);
         std::memcpy(data, &default_value, sizeof(PyObject*));
+        Py_XDECREF(entry);
       }
       data += stride;
     }
@@ -213,9 +235,16 @@ py::array RemapMultipleArrays(
     for (size_t j = 0; j < array_spans.size(); ++j) {
       PyTuple_SET_ITEM(entry, j, Py_NewRef(array_spans[j][i]));
     }
-    PyObject* result = PyDict_GetItem(mapping.ptr(), entry);
-    if (result != nullptr) {
-      int64_t result_value = PyLong_AsLongLong(result);
+    PyObject* result_obj = nullptr;
+    const int found = LookupDictItemRef(mapping.ptr(), entry, &result_obj);
+    if (found < 0) {
+      fail = true;
+      Py_DECREF(entry);
+      break;
+    }
+    if (found > 0) {
+      int64_t result_value = PyLong_AsLongLong(result_obj);
+      Py_DECREF(result_obj);
       if (result_value == -1 && PyErr_Occurred()) {
         fail = true;
         Py_DECREF(entry);
@@ -302,6 +331,9 @@ Returns
 namespace alphafold3 {
 
 void RegisterModuleStringArray(pybind11::module m) {
+  if (_import_array() < 0) {
+    throw py::error_already_set();
+  }
   m.def(
       "remap",
       [](py::object array, py::object mapping, bool inplace,

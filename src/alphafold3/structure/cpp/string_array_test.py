@@ -17,6 +17,8 @@
 # if received directly from Google. Use is subject to terms of use available at
 # https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md
 
+from concurrent import futures
+
 from absl.testing import absltest
 from absl.testing import parameterized
 from alphafold3.cpp import string_array
@@ -239,6 +241,29 @@ class StringArrayTest(parameterized.TestCase):
 
     with self.assertRaises(KeyError):
       string_array.remap_multiple(arrays, mapping)
+
+  def test_concurrent_remap(self):
+    arr = np.array(['A', 'B', 'C', 'D'] * 256, dtype=object)
+    mapping = {'A': 'X', 'C': 'Z'}
+    pair_mapping = {('A', 'B'): 1, ('B', 'C'): 2, ('C', 'D'): 3, ('D', 'A'): 4}
+    pairs = (arr, np.roll(arr, -1))
+    expected_remap = string_array.remap(arr, mapping, default_value='?')
+    expected_multi = string_array.remap_multiple(pairs, pair_mapping)
+
+    def check(_: int) -> None:
+      np.testing.assert_array_equal(
+          string_array.remap(arr, mapping, default_value='?'),
+          expected_remap,
+          strict=True,
+      )
+      np.testing.assert_array_equal(
+          string_array.remap_multiple(pairs, pair_mapping),
+          expected_multi,
+          strict=True,
+      )
+
+    with futures.ThreadPoolExecutor(max_workers=8) as executor:
+      list(executor.map(check, range(16)))
 
 
 if __name__ == '__main__':
