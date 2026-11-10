@@ -2060,6 +2060,45 @@ class InputTest(parameterized.TestCase):
           })
       )
 
+  @parameterized.named_parameters(
+      dict(
+          testcase_name='empty_ccd_codes_with_smiles',
+          ligand={'id': 'G', 'ccdCodes': [], 'smiles': 'CCO'},
+          error='Ligand cannot have both CCD code and SMILES set',
+      ),
+      dict(
+          testcase_name='ccd_codes_with_empty_smiles',
+          ligand={'id': 'G', 'ccdCodes': ['HEM'], 'smiles': ''},
+          error='Ligand cannot have both CCD code and SMILES set',
+      ),
+      dict(
+          testcase_name='empty_ccd_codes',
+          ligand={'id': 'G', 'ccdCodes': []},
+          error='Ligand CCD IDs must be a non-empty list',
+      ),
+      dict(
+          testcase_name='empty_string_ccd_code',
+          ligand={'id': 'G', 'ccdCodes': ['HEM', '']},
+          error='Ligand CCD IDs must be a non-empty list',
+      ),
+      dict(
+          testcase_name='empty_smiles',
+          ligand={'id': 'G', 'smiles': ''},
+          error='Ligand SMILES must be a non-empty string',
+      ),
+  )
+  def test_ligand_empty_ccd_codes_or_smiles(self, ligand, error):
+    with self.assertRaisesRegex(ValueError, error):
+      folding_input.Input.from_json(
+          json.dumps({
+              'name': 'test_input',
+              'modelSeeds': [10],
+              'sequences': [{'ligand': ligand}],
+              'dialect': folding_input.JSON_DIALECT,
+              'version': folding_input.JSON_VERSION,
+          })
+      )
+
   @parameterized.parameters(
       {'unpaired_msa_path': 'unpaired.fa'},
       {'unpaired_msa_path': 'gs://my-bucket/unpaired.fa'},
