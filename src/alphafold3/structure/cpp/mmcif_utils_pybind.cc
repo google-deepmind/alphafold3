@@ -352,7 +352,7 @@ py::tuple MmcifFilter(         //
   PyObject* capsule = PyCapsule_New(
       keep_indices.release(), nullptr, +[](PyObject* capsule_cleanup) {
         void* memory = PyCapsule_GetPointer(capsule_cleanup, nullptr);
-        delete static_cast<std::vector<std::size_t>*>(memory);
+        delete static_cast<std::vector<std::uint64_t>*>(memory);
       });
   PyArray_SetBaseObject(reinterpret_cast<PyArrayObject*>(arr), capsule);
 
