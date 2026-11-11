@@ -25,10 +25,10 @@ together with docstrings. The cif_dict.CifDict class behaves like an immutable
 Python dictionary (some methods are not implemented though).
 """
 from collections.abc import Callable, Mapping, Sequence
-import functools
 import itertools
+import operator
 import re
-from typing import ParamSpec, TypeAlias, TypeVar
+from typing import Final, ParamSpec, TypeAlias, TypeVar
 
 from alphafold3.constants import chemical_components
 from alphafold3.cpp import cif_dict
@@ -45,8 +45,7 @@ _T = TypeVar('_T')
 _WappedFn: TypeAlias = Callable[_P, _T]
 
 
-@functools.lru_cache(maxsize=256)
-def int_id_to_str_id(num: int) -> str:
+def int_id_to_str_id(num: int | np.integer) -> str:
   """Encodes a number as a string, using reverse spreadsheet style naming.
 
   Args:
@@ -57,10 +56,11 @@ def int_id_to_str_id(num: int) -> str:
     naming e.g. 1 = A, 2 = B, ..., 27 = AA, 28 = BA, 29 = CA, ... This is the
     usual way to encode chain IDs in mmCIF files.
   """
+  num = operator.index(num)
   if num <= 0:
     raise ValueError(f'Only positive integers allowed, got {num}.')
 
-  num = num - 1  # 1-based indexing.
+  num -= 1  # 1-based indexing.
   output = []
   while num >= 0:
     output.append(chr(num % 26 + ord('A')))
@@ -68,7 +68,11 @@ def int_id_to_str_id(num: int) -> str:
   return ''.join(output)
 
 
-@functools.lru_cache(maxsize=256)
+_INT_ID_BY_CHAR: Final[Mapping[str, int]] = {
+    chr(ord('A') + i): i + 1 for i in range(26)
+}
+
+
 def str_id_to_int_id(str_id: str) -> int:
   """Encodes an mmCIF-style string chain ID as an integer.
 
@@ -82,13 +86,21 @@ def str_id_to_int_id(str_id: str) -> int:
     An integer that can be used to order mmCIF chain IDs in the standard
     (reverse spreadsheet style) ordering.
   """
-  if not re.match('^[A-Z]+$', str_id):
+  if (int_id := _INT_ID_BY_CHAR.get(str_id)) is not None:
+    return int_id
+  if not str_id:
     raise ValueError(f'String ID must be upper case letters, got {str_id}.')
 
-  offset = ord('A') - 1
   output = 0
-  for i, c in enumerate(str_id):
-    output += (ord(c) - offset) * int(26**i)
+  base = 1
+  try:
+    for char in str_id:
+      output += _INT_ID_BY_CHAR[char] * base
+      base *= 26
+  except KeyError as e:
+    raise ValueError(
+        f'String ID must be upper case letters, got {str_id}.'
+    ) from e
   return output
 
 

@@ -46,6 +46,7 @@ class MmcifTest(parameterized.TestCase):
       (26, 'Z'),
       (27, 'AA'),
       (28, 'BA'),
+      (np.int64(28), 'BA'),
       (29, 'CA'),
       (26**2 + 26, 'ZZ'),
       (26**2 + 27, 'AAA'),
@@ -78,7 +79,7 @@ class MmcifTest(parameterized.TestCase):
   def test_str_id_to_int_id(self, str_id, exp_str_id_to_int_id):
     self.assertEqual(mmcif.str_id_to_int_id(str_id), exp_str_id_to_int_id)
 
-  @parameterized.parameters('', ' ', ' A', 'A ', '1', 'a', 'aA')
+  @parameterized.parameters('', ' ', ' A', 'A ', '1', 'a', 'aA', 'A\n', 'Ω')
   def test_str_id_to_int_id_failures(self, str_id):
     with self.assertRaises(ValueError):
       mmcif.str_id_to_int_id(str_id)
