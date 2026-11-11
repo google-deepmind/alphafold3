@@ -704,6 +704,33 @@ class ParsingTest(test_utils.StructureTestCase):
     self.assertIn('MSE', ccdata.chem_comp)
     self.assertIn('MET', ccdata.chem_comp)
 
+  def test_fix_mse_reordered_chains(self):
+    cif = parsing.from_atom_arrays(
+        name='test',
+        all_residues={'A': [('MSE', 1)], 'B': [('SEC', 1)]},
+        chain_id=np.array(['A', 'A', 'B', 'B'], dtype=object),
+        chain_type=np.full(4, mmcif_names.PROTEIN_CHAIN, dtype=object),
+        res_id=np.ones(4, dtype=np.int32),
+        res_name=np.array(['MSE', 'MSE', 'SEC', 'SEC'], dtype=object),
+        atom_name=np.array(['CA', 'SE', 'CA', 'SE'], dtype=object),
+        atom_element=np.array(['C', 'SE', 'C', 'SE'], dtype=object),
+        atom_x=np.zeros(4, dtype=np.float32),
+        atom_y=np.zeros(4, dtype=np.float32),
+        atom_z=np.zeros(4, dtype=np.float32),
+    ).to_mmcif_dict()
+    cif = cif.copy_and_update({
+        k: [v[2], v[3], v[0], v[1]]
+        for k, v in cif.items()
+        if k.startswith('_atom_site.')
+    })
+    struc = parsing.from_parsed_mmcif(
+        cif, fix_mse_residues=True, include_bonds=False
+    )
+    self.assertEqual(struc.all_residues, {'A': [('MET', 1)], 'B': [('SEC', 1)]})
+    self.assertEqual(list(struc.res_name), ['SEC', 'SEC', 'MET', 'MET'])
+    self.assertEqual(list(struc.atom_name), ['CA', 'SE', 'CA', 'SD'])
+    self.assertEqual(list(struc.atom_element), ['C', 'SE', 'C', 'S'])
+
   @parameterized.named_parameters(('chain_J', 'J'), ('chain_K', 'K'))
   def test_fix_unknown_dna(self, dna_chain_id):
     # 5tzs has 2 DNA chains: J and K.
