@@ -204,7 +204,7 @@ def fix_non_standard_polymer_res(*, res_name: str, chain_type: str) -> str:
       {OTHER_CHAIN, RNA_CHAIN, DNA_CHAIN, DNA_RNA_HYBRID_CHAIN}.
   """
   # Map to one letter code, then back to common res_names.
-  one_letter_code = residue_names.letters_three_to_one(res_name, default='X')
+  one_letter_code = residue_names.CCD_NAME_TO_ONE_LETTER.get(res_name, 'X')
 
   if chain_type in PEPTIDE_CHAIN_TYPES or chain_type == OTHER_CHAIN:
     return residue_names.PROTEIN_COMMON_ONE_TO_THREE.get(one_letter_code, 'UNK')

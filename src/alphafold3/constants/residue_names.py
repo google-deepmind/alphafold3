@@ -20,7 +20,6 @@
 """Constants associated with residue names."""
 
 from collections.abc import Mapping
-import functools
 import sys
 
 # pyformat: disable
@@ -237,13 +236,6 @@ CCD_NAME_TO_ONE_LETTER: Mapping[str, str] = {
 }
 # common_typos_enable
 # pyformat: enable
-
-
-@functools.lru_cache(maxsize=64)
-def letters_three_to_one(restype: str, *, default: str) -> str:
-  """Returns single letter name if one exists otherwise returns default."""
-  return CCD_NAME_TO_ONE_LETTER.get(restype, default)
-
 
 ALA = sys.intern('ALA')
 ARG = sys.intern('ARG')

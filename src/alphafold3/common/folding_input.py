@@ -281,7 +281,7 @@ class ProteinChain:
     Uses 'X' for all unknown residues.
     """
     return ''.join([
-        residue_names.letters_three_to_one(r, default='X')
+        residue_names.CCD_NAME_TO_ONE_LETTER.get(r, 'X')
         for r in self.to_ccd_sequence()
     ])
 
@@ -568,7 +568,7 @@ class RnaChain:
     Uses 'N' for all unknown residues.
     """
     return ''.join([
-        residue_names.letters_three_to_one(r, default='N')
+        residue_names.CCD_NAME_TO_ONE_LETTER.get(r, 'N')
         for r in self.to_ccd_sequence()
     ])
 
@@ -766,7 +766,7 @@ class DnaChain:
     Uses 'N' for all unknown residues.
     """
     return ''.join([
-        residue_names.letters_three_to_one(r, default='N')
+        residue_names.CCD_NAME_TO_ONE_LETTER.get(r, 'N')
         for r in self.to_ccd_sequence()
     ])
 
