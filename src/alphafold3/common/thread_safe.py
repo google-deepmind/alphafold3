@@ -20,13 +20,77 @@
 """Utilities for thread-safe code."""
 
 from collections.abc import Callable
+import contextlib
 import functools
 import threading
-from typing import Any, ParamSpec, TypeVar
+from typing import Any, Final, ParamSpec, Self, TypeVar, cast, overload
 
 _P = ParamSpec('_P')
 _T = TypeVar('_T')
-_EMPTY = object()
+_EMPTY: Final[Any] = object()
+_CREATE_LOCK_LOCK: Final[threading.Lock] = threading.Lock()
+
+
+class PicklableLock:
+  """Mutex that can be pickled."""
+
+  __slots__ = ('_lock',)
+
+  def __init__(self):
+    self._lock = threading.Lock()
+
+  def __getstate__(self) -> dict[str, Any]:
+    return {}
+
+  def __setstate__(self, state: dict[str, Any]) -> None:
+    del state
+    self._lock = threading.Lock()
+
+  def __enter__(self) -> None:
+    self._lock.acquire()
+
+  def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
+    self._lock.release()
+
+
+class CachedProperty(functools.cached_property[_T]):
+  """Thread-safe functools.cached_property with per-instance locking."""
+
+  __slots__ = ()
+
+  def __init__(self, func: Callable[[Any], _T]):
+    super().__init__(func)
+    if hasattr(self, 'lock'):
+      self.lock = contextlib.nullcontext()
+
+  @overload
+  def __get__(self, instance: None, owner: type[Any] | None = None) -> Self:
+    ...
+
+  @overload
+  def __get__(self, instance: Any, owner: type[Any] | None = None) -> _T:
+    ...
+
+  def _get_or_create_lock(self, instance: Any) -> PicklableLock:
+    lock_attr = f'{self.attrname}_lock'
+    if (lock := instance.__dict__.get(lock_attr)) is None:
+      with _CREATE_LOCK_LOCK:
+        if (lock := instance.__dict__.get(lock_attr)) is None:
+          lock = PicklableLock()
+          instance.__dict__[lock_attr] = lock
+    return lock
+
+  def __get__(
+      self, instance: Any = None, owner: type[Any] | None = None
+  ) -> _T | Self:
+    if instance is None:
+      return self
+    if (result := instance.__dict__.get(self.attrname, _EMPTY)) is not _EMPTY:  # pyrefly: ignore[no-matching-overload]
+      return cast(_T, result)
+    with self._get_or_create_lock(instance):
+      if (result := instance.__dict__.get(self.attrname, _EMPTY)) is not _EMPTY:  # pyrefly: ignore[no-matching-overload]
+        return cast(_T, result)
+      return super().__get__(instance, owner)
 
 
 def cache_once(func: Callable[[], _T]) -> Callable[[], _T]:

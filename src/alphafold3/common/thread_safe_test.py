@@ -20,6 +20,7 @@
 import concurrent.futures
 import pickle
 import threading
+from typing import Self
 
 from absl.testing import absltest
 from alphafold3.common import thread_safe
@@ -33,6 +34,26 @@ def _cached_module_sentinel() -> list[int]:
 @thread_safe.thread_local_lru_cache(maxsize=4)
 def _lru_cached_module_fn(value: int) -> list[int]:
   return [value]
+
+
+class _CachedNode:
+
+  def __init__(
+      self,
+      *,
+      children: tuple[Self, ...] = (),
+      executor: concurrent.futures.Executor | None = None,
+  ):
+    self.call_count = 0
+    self._children = children
+    self._executor = executor
+
+  @thread_safe.CachedProperty
+  def value(self) -> int:
+    self.call_count += 1
+    if self._executor is not None:
+      return 1 + sum(self._executor.map(lambda c: c.value, self._children))
+    return 1 + sum(c.value for c in self._children)
 
 
 class ThreadSafeTest(absltest.TestCase):
@@ -194,6 +215,74 @@ class ThreadSafeTest(absltest.TestCase):
   def test_thread_local_lru_cache_pickles_module_function(self):
     unpickled = pickle.loads(pickle.dumps(_lru_cached_module_fn))  # pylint: disable=g-unsafe-pickle-load
     self.assertIs(unpickled, _lru_cached_module_fn)
+
+  def test_cached_property_single_flight_concurrent_reads(self):
+    num_threads = 10
+    entered = threading.Event()
+    release = threading.Event()
+    call_count = 0
+    expected: list[int] = []
+
+    class Holder:
+
+      @thread_safe.CachedProperty
+      def items(self) -> list[int]:
+        nonlocal call_count
+        call_count += 1
+        entered.set()
+        if not release.wait(timeout=5.0):
+          raise TimeoutError('Timed out waiting for release')
+        return expected
+
+    holder = Holder()
+    with concurrent.futures.ThreadPoolExecutor(num_threads) as executor:
+      futures = [
+          executor.submit(lambda: holder.items) for _ in range(num_threads)
+      ]
+      self.assertTrue(entered.wait(timeout=5.0))
+      release.set()
+      results = [future.result(timeout=5.0) for future in futures]
+
+    self.assertEqual(call_count, 1)
+    for result in results:
+      self.assertIs(result, expected)
+
+  def test_cached_property_nested_properties_do_not_deadlock(self):
+    with concurrent.futures.ThreadPoolExecutor(8) as executor:
+      root = _CachedNode(
+          children=tuple(_CachedNode() for _ in range(8)),
+          executor=executor,
+      )
+      self.assertEqual(root.value, 9)
+
+  def test_cached_property_caches_none(self):
+    call_count = 0
+
+    class Holder:
+
+      @thread_safe.CachedProperty
+      def maybe_value(self) -> None:
+        nonlocal call_count
+        call_count += 1
+        return None
+
+    holder = Holder()
+    self.assertIsNone(holder.maybe_value)
+    self.assertIsNone(holder.maybe_value)
+    self.assertEqual(call_count, 1)
+
+  def test_cached_property_pickles_instance_and_lock(self):
+    node = _CachedNode()
+    self.assertEqual(node.value, 1)
+    unpickled = pickle.loads(pickle.dumps(node))  # pylint: disable=g-unsafe-pickle-load
+    self.assertEqual(unpickled.value, 1)
+    self.assertEqual(unpickled.call_count, 1)
+    del unpickled.__dict__['value']
+    self.assertEqual(unpickled.value, 1)
+    self.assertEqual(unpickled.call_count, 2)
+
+  def test_cached_property_class_access_returns_descriptor(self):
+    self.assertIsInstance(_CachedNode.value, thread_safe.CachedProperty)
 
 
 if __name__ == '__main__':
