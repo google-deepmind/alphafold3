@@ -1,7 +1,13 @@
 # Installation and Running Your First Prediction
 
-You will need a machine running Linux; AlphaFold 3 does not support other
-operating systems. Full installation requires up to 1 TB of disk space to keep
+The officially supported and numerically validated configuration is a machine
+running Linux with an NVIDIA GPU. AlphaFold 3 can also be installed natively
+(without Docker) for CPU-only inference on Linux or macOS, and experimentally on
+the Apple Silicon GPU — see
+[Running AlphaFold 3 without a GPU (CPU-only)](#running-alphafold-3-without-a-gpu-cpu-only)
+and
+[Running AlphaFold 3 on a Mac with Apple Silicon](#running-alphafold-3-on-a-mac-with-apple-silicon)
+below. Full installation requires up to 1 TB of disk space to keep
 genetic databases (SSD storage is recommended) and an NVIDIA GPU with Compute
 Capability 8.0 or greater (GPUs with more memory can predict larger protein
 structures). We have verified that inputs with up to 5,120 tokens can fit on a
@@ -18,7 +24,7 @@ of a Docker container, please ensure CUDA, cuDNN, and JAX are correctly
 installed; the
 [JAX installation documentation](https://jax.readthedocs.io/en/latest/installation.html#nvidia-gpu)
 is a useful reference for this case. Note that the Docker container requires
-that the host machine has CUDA 12.6 installed.
+that the host machine has CUDA 12.9 installed.
 
 The instructions provided below describe how to:
 
@@ -157,15 +163,15 @@ sudo nvidia-ctk config --set nvidia-container-cli.no-cgroups --in-place
 Check that your container can see the GPU:
 
 ```sh
-docker run --rm --gpus all nvidia/cuda:12.6.0-base-ubuntu22.04 nvidia-smi
+docker run --rm --gpus all nvidia/cuda:12.9.2-base-ubuntu24.04 nvidia-smi
 ```
 
 Example output:
 
 ```text
-Mon Nov  11 12:00:00 2024
+Sat Nov  7 12:00:00 2026
 +-----------------------------------------------------------------------------------------+
-| NVIDIA-SMI 550.120                Driver Version: 550.120        CUDA Version: 12.6     |
+| NVIDIA-SMI 575.57.08              Driver Version: 575.57.08      CUDA Version: 12.9     |
 |-----------------------------------------+------------------------+----------------------+
 | GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
 | Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
@@ -196,7 +202,8 @@ git clone https://github.com/google-deepmind/alphafold3.git
 ## Obtaining Genetic Databases
 
 This step requires `wget` and `zstd` to be installed on your machine. On
-Debian-based systems install them by running `sudo apt install wget zstd`.
+Debian-based systems install them by running `sudo apt install wget zstd`; on
+macOS, `brew install wget zstd`.
 
 AlphaFold 3 needs multiple genetic (sequence) protein and RNA databases to run:
 
@@ -257,11 +264,11 @@ uniref90_2022_05.fa
 Optionally, after the script finishes, you may want copy databases to an SSD.
 You can use theses two scripts:
 
-*   `src/scripts/gcp_mount_ssd.sh [<SSD_MOUNT_PATH>]` Mounts and formats an
+*   `src/alphafold3/scripts/gcp_mount_ssd.sh [<SSD_MOUNT_PATH>]` Mounts and formats an
     unmounted GCP SSD drive to the specified path. It will skip the either step
     if the disk is either already formatted or already mounted. The default
     `<SSD_MOUNT_PATH>` is `/mnt/disks/ssd`.
-*   `src/scripts/copy_to_ssd.sh [<DB_DIR>] [<SSD_DB_DIR>]` this will copy as
+*   `src/alphafold3/scripts/copy_to_ssd.sh [<DB_DIR>] [<SSD_DB_DIR>]` this will copy as
     many files that it can fit on to the SSD. The default `<DB_DIR>` is
     `$HOME/public_databases`, and must match the path used in the
     `fetch_databases.sh` command above, and the default `<SSD_DB_DIR>` is
@@ -508,9 +515,12 @@ than on a GPU).
 
 ### Direct installation without Docker on Linux or Mac OS
 
-Since JAX doesn't support running natively on Mac GPU as of 2026, you have to
-resort to running AlphaFold 3 in the slow CPU-only mode even though it has a GPU
-(`jax-metal` is unfinished as of July 2026).
+These native (non-Docker) steps install AlphaFold 3 for CPU-only inference on
+Linux or macOS. On a Mac with Apple Silicon, the same build additionally enables
+the experimental Apple GPU (Metal/MPS) backend — see
+[Running AlphaFold 3 on a Mac with Apple Silicon](#running-alphafold-3-on-a-mac-with-apple-silicon)
+below. (Docker cannot use the GPU on macOS: Docker Desktop runs a Linux VM that
+cannot access the Apple GPU.)
 
 1.  Download all required databases and AlphaFold 3 weights (see above).
 2.  Install the [HMMER Suite](http://hmmer.org/). See
@@ -541,11 +551,11 @@ resort to running AlphaFold 3 in the slow CPU-only mode even though it has a GPU
     uv run python run_alphafold_data_test.py
     ```
 
-7.  You can now run AlphaFold 3. If you are running on a Linux CPU-only machine,
-    make sure to set flags `--jax_backend="cpu"` and
-    `--flash_attention_implementation="xla"`. If you are running on Mac OS with
-    Apple Silicon, you can set `--jax_backend="mps"` instead and get roughly 3x
-    better inference performance by using the built-in GPU:
+7.  You can now run AlphaFold 3. On a Linux CPU-only machine, set
+    `--jax_backend="cpu"` and `--flash_attention_implementation="xla"`. On a Mac
+    with Apple Silicon you can instead set `--jax_backend="mps"` to run on the
+    built-in GPU; `--flash_attention_implementation="xla"` is still required (see
+    [Running AlphaFold 3 on a Mac with Apple Silicon](#running-alphafold-3-on-a-mac-with-apple-silicon)):
 
     ```sh
     uv run run_alphafold.py \
@@ -556,9 +566,53 @@ resort to running AlphaFold 3 in the slow CPU-only mode even though it has a GPU
       --flash_attention_implementation="xla"
     ```
 
-#### Running on Mac OS using the Apple Silicon GPU
+## Running AlphaFold 3 on a Mac with Apple Silicon
 
-As an alternative to CPU-only mode, AlphaFold 3 inference can run on the Apple
-Silicon GPU with `--jax_backend="mps"` via the community supported `jax-mps`
-Metal plugin. This is an unofficial and experimental path, but it is roughly 3×
-faster than CPU (possibly more on newer M chips).
+On a Mac with Apple Silicon (M-series, `arm64`), AlphaFold 3 inference can run on
+the built-in GPU through the community-supported
+[`jax-mps`](https://pypi.org/project/jax-mps/) Metal plugin for JAX. This is an
+unofficial, experimental path and is not numerically certified; the NVIDIA CUDA
+build remains the reference.
+
+Install AlphaFold 3 natively by following
+[Direct installation without Docker on Linux or Mac OS](#direct-installation-without-docker-on-linux-or-mac-os)
+above. On `arm64`, `pyproject.toml` selects the `jax-mps` backend automatically,
+so a standard install (`uv sync`) pulls in the Metal backend as well. To install a
+specific release, check out its tag in the cloned `alphafold3` directory before
+running `uv sync` (step 5) — for example `git checkout v3.0.5` (release tag
+`v3.0.4` or newer includes Apple Silicon support).
+
+> **Note (Conda users):** if you install into a Conda environment with
+> `pip install --no-build-isolation .`, run `pip install setuptools_scm` first.
+> The build resolves the package version with `setuptools_scm`, but
+> `pyproject.toml` does not list it under `[build-system].requires`, so a
+> no-build-isolation install fails without it. The default `uv sync` path is
+> unaffected.
+
+After installing, confirm that JAX sees the Metal device:
+
+```sh
+uv run python -c "import jax; print([d.platform for d in jax.local_devices()])"
+# -> ['mps']
+```
+
+Select the Apple GPU at runtime with `--jax_backend="mps"` together with
+`--flash_attention_implementation="xla"` (the `triton` and `cudnn` attention
+implementations require an NVIDIA GPU).
+
+### Upgrading an existing installation to the latest release
+
+To move an existing checkout to a newer AlphaFold 3 release, pull the tag,
+reinstall, and re-run `build_data`:
+
+```sh
+git fetch --tags
+git checkout <tag>        # e.g. v3.0.5 or a later release
+uv sync                   # reinstalls AlphaFold 3 and resolves updated dependencies
+uv run build_data         # required after an upgrade
+```
+
+Re-running `build_data` after an upgrade is mandatory: v3.0.5 changed the stored
+chemical component dictionary (CCD) from a Python pickle to MessagePack, so an
+upgraded install would otherwise read stale data. Re-verify the Metal device as
+shown above.
