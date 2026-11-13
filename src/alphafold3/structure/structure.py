@@ -29,6 +29,7 @@ import inspect
 import itertools
 from typing import Any, ClassVar, Final, Literal, NamedTuple, Self, TypeAlias, TypeVar, cast
 
+from alphafold3.common import thread_safe
 from alphafold3.constants import atom_types
 from alphafold3.constants import chemical_components
 from alphafold3.constants import mmcif_names
@@ -473,7 +474,7 @@ class Structure(table.Database):
   def bonds(self) -> structure_tables.Bonds:
     return self._bonds
 
-  @functools.cached_property
+  @thread_safe.CachedProperty
   def author_naming_scheme(self) -> AuthorNamingScheme:
     auth_asym_id = {}
     entity_id = {}
@@ -511,7 +512,7 @@ class Structure(table.Database):
         insertion_code=dict(insertion_code),
     )
 
-  @functools.cached_property
+  @thread_safe.CachedProperty
   def all_residues(self) -> AllResidues:
     chain_id_by_key = dict(zip(self._chains.key, self._chains.id))
     residue_chain_boundaries = _get_change_indices(self._residues.chain_key)
@@ -525,55 +526,55 @@ class Structure(table.Database):
         for start, end in boundaries
     }
 
-  @functools.cached_property
+  @thread_safe.CachedProperty
   def label_asym_id_to_entity_id(self) -> Mapping[str, str]:
     return dict(zip(self._chains.id, self._chains.entity_id))
 
-  @functools.cached_property
+  @thread_safe.CachedProperty
   def chain_entity_id(self) -> np.ndarray:
     """Returns the entity ID for each atom in the structure."""
     return self.chains_table.apply_array_to_column(
         'entity_id', self._atoms.chain_key
     )
 
-  @functools.cached_property
+  @thread_safe.CachedProperty
   def chain_entity_desc(self) -> np.ndarray:
     """Returns the entity description for each atom in the structure."""
     return self.chains_table.apply_array_to_column(
         'entity_desc', self._atoms.chain_key
     )
 
-  @functools.cached_property
+  @thread_safe.CachedProperty
   def chain_auth_asym_id(self) -> np.ndarray:
     """Returns the chain auth asym ID for each atom in the structure."""
     return self.chains_table.apply_array_to_column(
         'auth_asym_id', self._atoms.chain_key
     )
 
-  @functools.cached_property
+  @thread_safe.CachedProperty
   def chain_id(self) -> np.ndarray:
     return self._chains.apply_array_to_column('id', self._atoms.chain_key)
 
-  @functools.cached_property
+  @thread_safe.CachedProperty
   def chain_type(self) -> np.ndarray:
     return self._chains.apply_array_to_column('type', self._atoms.chain_key)
 
-  @functools.cached_property
+  @thread_safe.CachedProperty
   def res_id(self) -> np.ndarray:
     return self._residues['id', self._atoms.res_key]
 
-  @functools.cached_property
+  @thread_safe.CachedProperty
   def res_name(self) -> np.ndarray:
     return self._residues['name', self._atoms.res_key]
 
-  @functools.cached_property
+  @thread_safe.CachedProperty
   def res_auth_seq_id(self) -> np.ndarray:
     """Returns the residue auth seq ID for each atom in the structure."""
     return self.residues_table.apply_array_to_column(
         'auth_seq_id', self._atoms.res_key
     )
 
-  @functools.cached_property
+  @thread_safe.CachedProperty
   def res_insertion_code(self) -> np.ndarray:
     """Returns the residue insertion code for each atom in the structure."""
     return self.residues_table.apply_array_to_column(
@@ -612,31 +613,31 @@ class Structure(table.Database):
   def atom_occupancy(self) -> np.ndarray:
     return self._atoms.occupancy
 
-  @functools.cached_property
+  @thread_safe.CachedProperty
   def chain_boundaries(self) -> np.ndarray:
     """The indices in the atom fields where each present chain begins."""
     return _get_change_indices(self._atoms.chain_key)
 
-  @functools.cached_property
+  @thread_safe.CachedProperty
   def res_boundaries(self) -> np.ndarray:
     """The indices in the atom fields where each present residue begins."""
     return _get_change_indices(self._atoms.res_key)
 
-  @functools.cached_property
+  @thread_safe.CachedProperty
   def present_chains(self) -> structure_tables.Chains:
     """Returns table of chains which have at least 1 resolved atom."""
     return self._chains.apply_array(
         membership.isin(self._chains.key, self._atoms.chain_key)
     )
 
-  @functools.cached_property
+  @thread_safe.CachedProperty
   def present_residues(self) -> structure_tables.Residues:
     """Returns table of residues which have at least 1 resolved atom."""
     return self._residues.apply_array(
         membership.isin(self._residues.key, self._atoms.res_key)
     )
 
-  @functools.cached_property
+  @thread_safe.CachedProperty
   def unresolved_residues(self) -> structure_tables.Residues:
     """Returns table of residues which have at least 1 resolved atom."""
     return self._residues.apply_array(
@@ -656,12 +657,13 @@ class Structure(table.Database):
     Returns:
       Members with cached properties removed.
     """
-    cached_props = {
-        k
-        for k, v in self.__class__.__dict__.items()
-        if isinstance(v, functools.cached_property)
-    }
-    return {k: v for k, v in self.__dict__.items() if k not in cached_props}
+    state = dict(self.__dict__)
+    for cls in type(self).__mro__:
+      for k, v in cls.__dict__.items():
+        if isinstance(v, functools.cached_property):
+          state.pop(k, None)
+          state.pop(f'{k}_lock', None)
+    return state
 
   def __repr__(self):
     return (
@@ -707,32 +709,32 @@ class Structure(table.Database):
       mask[start:end] = chain_type in entities
     return mask
 
-  @functools.cached_property
+  @thread_safe.CachedProperty
   def is_protein_mask(self) -> np.ndarray:
     """Boolean label indicating if each atom is from protein or not."""
     return self._atom_mask(entities={mmcif_names.PROTEIN_CHAIN})
 
-  @functools.cached_property
+  @thread_safe.CachedProperty
   def is_dna_mask(self) -> np.ndarray:
     """Boolean label indicating if each atom is from DNA or not."""
     return self._atom_mask(entities={mmcif_names.DNA_CHAIN})
 
-  @functools.cached_property
+  @thread_safe.CachedProperty
   def is_rna_mask(self) -> np.ndarray:
     """Boolean label indicating if each atom is from RNA or not."""
     return self._atom_mask(entities={mmcif_names.RNA_CHAIN})
 
-  @functools.cached_property
+  @thread_safe.CachedProperty
   def is_nucleic_mask(self) -> np.ndarray:
     """Boolean label indicating if each atom is a nucleic acid or not."""
     return self._atom_mask(entities=mmcif_names.NUCLEIC_ACID_CHAIN_TYPES)
 
-  @functools.cached_property
+  @thread_safe.CachedProperty
   def is_ligand_mask(self) -> np.ndarray:
     """Boolean label indicating if each atom is a ligand or not."""
     return self._atom_mask(entities=mmcif_names.LIGAND_CHAIN_TYPES)
 
-  @functools.cached_property
+  @thread_safe.CachedProperty
   def is_water_mask(self) -> np.ndarray:
     """Boolean label indicating if each atom is from water or not."""
     return self._atom_mask(entities={mmcif_names.WATER})
@@ -1003,7 +1005,7 @@ class Structure(table.Database):
     sorted_chains = sorted(self.chains, key=mmcif.str_id_to_int_id)
     return self.reorder_chains(new_order=sorted_chains)
 
-  @functools.cached_property
+  @thread_safe.CachedProperty
   def atom_ids(self) -> Sequence[tuple[str, str, None, str]]:
     """Gets a list of atom ID tuples from Structure class arrays.
 
@@ -2778,6 +2780,7 @@ class Structure(table.Database):
           f'New chain IDs {new_order} do not match the old {set(self.chains)}'
       )
 
+    # pylint: disable-next=comparison-with-callable
     if self.chains == tuple(new_order):
       return self  # Shortcut: the new order is the same as the current one.
 
@@ -2883,7 +2886,7 @@ class Structure(table.Database):
         skip_validation=True,
     )
 
-  @functools.cached_property
+  @thread_safe.CachedProperty
   def chains(self) -> tuple[str, ...]:
     """Ordered internal chain IDs (label_asym_id) present in the Structure."""
     return tuple(self._chains.id)

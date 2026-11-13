@@ -213,14 +213,15 @@ class Table:
 
   def __getstate__(self) -> dict[str, Any]:
     """Returns members with cached properties removed for pickling."""
-    cached_props = {
-        k
-        for k, v in self.__class__.__dict__.items()
-        if isinstance(v, functools.cached_property)
-    }
-    return {k: v for k, v in self.__dict__.items() if k not in cached_props}
+    state = dict(self.__dict__)
+    for cls in type(self).__mro__:
+      for k, v in cls.__dict__.items():
+        if isinstance(v, functools.cached_property):
+          state.pop(k, None)
+          state.pop(f'{k}_lock', None)
+    return state
 
-  @functools.cached_property
+  @thread_safe.CachedProperty
   def index_by_key(self) -> np.ndarray:
     """Mapping from key values to their index in the column arrays.
 
@@ -238,7 +239,7 @@ class Table:
     """The names of the columns in the table, including the key column."""
     return _columns_for_cls(type(self))
 
-  @functools.cached_property
+  @thread_safe.CachedProperty
   def items(self) -> Mapping[str, np.ndarray]:
     """Returns the mapping from column names to column values."""
     return {col: getattr(self, col) for col in self.columns}

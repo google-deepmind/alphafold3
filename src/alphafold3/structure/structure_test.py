@@ -18,7 +18,9 @@
 # https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md
 
 from collections.abc import Mapping, Sequence
+import concurrent.futures
 import datetime
+import threading
 from typing import Any
 
 from absl.testing import absltest
@@ -3671,6 +3673,26 @@ class StructureTest(test_utils.StructureTestCase):
           1, original_struc.author_naming_scheme.insertion_code['A']
       )
       self.assertNotIn(1, struc.author_naming_scheme.insertion_code['A'])
+
+  def test_concurrent_cached_properties(self):
+    struc = structure.from_mmcif(
+        test_utils.read_test_cif_file('2pv7'), include_bonds=False
+    )
+    barrier = threading.Barrier(8)
+
+    def read_props() -> tuple[int, int, int, int]:
+      barrier.wait()
+      return (
+          len(struc.chain_id),
+          len(struc.res_id),
+          len(struc.all_residues),
+          len(struc.atoms_table.index_by_key) + len(struc.atoms_table.items),
+      )
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+      futures = [pool.submit(read_props) for _ in range(8)]
+      results = [f.result() for f in futures]
+    self.assertLen(set(results), 1)
 
   def test_multichain_residue_index(self):
     struc = self.make_test_structure(
