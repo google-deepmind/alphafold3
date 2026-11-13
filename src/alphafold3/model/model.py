@@ -254,11 +254,24 @@ class Model(hk.Module):
       *,
       sample_config: diffusion_head.SampleConfig,
   ) -> dict[str, jnp.ndarray]:
+    # Loop-invariant pair conditioning: noise-independent, so compute it ONCE
+    # here (outside diffusion_head.sample's scan) and thread it into every
+    # denoising step, instead of recomputing it per step inside the scan.
+    # Invoked via __call__ (return_pair_cond=True) so its parameters live in the
+    # same scope as the per-step path.
+    trunk_pair_cond = self.diffusion_module(
+        batch=batch,
+        embeddings=embeddings,
+        use_conditioning=True,
+        return_pair_cond=True,
+    )
+
     denoising_step = functools.partial(
         self.diffusion_module,
         batch=batch,
         embeddings=embeddings,
         use_conditioning=True,
+        trunk_pair_cond=trunk_pair_cond,
     )
 
     sample = diffusion_head.sample(
