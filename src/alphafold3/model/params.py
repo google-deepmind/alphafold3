@@ -32,6 +32,7 @@ from typing import IO
 
 from etils import epath
 import haiku as hk
+import jax
 import jax.numpy as jnp
 import numpy as np
 import zstandard
@@ -225,7 +226,7 @@ def select_model_files(
 
 def get_model_haiku_params(model_dir: epath.PathLike) -> hk.Params:
   """Get the Haiku parameters from a model name."""
-  params: dict[str, dict[str, jnp.Array]] = {}
+  params: dict[str, dict[str, jax.Array]] = {}
   model_files, is_compressed = select_model_files(model_dir)
   with open_for_reading(model_files, is_compressed) as stream:  # pyrefly: ignore[bad-argument-type]
     for scope, name, arr in read_records(stream):
