@@ -23,10 +23,10 @@ from collections.abc import Collection, Mapping, MutableMapping, Sequence
 import dataclasses
 import datetime
 import enum
-import functools
 import itertools
 from typing import TypeAlias
 
+from alphafold3.common import thread_safe
 from alphafold3.constants import chemical_components
 from alphafold3.constants import mmcif_names
 from alphafold3.constants import residue_names
@@ -134,7 +134,7 @@ def _get_representative_atom(
       raise ValueError(sequence_format)
 
 
-@functools.lru_cache(maxsize=128)
+@thread_safe.thread_local_lru_cache(maxsize=128)
 def _get_first_non_leaving_atom(
     ccd: chemical_components.Ccd, res_name: str
 ) -> str:
