@@ -885,6 +885,18 @@ class Ligand:
     if (self.ccd_ids is None) == (self.smiles is None):
       raise ValueError('Ligand must have one of CCD ID or SMILES set.')
 
+    if self.ccd_ids is not None and (
+        not self.ccd_ids
+        or any(not isinstance(c, str) or not c for c in self.ccd_ids)
+    ):
+      raise ValueError(
+          'Ligand CCD IDs must be a non-empty list of non-empty strings, got'
+          f' {self.ccd_ids}'
+      )
+
+    if self.smiles is not None and not self.smiles:
+      raise ValueError('Ligand SMILES must be a non-empty string.')
+
     if self.smiles is not None:
       mol = rd_chem.MolFromSmiles(self.smiles)
       if not mol:
@@ -927,7 +939,12 @@ class Ligand:
     _validate_keys(
         json_dict.keys(), {'id', 'ccdCodes', 'smiles', 'description'}
     )
-    if json_dict.get('ccdCodes') and json_dict.get('smiles'):
+    # Check presence rather than truthiness so that an empty value (e.g. `[]`
+    # or `""`) does not silently drop the other field.
+    if (
+        json_dict.get('ccdCodes') is not None
+        and json_dict.get('smiles') is not None
+    ):
       raise ValueError(
           'Ligand cannot have both CCD code and SMILES set at the same time, '
           f'got CCD: {json_dict["ccdCodes"]} and SMILES: {json_dict["smiles"]}'
