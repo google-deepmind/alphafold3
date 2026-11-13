@@ -29,6 +29,7 @@ import os
 import pathlib
 import pickle
 from typing import Any
+from unittest import mock
 
 from absl.testing import absltest
 from absl.testing import parameterized
@@ -39,6 +40,7 @@ from alphafold3.common.testing import data as testing_data
 from alphafold3.constants import chemical_components
 from alphafold3.data import featurisation
 from alphafold3.data import pipeline
+from alphafold3.model import features
 from alphafold3.model.atom_layout import atom_layout
 import jax
 import numpy as np
@@ -104,6 +106,98 @@ def _generate_diff(actual: str, expected: str) -> str:
           lineterm='',
       )
   )
+
+
+class TemplateFeaturesTest(parameterized.TestCase):
+
+  def _compute_features(
+      self, chain_ids, templates_by_chain_id, different_sequences=False
+  ):
+    num_tokens = 6 * len(chain_ids)
+    sequence = ['MET', 'ILE', 'GLU', 'LYS', 'GLN', 'MET']
+    sequences = {
+        'A': sequence,
+        'B': ['ALA'] * 6 if different_sequences else sequence,
+    }
+    tokens = atom_layout.AtomLayout(
+        atom_name=np.full(num_tokens, 'CA', dtype=object),
+        atom_element=np.full(num_tokens, 'C', dtype=object),
+        res_id=np.tile(np.arange(1, 7, dtype=np.int32), len(chain_ids)),
+        chain_id=np.repeat(np.array(chain_ids, dtype=object), 6),
+        res_name=np.array(
+            [res for chain_id in chain_ids for res in sequences[chain_id]],
+            dtype=object,
+        ),
+        chain_type=np.full(num_tokens, 'polypeptide(L)', dtype=object),
+    )
+    return features.Templates.compute_features(
+        all_tokens=tokens,
+        standard_token_idxs=np.arange(num_tokens),
+        padding_shapes=features.PaddingShapes(
+            num_tokens=num_tokens,
+            msa_size=1,
+            num_chains=len(chain_ids),
+            num_templates=1,
+            num_atoms=num_tokens,
+        ),
+        templates_by_chain_id=templates_by_chain_id,
+        max_templates=1,
+        logging_name='per_chain_templates',
+    )
+
+  @parameterized.named_parameters(
+      ('template_then_empty', ('A', 'B'), 'full', None),
+      ('empty_then_template', ('B', 'A'), 'full', None),
+      ('different_mapping_coverage', ('A', 'B'), 'first_half', 'last_half'),
+      ('shifted_mapping', ('A', 'B'), 'full', 'shifted'),
+      ('same_templates', ('A', 'B'), 'full', 'full'),
+      ('equivalent_templates', ('A', 'B'), 'full', 'full_reversed'),
+      ('both_empty', ('A', 'B'), None, None),
+      ('different_sequences', ('A', 'B'), 'full', None, True),
+  )
+  def test_per_chain_templates(
+      self, chain_ids, a_template, b_template, different_sequences=False
+  ):
+    mmcif = testing_data.Data(
+        resources.ROOT / 'test_data/miniature_databases/pdb_mmcif'
+    ).load('5y2e.cif')
+    mappings = {
+        'full': {i: i for i in range(6)},
+        'first_half': {i: i for i in range(3)},
+        'last_half': {i: i for i in range(3, 6)},
+        'shifted': {i: i + 1 for i in range(6)},
+        'full_reversed': {i: i for i in reversed(range(6))},
+    }
+    templates = {
+        name: folding_input.Template(mmcif=mmcif, query_to_template_map=mapping)
+        for name, mapping in mappings.items()
+    }
+    templates_by_chain_id = {
+        chain_id: [templates[name]] if name is not None else []
+        for chain_id, name in (('A', a_template), ('B', b_template))
+    }
+    expected = {
+        chain_id: self._compute_features(
+            (chain_id,), templates_by_chain_id, different_sequences
+        )
+        for chain_id in chain_ids
+    }
+    with mock.patch.object(
+        structure, 'from_mmcif', wraps=structure.from_mmcif
+    ) as parse_template:
+      actual = self._compute_features(
+          chain_ids, templates_by_chain_id, different_sequences
+      )
+    for index, chain_id in enumerate(chain_ids):
+      chain_slice = slice(index * 6, (index + 1) * 6)
+      for feature in ('aatype', 'atom_mask', 'atom_positions'):
+        np.testing.assert_array_equal(
+            getattr(actual, feature)[:, chain_slice],
+            getattr(expected[chain_id], feature),
+            err_msg=f'{chain_id}: {feature}',
+        )
+    if a_template == 'full' and b_template in ('full', 'full_reversed'):
+      self.assertEqual(parse_template.call_count, 1)
 
 
 class DataPipelineTest(parameterized.TestCase):
