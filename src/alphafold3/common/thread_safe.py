@@ -22,8 +22,9 @@
 from collections.abc import Callable
 import functools
 import threading
-from typing import Any, TypeVar
+from typing import Any, ParamSpec, TypeVar
 
+_P = ParamSpec('_P')
 _T = TypeVar('_T')
 _EMPTY = object()
 
@@ -52,3 +53,38 @@ def cache_once(func: Callable[[], _T]) -> Callable[[], _T]:
       return result
 
   return wrapper
+
+
+def thread_local_lru_cache(
+    *, maxsize: int
+) -> Callable[[Callable[_P, _T]], Callable[_P, _T]]:
+  """Caches a callable per thread with a bounded LRU cache.
+
+  Args:
+    maxsize: Maximum number of cached entries per thread.
+
+  Returns:
+    A decorator giving each calling thread its own independent
+    `functools.lru_cache(maxsize=maxsize)` instance so cache hits avoid
+    cross-thread lock and refcount contention under `PYTHON_GIL=0`.
+
+  Raises:
+    ValueError: If `maxsize <= 0`.
+  """
+  if maxsize <= 0:
+    raise ValueError(f'maxsize must be > 0, got {maxsize}')
+
+  def decorator(func: Callable[_P, _T]) -> Callable[_P, _T]:
+    state = threading.local()
+
+    @functools.wraps(func)
+    def wrapper(*args: _P.args, **kwargs: _P.kwargs) -> _T:
+      try:
+        cached = state.cached
+      except AttributeError:
+        cached = state.cached = functools.lru_cache(maxsize=maxsize)(func)
+      return cached(*args, **kwargs) if kwargs else cached(*args)
+
+    return wrapper
+
+  return decorator
