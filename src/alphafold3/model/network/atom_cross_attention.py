@@ -278,7 +278,7 @@ def atom_cross_att_encoder(
   )
   keys_ref_space_uid = atom_layout.convert(
       batch.atom_cross_att.queries_to_keys,
-      batch.ref_structure.ref_space_uid,
+      queries_ref_space_uid,
       layout_axes=(-2, -1),
   )
 
