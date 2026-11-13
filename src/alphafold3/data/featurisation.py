@@ -27,7 +27,6 @@ from alphafold3.common import folding_input
 from alphafold3.constants import chemical_components
 from alphafold3.model import features
 from alphafold3.model.pipeline import pipeline
-import numpy as np
 
 
 def validate_fold_input(fold_input: folding_input.Input):
@@ -100,17 +99,13 @@ def featurise_input(
       ),
   )
 
+  batch_iterator = data_pipeline._process_items(fold_input=fold_input, ccd=ccd)
   batches = []
   for rng_seed in fold_input.rng_seeds:
     featurisation_start_time = time.time()
     if verbose:
       print(f'Featurising data with seed {rng_seed}.')
-    batch = data_pipeline.process_item(
-        fold_input=fold_input,
-        ccd=ccd,
-        random_state=np.random.RandomState(rng_seed),
-        random_seed=rng_seed,
-    )
+    batch = next(batch_iterator)
     if verbose:
       print(
           f'Featurising data with seed {rng_seed} took'
