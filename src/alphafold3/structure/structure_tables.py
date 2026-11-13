@@ -22,7 +22,6 @@
 import collections
 from collections.abc import Mapping, Sequence
 import dataclasses
-import functools
 import itertools
 import typing
 from typing import Any, ClassVar, Self
@@ -109,7 +108,7 @@ class Atoms(table.Table):
   def __post_init__(self):
     # Validates that the atom coordinates, b-factors and occupancies are finite.
     for column_name in ('x', 'y', 'z', 'b_factor', 'occupancy'):
-      column = self.get_column(column_name)
+      column = getattr(self, column_name)
       if not np.isfinite(column).all():
         raise ValueError(
             f'Column {column_name} must not contain NaN/inf values.'
@@ -194,7 +193,7 @@ class Atoms(table.Table):
   def ndim(self) -> int:
     return len(self.shape)
 
-  @functools.cached_property
+  @property
   def num_models(self) -> int:
     """The number of models of this Structure."""
     leading_dims = self.shape[:-1]

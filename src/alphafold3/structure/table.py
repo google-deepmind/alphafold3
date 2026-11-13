@@ -31,6 +31,7 @@ import graphlib
 import typing
 from typing import Any, Protocol, Self, TypeAlias, TypeVar, overload
 
+from alphafold3.common import thread_safe
 from alphafold3.cpp import indexing
 from alphafold3.cpp import membership
 from alphafold3.cpp import string_array
@@ -140,6 +141,11 @@ def _take_rows(col_arr: np.ndarray, selector: np.ndarray | slice) -> np.ndarray:
   return col_arr[selector] if col_arr.ndim == 1 else col_arr[..., selector]
 
 
+@thread_safe.thread_local_lru_cache(maxsize=32)
+def _columns_for_cls(cls: type[Any]) -> tuple[str, ...]:
+  return tuple(field.name for field in dataclasses.fields(cls))
+
+
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class Table:
   """Parent class for structure tables.
@@ -161,12 +167,13 @@ class Table:
 
   def __post_init__(self):
     for col_name in self.columns:
-      if (col_len := self.get_column(col_name).shape[-1]) != self.size:
+      column = getattr(self, col_name)
+      if (col_len := column.shape[-1]) != self.size:
         raise ValueError(
             f'All columns should have length {self.size} but got "{col_name}"'
             f' with length {col_len}.'
         )
-      self.get_column(col_name).flags.writeable = False  # Make col immutable.
+      column.flags.writeable = False  # Make col immutable.
     if self.key.size and self.key.min() < 0:
       raise ValueError(
           'Key values must be non-negative. Got negative values:'
@@ -226,17 +233,17 @@ class Table:
       index_by_key[self.key] = np.arange(self.size)
       return index_by_key
 
-  @functools.cached_property
+  @property
   def columns(self) -> tuple[str, ...]:
     """The names of the columns in the table, including the key column."""
-    return tuple(field.name for field in dataclasses.fields(self))
+    return _columns_for_cls(type(self))
 
   @functools.cached_property
   def items(self) -> Mapping[str, np.ndarray]:
     """Returns the mapping from column names to column values."""
     return {col: getattr(self, col) for col in self.columns}
 
-  @functools.cached_property
+  @property
   def size(self) -> int:
     """The number of rows in the table."""
     return self.key.shape[-1]
