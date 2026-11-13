@@ -21,9 +21,9 @@
 
 from collections.abc import Collection, Iterable, Mapping, Sequence
 import dataclasses
-import functools
 from typing import Any, Self
 
+from alphafold3.common import thread_safe
 from alphafold3.constants import chemical_components
 from alphafold3.constants import residue_names
 from alphafold3.structure import mmcif
@@ -545,8 +545,10 @@ def get_all_atoms_in_entry(
   return res_atoms
 
 
-@functools.lru_cache(maxsize=128)
-def get_res_atom_names(ccd: chemical_components.Ccd, res_name: str) -> set[str]:
+@thread_safe.thread_local_lru_cache(maxsize=128)
+def get_res_atom_names(
+    ccd: chemical_components.Ccd, res_name: str
+) -> frozenset[str]:
   """Gets the names of the atoms in a given CCD residue."""
   atoms = get_all_atoms_in_entry(ccd, res_name)['_chem_comp_atom.atom_id']
-  return set(atoms)
+  return frozenset(atoms)
