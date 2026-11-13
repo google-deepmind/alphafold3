@@ -21,10 +21,10 @@
 
 from collections.abc import ItemsView, Iterator, KeysView, Mapping, Sequence, ValuesView
 import dataclasses
-import functools
 import os
 
 from alphafold3.common import resources
+from alphafold3.common import thread_safe
 from alphafold3.cpp import cif_dict
 import msgpack
 
@@ -33,12 +33,10 @@ _CCD_MSGPACK_FILE = resources.filename(
 )
 
 
-@functools.cache
-def _load_ccd_msgpack_cached(
-    path: os.PathLike[str],
-) -> dict[str, Mapping[str, Sequence[str]]]:
+@thread_safe.cache_once
+def _load_ccd_msgpack_cached() -> dict[str, Mapping[str, Sequence[str]]]:
   """Loads the CCD MessagePack file and caches it so it is only loaded once."""
-  with open(path, 'rb') as f:
+  with open(_CCD_MSGPACK_FILE, 'rb') as f:
     return msgpack.unpack(f)
 
 
@@ -69,7 +67,11 @@ class Ccd(Mapping[str, Mapping[str, Sequence[str]]]):
         be used to override specific entries in the CCD if desired.
     """
     self._ccd_msgpack_path = ccd_msgpack_path or _CCD_MSGPACK_FILE
-    base_ccd = _load_ccd_msgpack_cached(self._ccd_msgpack_path)
+    if ccd_msgpack_path is None:
+      base_ccd = _load_ccd_msgpack_cached()
+    else:
+      with open(ccd_msgpack_path, 'rb') as f:
+        base_ccd = msgpack.unpack(f)
 
     if user_ccd is not None:
       if not user_ccd:
@@ -182,7 +184,7 @@ def mmcif_to_info(mmcif: Mapping[str, Sequence[str]]) -> ComponentInfo:
   )
 
 
-@functools.lru_cache(maxsize=128)
+@thread_safe.thread_local_lru_cache(maxsize=128)
 def component_name_to_info(ccd: Ccd, res_name: str) -> ComponentInfo | None:
   component = ccd.get(res_name)
   if component is None:
