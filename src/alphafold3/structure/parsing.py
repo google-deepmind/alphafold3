@@ -1285,7 +1285,7 @@ def _get_chain_key_by_chain_id(
         f'_struct_asym.id {unique_struct_asym_chain_ids}.'
     )
 
-  resolved_mask = string_array.isin(
+  resolved_mask = membership.isin(
       struct_asym_chain_ids, unique_resolved_chain_ids
   )
   # For all resolved chains, use the _atom_site order they appear in. E.g.
@@ -1401,7 +1401,8 @@ def get_tables(
 
   # Get keys for chains in the order they appear in _atom_site while also
   # dealing with empty chains.
-  resolved_chain_ids = label_asym_ids[layout.chain_starts()]
+  chain_starts = layout.chain_starts()
+  resolved_chain_ids = label_asym_ids[chain_starts]
   struct_asym_chain_ids = cif.get_array('_struct_asym.id', dtype=object)
 
   chain_key_by_chain_id = _get_chain_key_by_chain_id(
@@ -1458,7 +1459,7 @@ def get_tables(
   if not include_other and poly_seq_mask.size > 0:
     # Mask filtered-out residues so that they are not treated as missing.
     # Instead, we don't want them included in the chains/residues tables at all.
-    keep_mask = string_array.isin(poly_seq_asym_ids, wanted_chain_ids)
+    keep_mask = membership.isin(poly_seq_asym_ids, wanted_chain_ids)
     poly_seq_mask &= keep_mask
 
   poly_batch = _ResidueBatch(
@@ -1616,12 +1617,12 @@ def get_tables(
 
   # The residue and chain IDs are shared for all atoms within a residue.
   atom_res_key = np.repeat(atom_res_key_per_res, repeats=res_lengths)
-  atom_chain_key = np.repeat(
-      string_array.remap(
-          res_label_asym_ids, mapping=chain_key_by_chain_id
-      ).astype(int),
-      repeats=res_lengths,
+  chain_bounds = np.asarray([*chain_starts, layout.num_atoms()], dtype=np.int64)
+  resolved_chain_keys = np.asarray(
+      [chain_key_by_chain_id[c] for c in resolved_chain_ids.tolist()],
+      dtype=np.int64,
   )
+  atom_chain_key = np.repeat(resolved_chain_keys, repeats=np.diff(chain_bounds))
 
   if fix_mse_residues:
     mse_res_mask = res_label_comp_ids == 'MSE'
