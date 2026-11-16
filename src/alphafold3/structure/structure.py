@@ -259,6 +259,20 @@ def _unpack_filter_predicates(
   return chain_predicates, res_predicates, atom_predicates
 
 
+_UNMAPPED_ONE_LETTER: Final[str] = '?'
+
+
+@thread_safe.thread_local_lru_cache(maxsize=1)
+def _single_letter_lookup_tables() -> (
+    tuple[dict[str, str], frozenset[str], frozenset[str]]
+):
+  return (
+      dict(residue_names.CCD_NAME_TO_ONE_LETTER),
+      frozenset(mmcif_names.PEPTIDE_CHAIN_TYPES),
+      frozenset(mmcif_names.NUCLEIC_ACID_CHAIN_TYPES),
+  )
+
+
 _T = TypeVar('_T')
 
 
@@ -2140,36 +2154,43 @@ class Structure(table.Database):
     res_table = (
         self._residues if include_missing_residues else self.present_residues
     )
-    residue_chain_boundaries = _get_change_indices(res_table.chain_key)
-    boundaries = self._iter_residue_ranges(
-        residue_chain_boundaries,
-        count_unresolved=include_missing_residues,
+    if not res_table.size:
+      return {}
+    starts = _get_change_indices(res_table.chain_key)
+    chain_keys = res_table.chain_key[starts]
+    chain_ids = self._chains.apply_array_to_column('id', chain_keys).tolist()
+    chain_types = self._chains.apply_array_to_column(
+        'type', chain_keys
+    ).tolist()
+    one_letter_by_res, peptide_types, nucleic_types = (
+        _single_letter_lookup_tables()
     )
-    chain_keys = res_table.chain_key[residue_chain_boundaries]
-    chain_ids = self._chains.apply_array_to_column('id', chain_keys)
-    chain_types = self._chains.apply_array_to_column('type', chain_keys)
-    chain_seqs = {}
-    for idx, (start, end) in enumerate(boundaries):
-      chain_id = chain_ids[idx]
-      chain_type = chain_types[idx]
-      chain_res = res_table.name[start:end]
-      if chain_type in mmcif_names.PEPTIDE_CHAIN_TYPES:
+    mapped_letters: list[str] | None = None
+    seq_by_chain_id: dict[str, str] = {}
+    for chain_id, chain_type, (start, end) in zip(
+        chain_ids,
+        chain_types,
+        itertools.pairwise([*starts.tolist(), res_table.size]),
+        strict=True,
+    ):
+      if chain_type in peptide_types:
         unknown_default = 'X'
-      elif chain_type in mmcif_names.NUCLEIC_ACID_CHAIN_TYPES:
+      elif chain_type in nucleic_types:
         unknown_default = 'N'
       else:
-        chain_seqs[chain_id] = 'X' * chain_res.size
+        seq_by_chain_id[chain_id] = 'X' * (end - start)
         continue
-
-      chain_res = string_array.remap(
-          chain_res,
-          mapping=residue_names.CCD_NAME_TO_ONE_LETTER,
-          inplace=False,
-          default_value=unknown_default,
+      if mapped_letters is None:
+        mapped_letters = string_array.remap(
+            res_table.name,
+            mapping=one_letter_by_res,
+            inplace=False,
+            default_value=_UNMAPPED_ONE_LETTER,
+        ).tolist()
+      seq_by_chain_id[chain_id] = ''.join(mapped_letters[start:end]).replace(
+          _UNMAPPED_ONE_LETTER, unknown_default
       )
-      chain_seqs[chain_id] = ''.join(chain_res.tolist())
-
-    return chain_seqs
+    return seq_by_chain_id
 
   def polymer_auth_asym_id_to_label_asym_id(
       self,

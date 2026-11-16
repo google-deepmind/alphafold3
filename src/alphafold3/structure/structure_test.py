@@ -1885,6 +1885,71 @@ class StructureTest(test_utils.StructureTestCase):
         struc.chain_single_letter_sequence(include_missing_residues), expected
     )
 
+  def test_unmapped_one_letter_sentinel_not_in_ccd_table(self):
+    for one_letter in residue_names.CCD_NAME_TO_ONE_LETTER.values():
+      self.assertNotIn(structure_lib._UNMAPPED_ONE_LETTER, one_letter)
+
+  def test_chain_single_letter_sequence_unmapped_residues(self):
+    struc = self.make_test_structure(
+        chain_id=np.array(['A', 'A', 'B', 'B', 'C'], dtype=object),
+        chain_type=np.array(
+            [
+                'polypeptide(L)',
+                'polypeptide(L)',
+                'polyribonucleotide',
+                'polyribonucleotide',
+                'non-polymer',
+            ],
+            dtype=object,
+        ),
+        res_name=np.array(['ALA', 'ZZ1', 'A', 'ZZ2', 'ATP'], dtype=object),
+        res_id=np.array([1, 2, 1, 2, 1], dtype=np.int32),
+    )
+    self.assertEqual(
+        struc.chain_single_letter_sequence(),
+        {'A': 'AX', 'B': 'AN', 'C': 'X'},
+    )
+
+  def test_chain_single_letter_sequence_non_polymer_only(self):
+    struc = self.make_test_structure(
+        chain_id=np.array(['C'], dtype=object),
+        chain_type=np.array(['non-polymer'], dtype=object),
+        res_name=np.array(['ATP'], dtype=object),
+        res_id=np.array([1], dtype=np.int32),
+    )
+    self.assertEqual(struc.chain_single_letter_sequence(), {'C': 'X'})
+
+  def test_chain_single_letter_sequence_empty_residues(self):
+    struc = self.make_test_structure(
+        chain_id=np.array(['A'], dtype=object),
+        chain_type=np.array(['polypeptide(L)'], dtype=object),
+        res_name=np.array(['ALA'], dtype=object),
+        res_id=np.array([1], dtype=np.int32),
+    )
+    self.assertEmpty(
+        struc.filter(
+            struc.chain_id == 'Z',
+            cascade_delete=structure.CascadeDelete.NONE,
+        ).chain_single_letter_sequence(include_missing_residues=False)
+    )
+
+  def test_chain_single_letter_sequence_concurrent(self):
+    struc = structure.from_mmcif(
+        test_utils.read_test_cif_file('2ppb_trimmed'), include_bonds=False
+    )
+    expected = struc.chain_single_letter_sequence()
+    barrier = threading.Barrier(8)
+
+    def run_worker() -> Mapping[str, str]:
+      barrier.wait()
+      for _ in range(15):
+        struc.chain_single_letter_sequence()
+      return struc.chain_single_letter_sequence()
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+      results = list(pool.map(lambda _: run_worker(), range(8)))
+    self.assertEqual(results, [expected] * 8)
+
   @parameterized.parameters(
       ('2pv7', {'A': 'A', 'B': 'B'}, True, True, True, True),
       ('2ppb_trimmed', {'G': 'A', 'H': 'B', 'I': 'C', 'X': 'D', 'Y': 'E',
