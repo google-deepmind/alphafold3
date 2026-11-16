@@ -862,6 +862,22 @@ class TableTest(parameterized.TestCase):
     np.testing.assert_array_equal(gathered, expected, strict=True)
     self.assertNotIn('index_by_key', tbl.__dict__)
 
+  def test_apply_index_avoids_items_cache(self):
+    tbl = TwoColTable(
+        key=np.array([10, 20, 30], dtype=np.int64),
+        data=np.array(['A', 'B', 'C'], dtype=object),
+        ints=np.array([3, 5, 7], dtype=np.int32),
+    )
+    gathered = tbl.apply_index(np.array([-1, 0], dtype=np.int64))
+    np.testing.assert_array_equal(
+        gathered.data, np.array(['C', 'A'], dtype=object), strict=True
+    )
+    np.testing.assert_array_equal(
+        gathered.ints, np.array([7, 3], dtype=np.int32), strict=True
+    )
+    self.assertFalse(gathered.data.flags.writeable)
+    self.assertNotIn('items', tbl.__dict__)
+
 
 @dataclasses.dataclass(frozen=True)
 class Residues(table.Table):

@@ -208,7 +208,7 @@ class Table:
     """Returns the rows picked by an index array or boolean mask."""
     return self._from_validated_columns(
         (col, _take_rows(col_arr, selector))
-        for col, col_arr in self.items.items()
+        for col, col_arr in self._iter_items()
     )
 
   def __getstate__(self) -> dict[str, Any]:
