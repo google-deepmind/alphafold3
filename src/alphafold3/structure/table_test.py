@@ -764,6 +764,44 @@ class TableTest(parameterized.TestCase):
     self.assertFalse(sliced.multi_data.flags.writeable)
     self.assertIsNone(sliced.multi_data.base)
 
+  def test_slice_range_1d_returns_readonly_view_without_items_cache(self):
+    tbl = OneColTable(
+        key=np.array([10, 20, 30, 40], dtype=np.int64),
+        data=np.array(['A', 'B', 'C', 'D'], dtype=object),
+    )
+    sliced = tbl.slice_range(start=1, end=3)
+    self.assertTrue(np.shares_memory(sliced.key, tbl.key))
+    self.assertTrue(np.shares_memory(sliced.data, tbl.data))
+    self.assertFalse(sliced.key.flags.writeable)
+    self.assertFalse(sliced.data.flags.writeable)
+    self.assertNotIn('items', tbl.__dict__)
+
+  def test_slice_range_empty_subrange_owns_columns(self):
+    tbl = OneColTable(
+        key=np.array([10, 20, 30, 40], dtype=np.int64),
+        data=np.array(['A', 'B', 'C', 'D'], dtype=object),
+    )
+    sliced = tbl.slice_range(start=2, end=2)
+    self.assertEmpty(sliced.key)
+    self.assertIsNone(sliced.key.base)
+    self.assertIsNone(sliced.data.base)
+    self.assertFalse(sliced.key.flags.writeable)
+
+  def test_slice_range_strided_1d_copies_contiguous(self):
+    tbl = OneColTable(
+        key=np.arange(8, dtype=np.int64)[::2],
+        data=np.array(['A', 'x', 'B', 'y', 'C', 'z', 'D', 'w'], dtype=object)[
+            ::2
+        ],
+    )
+    sliced = tbl.slice_range(start=1, end=3)
+    np.testing.assert_array_equal(
+        sliced.key, np.array([2, 4], dtype=np.int64), strict=True
+    )
+    self.assertTrue(sliced.key.flags.c_contiguous)
+    self.assertIsNone(sliced.key.base)
+    self.assertFalse(sliced.key.flags.writeable)
+
   @parameterized.named_parameters(
       dict(testcase_name='negative_start', start=-1, end=2),
       dict(testcase_name='start_after_end', start=3, end=2),

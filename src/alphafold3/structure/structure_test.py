@@ -1080,17 +1080,19 @@ class StructureTest(test_utils.StructureTestCase):
         strict=True,
     )
 
-  def test_filter_single_chain_owns_sliced_columns(self):
+  def test_filter_single_chain_returns_readonly_1d_views(self):
     coords = np.array([1.0, 2.0, 3.0], dtype=np.float32)
     struc = structure.from_atom_arrays(
-        name='owns_slice',
+        name='view_slice',
         chain_id=np.array(['A', 'B', 'C'], dtype=object),
         res_id=np.array([1, 1, 1], dtype=np.int32),
         atom_x=coords,
         atom_y=coords,
         atom_z=coords,
     )
-    self.assertIsNone(struc.filter(chain_id='B').atom_x.base)
+    filtered = struc.filter(chain_id='B')
+    self.assertTrue(np.shares_memory(filtered.atom_x, struc.atom_x))
+    self.assertFalse(filtered.atom_x.flags.writeable)
 
   def test_filter_unsorted_chain_keys(self):
     coords = np.array([1.0, 2.0], dtype=np.float32)

@@ -287,11 +287,19 @@ class Table:
 
     return self._take(index_arr)
 
+  def _iter_items(self) -> Iterable[tuple[str, np.ndarray]]:
+    """Yields `(column_name, array)` pairs without populating `self.items`."""
+    if (items := self.__dict__.get('items')) is not None:
+      return items.items()
+    return ((col, getattr(self, col)) for col in _columns_for_cls(type(self)))
+
   def slice_range(self, *, start: int, end: int) -> Self:
     """Returns a Table sliced to the contiguous `[start, end)` row range.
 
-    Proper slices copy column arrays so small slices never retain NumPy views
-    pinning the parent Table's memory.
+    Non-empty 1D C-contiguous columns return zero-copy read-only views that
+    retain the parent buffer while referenced (use `apply_index` to detach a
+    small slice from a discarded parent). Empty (`start == end`), strided 1D,
+    and N-D (`ndim > 1`) slices allocate fresh contiguous arrays.
 
     Args:
       start: Inclusive start row index (`0 <= start <= end`).
@@ -305,15 +313,26 @@ class Table:
       ValueError: If `start` or `end` is out of `[0, self.size]` or
         `start > end`.
     """
-    if not 0 <= start <= end <= self.size:
+    size = self.size
+    if not 0 <= start <= end <= size:
       raise ValueError(
-          f'Invalid slice range [{start}, {end}) for table of size {self.size}.'
+          f'Invalid slice range [{start}, {end}) for table of size {size}.'
       )
-    if start == 0 and end == self.size:
+    if start == 0 and end == size:
       return self
+    if start == end:
+      return self._from_validated_columns(
+          (col, np.empty((*arr.shape[:-1], 0), dtype=arr.dtype))
+          for col, arr in self._iter_items()
+      )
     return self._from_validated_columns(
-        (col, (arr[start:end] if arr.ndim == 1 else arr[..., start:end]).copy())
-        for col, arr in self.items.items()
+        (
+            col,
+            arr[start:end]
+            if arr.ndim == 1 and arr.flags.c_contiguous
+            else _take_rows(arr, slice(start, end)).copy(),
+        )
+        for col, arr in self._iter_items()
     )
 
   def slice_spans(self, starts: np.ndarray, ends: np.ndarray) -> Self:
@@ -333,7 +352,7 @@ class Table:
       return self.slice_range(start=spans[0].start, end=spans[0].stop)
     return self._from_validated_columns(
         (col, np.concatenate([_take_rows(arr, s) for s in spans], axis=-1))
-        for col, arr in self.items.items()
+        for col, arr in self._iter_items()
     )
 
   def apply_array_to_column(

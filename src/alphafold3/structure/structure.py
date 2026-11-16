@@ -1576,9 +1576,21 @@ class Structure(table.Database):
       # CHAINS and FULL both drop kept chains left without atoms.
       has_atoms = atom_ends > atom_starts
       kept_keys = chain_keys[has_atoms]
-      filtered_chains = self._chains.apply_index(
-          np.flatnonzero(keep_chain)[has_atoms]
-      )
+      kept_chain_indices = np.flatnonzero(keep_chain)[has_atoms]
+      num_kept = kept_chain_indices.size
+      if num_kept == 0:
+        filtered_chains = self._chains.slice_range(start=0, end=0)
+      elif (
+          num_kept == 1
+          or int(kept_chain_indices[-1]) - int(kept_chain_indices[0]) + 1
+          == num_kept
+      ):
+        start = int(kept_chain_indices[0])
+        filtered_chains = self._chains.slice_range(
+            start=start, end=start + num_kept
+        )
+      else:
+        filtered_chains = self._chains.apply_index(kept_chain_indices)
       filtered_residues = self._residues.slice_spans(
           np.searchsorted(self._residues.chain_key, kept_keys, side='left'),
           np.searchsorted(self._residues.chain_key, kept_keys, side='right'),
