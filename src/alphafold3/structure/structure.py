@@ -384,46 +384,43 @@ class Structure(table.Database):
     self._bonds = bonds
 
     if not skip_validation:
-      self._validate_table_foreign_keys()
-      self._validate_consistent_table_ordering()
+      # Populate CachedProperty slots before `self` escapes `__init__` to avoid
+      # acquiring `thread_safe._create_lock_lock` and per-instance locks.
+      self.chain_boundaries = _get_change_indices(self._atoms.chain_key)
+      self.res_boundaries = _get_change_indices(self._atoms.res_key)
+      self._validate_tables()
 
-  def _validate_table_foreign_keys(self):
-    """Validates that all foreign keys are present in the referred tables."""
-    residue_keys = set(self._residues.key)
-    chain_keys = set(self._chains.key)
-    if np.any(membership.isin(self._atoms.res_key, residue_keys, invert=True)):
-      raise ValueError(
-          'Atom residue keys not in the residues table: '
-          f'{set(self._atoms.res_key).difference(self._residues.key)}'
-      )
-    if np.any(membership.isin(self._atoms.chain_key, chain_keys, invert=True)):
-      raise ValueError(
-          'Atom chain keys not in the chains table: '
-          f'{set(self._atoms.chain_key).difference(self._chains.key)}'
-      )
-    if np.any(
-        membership.isin(self._residues.chain_key, chain_keys, invert=True)
-    ):
+  def _validate_tables(self) -> None:
+    """Validates table foreign keys and consistent ordering."""
+    if membership.isin(
+        self._residues.chain_key, self._chains.key, invert=True
+    ).any():
       raise ValueError(
           'Residue chain keys not in the chains table: '
           f'{set(self._residues.chain_key).difference(self._chains.key)}'
       )
-
-  def _validate_consistent_table_ordering(self):
-    """Validates that all tables have the same ordering."""
-    atom_chain_keys = self._atoms.chain_key[self.chain_boundaries]
-    atom_res_keys = self._atoms.res_key[self.res_boundaries]
-
-    if not np.array_equal(self.present_chains.key, atom_chain_keys):
-      raise ValueError(
-          f'Atom table chain order\n{atom_chain_keys}\ndoes not match the '
-          f'chain table order\n{self._chains.key}'
-      )
-    if not np.array_equal(self.present_residues.key, atom_res_keys):
-      raise ValueError(
-          f'Atom table residue order\n{atom_res_keys}\ndoes not match the '
-          f'present residue table order\n{self.present_residues.key}'
-      )
+    for entity, atom_keys, table_keys in (
+        (
+            'chain',
+            self._atoms.chain_key[self.chain_boundaries],
+            self._chains.key,
+        ),
+        (
+            'residue',
+            self._atoms.res_key[self.res_boundaries],
+            self._residues.key,
+        ),
+    ):
+      present_keys = table_keys[membership.isin(table_keys, atom_keys)]
+      if not np.array_equal(present_keys, atom_keys):
+        if missing := set(atom_keys).difference(table_keys):
+          raise ValueError(
+              f'Atom {entity} keys not in the {entity}s table: {missing}'
+          )
+        raise ValueError(
+            f'Atom table {entity} order\n{atom_keys}\ndoes not match the '
+            f'present {entity} table order\n{present_keys}'
+        )
 
   def get_table(self, table_name: str) -> table.Table:
     match table_name:

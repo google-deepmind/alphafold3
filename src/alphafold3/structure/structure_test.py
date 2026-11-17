@@ -5123,6 +5123,51 @@ class StructureTest(test_utils.StructureTestCase):
         np.array([3, 7], dtype=np.int64),
     )
 
+  @parameterized.named_parameters(
+      ('missing_res_chain_key', [0, 9], [0, 1], [0, 1], 'Residue chain keys'),
+      ('missing_atom_chain_key', [0, 1], [0, 9], [0, 1], 'Atom chain keys'),
+      ('missing_atom_res_key', [0, 1], [0, 1], [0, 9], 'Atom residue keys'),
+      (
+          'reversed_atom_chains',
+          [0, 1],
+          [1, 0],
+          [1, 0],
+          'Atom table chain order',
+      ),
+      (
+          'split_atom_chains',
+          [0, 1],
+          [0, 1, 0],
+          [0, 1, 0],
+          'Atom table chain order',
+      ),
+      (
+          'reversed_atom_residues',
+          [0, 0],
+          [0, 0],
+          [1, 0],
+          'Atom table residue order',
+      ),
+  )
+  def test_init_rejects_invalid_foreign_keys_or_ordering(
+      self, res_chain_keys, atom_chain_keys, atom_res_keys, expected_error
+  ):
+    with self.assertRaisesRegex(ValueError, expected_error):
+      structure.Structure(
+          chains=structure.Chains.from_defaults(
+              id=np.array(['A', 'B'], dtype=object)
+          ),
+          residues=structure.Residues.from_defaults(
+              chain_key=np.array(res_chain_keys, dtype=np.int64),
+              id=np.array([1, 2], dtype=np.int32),
+          ),
+          atoms=structure.Atoms.from_defaults(
+              chain_key=np.array(atom_chain_keys, dtype=np.int64),
+              res_key=np.array(atom_res_keys, dtype=np.int64),
+          ),
+          bonds=structure.Bonds.make_empty(),
+      )
+
 
 if __name__ == '__main__':
   absltest.main()
