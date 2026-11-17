@@ -19,7 +19,11 @@
 
 from collections.abc import Mapping, Sequence
 from concurrent import futures
+import os
 import pickle
+import subprocess
+import sys
+import threading
 
 from absl.testing import absltest
 from absl.testing import parameterized
@@ -777,9 +781,123 @@ class CifDictTest(parameterized.TestCase):
       )
       self.assertLen(cif_dict.tokenize(cif_str), expected_tokens)
       self.assertLen(cif_dict.parse_multi_data_cif(multi_cif), 2)
+      self.assertEqual(dict(self.cif_2pv7.items()), self.cif_2pv7.to_dict())
+      self.assertCountEqual(
+          list(self.cif_2pv7.keys()), list(self.cif_2pv7.to_dict().keys())
+      )
+      self.assertLen(list(self.cif_2pv7.values()), len(self.cif_2pv7))
 
     with futures.ThreadPoolExecutor(max_workers=8) as executor:
       list(executor.map(check, range(16)))
+
+
+class CifDictFreshImportConcurrencyTest(parameterized.TestCase):
+
+  @parameterized.named_parameters(
+      ('dict_update', 'dict_update'),
+      ('keys', 'keys'),
+      ('values', 'values'),
+      ('items', 'items'),
+      ('iter', 'iter'),
+  )
+  def test_concurrent_first_iteration_in_fresh_process(self, mode: str):
+    if os.environ.get('_CIF_DICT_FRESH_SUBPROCESS') != '1':
+      env = dict(os.environ)
+      for var in (
+          'GUNIT_OUTPUT',
+          'XML_OUTPUT_FILE',
+          'TEST_XMLOUTPUTDIR',
+          'RUNNING_UNDER_TEST_DAEMON',
+          'TEST_TOTAL_SHARDS',
+          'TEST_SHARD_INDEX',
+          'TEST_SHARD_STATUS_FILE',
+          'TESTBRIDGE_TEST_ONLY',
+          'TESTBRIDGE_TEST_RUNNER_FAIL_FAST',
+      ):
+        env.pop(var, None)
+      env['_CIF_DICT_FRESH_SUBPROCESS'] = '1'
+      test_name = (
+          'CifDictFreshImportConcurrencyTest.'
+          f'test_concurrent_first_iteration_in_fresh_process_{mode}'
+      )
+      cmd = (
+          [sys.argv[0], test_name]
+          if 'TEST_SRCDIR' in os.environ or not sys.executable
+          else [sys.executable, __file__, test_name]
+      )
+      for _ in range(5):
+        completed = subprocess.run(
+            cmd,
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=30.0,
+            check=False,
+        )
+        self.assertEqual(
+            completed.returncode,
+            0,
+            msg=(
+                f'Subprocess failed for mode={mode}:\n'
+                f'{completed.stderr}\n{completed.stdout}'
+            ),
+        )
+      return
+
+    sample = cif_dict.from_string('data_x\n_a.b 1\n')
+    num_iter_threads = 8
+    num_type_lock_threads = 4
+    stop_contending = threading.Event()
+    ready_barrier = threading.Barrier(num_iter_threads + num_type_lock_threads)
+    iter_barrier = threading.Barrier(num_iter_threads)
+
+    class _ContendedType:
+      attr = 0
+
+    def contend_type_lock() -> None:
+      ready_barrier.wait(timeout=10.0)
+      i = 0
+      while not stop_contending.is_set():
+        _ContendedType.attr = i
+        i += 1
+
+    def worker(_: int) -> int:
+      ready_barrier.wait(timeout=10.0)
+      if mode == 'dict_update':
+        merged: dict[str, Sequence[str]] = {}
+        iter_barrier.wait(timeout=10.0)
+        merged.update(sample)
+        return len(merged)
+      if mode == 'keys':
+        view = sample.keys()
+        iter_barrier.wait(timeout=10.0)
+        return len(list(view))
+      if mode == 'values':
+        view = sample.values()
+        iter_barrier.wait(timeout=10.0)
+        return len(list(view))
+      if mode == 'items':
+        view = sample.items()
+        iter_barrier.wait(timeout=10.0)
+        return len(list(view))
+      iter_barrier.wait(timeout=10.0)
+      return len(list(sample))
+
+    with futures.ThreadPoolExecutor(
+        max_workers=num_iter_threads + num_type_lock_threads
+    ) as executor:
+      contenders = [
+          executor.submit(contend_type_lock)
+          for _ in range(num_type_lock_threads)
+      ]
+      try:
+        counts = list(executor.map(worker, range(num_iter_threads)))
+      finally:
+        stop_contending.set()
+        for contender in contenders:
+          contender.result()
+    self.assertEqual(counts, [len(sample)] * num_iter_threads)
 
 
 if __name__ == '__main__':

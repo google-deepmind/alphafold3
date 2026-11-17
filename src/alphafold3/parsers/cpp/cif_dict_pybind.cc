@@ -681,6 +681,22 @@ void RegisterModuleCifDict(pybind11::module m) {
       .def(
           "items", [](const CifDict& self) { return ItemView{self}; },
           "Returns an iterable view of the map's items.");
+
+  // Pre-register pybind11's module-local iterator types during single-threaded
+  // module initialization. In free-threaded Python 3.14+, lazy registration in
+  // `py::detail::make_iterator_impl` records `type_info` in
+  // `local_internals.registered_types_cpp` before `.def("__iter__", ...)` and
+  // `.def("__next__", ...)` finish setting type attributes; if `TYPE_LOCK`
+  // contends inside `type_setattro`, `_PyCriticalSection_SuspendAll` unlocks
+  // `internals.mutex` and lets concurrent threads observe a partially
+  // initialized `iterator` type (`tp_iternext == nullptr`).
+  const CifDict empty_cif_dict(CifDict::Dict{});
+  (void)py::make_iterator(empty_cif_dict.dict()->begin(),
+                          empty_cif_dict.dict()->end());
+  (void)py::make_key_iterator(empty_cif_dict.dict()->begin(),
+                              empty_cif_dict.dict()->end());
+  (void)py::make_value_iterator(empty_cif_dict.dict()->begin(),
+                                empty_cif_dict.dict()->end());
 }
 
 }  // namespace alphafold3
