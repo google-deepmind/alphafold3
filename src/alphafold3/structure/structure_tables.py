@@ -28,7 +28,6 @@ from typing import Any, ClassVar, Self
 
 from alphafold3.constants import mmcif_names
 from alphafold3.constants import residue_names
-from alphafold3.cpp import aggregation
 from alphafold3.cpp import string_array
 from alphafold3.structure import bonds as bonds_module
 from alphafold3.structure import mmcif
@@ -317,9 +316,9 @@ def to_mmcif_sequence_and_entity_tables(
 
   # Performance optimisation: Find residue indices for each chain in advance, so
   # that we don't have to do redunant masking work for each chain.
-  res_indices_for_chain = aggregation.indices_grouped_by_value(
-      residues.chain_key
-  )
+  res_indices_by_chain_key: dict[int, list[int]] = {}
+  for idx, chain_key in enumerate(residues.chain_key.tolist()):
+    res_indices_by_chain_key.setdefault(chain_key, []).append(idx)
 
   for chain in chains.iterrows():
     # Add all chain information to the _struct_asym table.
@@ -330,7 +329,7 @@ def to_mmcif_sequence_and_entity_tables(
     raw_mmcif['_struct_asym.id'].append(chain_id)
     raw_mmcif['_struct_asym.entity_id'].append(entity_id)
 
-    res_chain_indices = res_indices_for_chain[chain['key']]
+    res_chain_indices = res_indices_by_chain_key[chain['key']]
     chain_type = chain['type']
     is_polymer = chain_type in mmcif_names.POLYMER_CHAIN_TYPES
     is_water = chain_type == mmcif_names.WATER
