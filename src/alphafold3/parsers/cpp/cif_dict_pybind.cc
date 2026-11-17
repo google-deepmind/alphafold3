@@ -177,6 +177,9 @@ bool Gather(PyObject* gather, absl::Span<const std::string> values,
   return false;
 }
 
+// Max initial bucket reservation for string deduplication in ConvertStrings.
+constexpr size_t kMaxInitialStringDedupReserve = 512;
+
 // Creates a NumPy array of objects of given strings. Reusing duplicates where
 // possible.
 PyObject* ConvertStrings(PyObject* gather, PyArray_Descr* type,
@@ -184,15 +187,16 @@ PyObject* ConvertStrings(PyObject* gather, PyArray_Descr* type,
   py::object type_owner =
       py::reinterpret_steal<py::object>(reinterpret_cast<PyObject*>(type));
   absl::flat_hash_map<absl::string_view, PyObject*> existing;
-  existing.reserve(std::min<size_t>(values.size(), 64 * 1024));
   absl::string_view last_value;
   PyObject* last_obj = nullptr;
 
   PyObject* ret = nullptr;
   PyObject** dst = nullptr;
+  npy_intp total_size = 0;
   if (Gather(
           gather, values,
-          [&dst, &ret, &type_owner](absl::Span<const npy_intp> size) {
+          [&dst, &existing, &ret, &total_size,
+           &type_owner](absl::Span<const npy_intp> size) {
             ret = PyArray_NewFromDescr(
                 /*subtype=*/&PyArray_Type,
                 /*type=*/
@@ -206,11 +210,26 @@ PyObject* ConvertStrings(PyObject* gather, PyArray_Descr* type,
             if (ret == nullptr) {
               return false;
             }
-            dst = static_cast<PyObject**>(
-                PyArray_DATA(reinterpret_cast<PyArrayObject*>(ret)));
+            auto* arr = reinterpret_cast<PyArrayObject*>(ret);
+            total_size = PyArray_SIZE(arr);
+            dst = static_cast<PyObject**>(PyArray_DATA(arr));
+            if (total_size > 1) {
+              existing.reserve(std::min<size_t>(static_cast<size_t>(total_size),
+                                                kMaxInitialStringDedupReserve));
+            }
             return true;
           },
-          [&dst, &existing, &last_value, &last_obj](absl::string_view value) {
+          [&dst, &existing, &last_value, &last_obj,
+           &total_size](absl::string_view value) {
+            if (total_size <= 1) {
+              PyObject* obj =
+                  PyUnicode_FromStringAndSize(value.data(), value.size());
+              if (obj == nullptr) {
+                return false;
+              }
+              *dst++ = obj;
+              return true;
+            }
             if (last_obj != nullptr && value == last_value) {
               Py_INCREF(last_obj);
               *dst++ = last_obj;

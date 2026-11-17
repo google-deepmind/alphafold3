@@ -472,6 +472,22 @@ class CifDictTest(parameterized.TestCase):
       self.assertIs(result[1], result[3])
       self.assertIs(result[1], result[4])
 
+  @parameterized.parameters(
+      (slice(0), []),
+      (slice(1), ['CA']),
+      (slice(1, 2), ["O5'"]),
+  )
+  def test_get_array_strings_small_gather(self, gather, expected):
+    cif = cif_dict.CifDict({
+        'data_': ['name'],
+        '_counts.name': ['CA', "O5'", 'ALA'],
+    })
+    np.testing.assert_array_equal(
+        cif.get_array('_counts.name', dtype=object, gather=gather),
+        np.array(expected, dtype=object),
+        strict=True,
+    )
+
   def test_get_array_default(self):
     values = ['0', 'aaaa', 'bbb', 'aaaa', 'aaaa']
     cif = cif_dict.CifDict({
