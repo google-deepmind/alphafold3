@@ -305,6 +305,47 @@ inline PyObject* Convert(PyObject* gather, PyArray_Descr* type,
   return nullptr;
 }
 
+// Fast path for exact <=9-char fixed-point decimals; falls back to Abseil.
+template <typename T>
+bool ParseFloat(absl::string_view str, T* value) {
+  if (str == ".") {
+    *value = std::numeric_limits<T>::quiet_NaN();
+    return true;
+  }
+  const bool neg = !str.empty() && str[0] == '-';
+  const absl::string_view body = neg ? str.substr(1) : str;
+  if (!body.empty() && body.size() <= 9 && body != ".") {
+    uint32_t mantissa = 0;
+    size_t dot_tail = 0;
+    size_t i = 0;
+    for (; i < body.size(); ++i) {
+      if (const uint32_t digit = static_cast<uint8_t>(body[i]) - uint32_t{'0'};
+          digit <= 9) {
+        mantissa = mantissa * 10 + digit;
+      } else if (body[i] == '.' && dot_tail == 0) {
+        dot_tail = body.size() - i;
+      } else {
+        break;
+      }
+    }
+    if (i == body.size() &&
+        (std::is_same_v<T, double> ||
+         mantissa <= (uint32_t{1} << std::numeric_limits<float>::digits))) {
+      // Index 0 = integer, 1 = trailing '.', k = k - 1 fractional digits.
+      static constexpr T kPow10[] = {1,   1,   10,  1e2, 1e3,
+                                     1e4, 1e5, 1e6, 1e7, 1e8};
+      const T abs_val = static_cast<T>(mantissa) / kPow10[dot_tail];
+      *value = neg ? -abs_val : abs_val;
+      return true;
+    }
+  }
+  if constexpr (std::is_same_v<T, float>) {
+    return absl::SimpleAtof(str, value);
+  } else {
+    return absl::SimpleAtod(str, value);
+  }
+}
+
 PyObject* CifDictGetArray(const CifDict& self, absl::string_view key,
                           PyObject* dtype, PyObject* gather) {
   PyArray_Descr* type = nullptr;
@@ -322,6 +363,10 @@ PyObject* CifDictGetArray(const CifDict& self, absl::string_view key,
     PyErr_SetObject(PyExc_KeyError, key_obj.ptr());
     return nullptr;
   }
+
+  auto float_convert = [](absl::string_view str, auto* value) {
+    return ParseFloat(str, value);
+  };
 
   auto int_convert = [](absl::string_view str, auto* value) {
     return absl::SimpleAtoi(str, value);
@@ -344,23 +389,9 @@ PyObject* CifDictGetArray(const CifDict& self, absl::string_view key,
 
   switch (type->type_num) {
     case NPY_DOUBLE:
-      return Convert<double>(
-          gather, type, values, [](absl::string_view str, double* value) {
-            if (str == ".") {
-              *value = std::numeric_limits<double>::quiet_NaN();
-              return true;
-            }
-            return absl::SimpleAtod(str, value);
-          });
+      return Convert<double>(gather, type, values, float_convert);
     case NPY_FLOAT:
-      return Convert<float>(
-          gather, type, values, [](absl::string_view str, float* value) {
-            if (str == ".") {
-              *value = std::numeric_limits<float>::quiet_NaN();
-              return true;
-            }
-            return absl::SimpleAtof(str, value);
-          });
+      return Convert<float>(gather, type, values, float_convert);
     case NPY_INT8:
       return Convert<int8_t>(gather, type, values, int_convert_bounded);
     case NPY_INT16:

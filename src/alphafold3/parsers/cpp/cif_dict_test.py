@@ -509,7 +509,12 @@ class CifDictTest(parameterized.TestCase):
       (np.uint32, '4294967295', '-1'),
       (bool, 'yes', 'YeS!'),
       (np.float32, '0.5', '1e0.1'),
+      (np.float32, '0.5', '-.'),
+      (np.float32, '0.5', '-'),
+      (np.float32, '0.5', ''),
       (np.float64, '1.79e+308', '1e0.1'),
+      (np.float64, '1.79e+308', '1.2.3'),
+      (np.float64, '1.79e+308', '1..'),
   )
   def test_get_array_invalid_value(self, dtype, valid_value, invalid_value):
     cif = cif_dict.CifDict({
@@ -536,6 +541,20 @@ class CifDictTest(parameterized.TestCase):
 
     with self.assertRaisesWithLiteralMatch(ValueError, invalid_value):
       cif.get_array('_counts.invalidmiddle', dtype=dtype)
+
+  @parameterized.parameters(np.float32, np.float64)
+  def test_get_array_float_edge_cases(self, dtype):
+    values = [
+        *'-0.0 .5 5. .12345678 +12.345 -123.456 0.12345678901'.split(),
+        *'16777216 16777217 999999999 9999999999999999999 1e-5 inf'.split(),
+        ' 1.5 ',
+    ]
+    cif = cif_dict.CifDict({'data_': ['name'], '_counts.vals': values})
+    result = cif.get_array('_counts.vals', dtype=dtype)
+    np.testing.assert_array_equal(
+        result, np.array(values, dtype=dtype), strict=True
+    )
+    self.assertEqual(np.copysign(1.0, result[0]), -1.0)
 
   @parameterized.parameters(np.float32, np.float64)
   def test_get_array_missing_values(self, dtype):
