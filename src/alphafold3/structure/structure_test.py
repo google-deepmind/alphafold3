@@ -3568,6 +3568,51 @@ class StructureTest(test_utils.StructureTestCase):
             residue_atoms[0]['atom_x'].shape, exp_shape, msg=residue_atoms[0]
         )
 
+  @parameterized.named_parameters(
+      (
+          'leading_chain_with_missing',
+          {'B', 'C'},
+          True,
+          [[], [], ['SER'], ['VAL'], ['LEU'], ['MET']],
+      ),
+      (
+          'leading_chain_without_missing',
+          {'B', 'C'},
+          False,
+          [['SER'], ['VAL'], ['LEU'], ['MET']],
+      ),
+      (
+          'middle_chain_with_missing',
+          {'A', 'C'},
+          True,
+          [['ALA'], ['GLY'], [], [], ['LEU'], ['MET']],
+      ),
+      (
+          'middle_chain_without_missing',
+          {'A', 'C'},
+          False,
+          [['ALA'], ['GLY'], ['LEU'], ['MET']],
+      ),
+      ('no_atoms_with_missing', set(), True, [[], [], [], [], [], []]),
+      ('no_atoms_without_missing', set(), False, []),
+  )
+  def test_to_res_atom_lists_unresolved_atoms(
+      self, keep_chains, include_missing_residues, expected_res_names
+  ):
+    struc = self.make_test_structure(
+        chain_id=np.array(['A', 'A', 'B', 'B', 'C', 'C'], dtype=object),
+        res_id=np.array([1, 2, 1, 2, 1, 2], dtype=np.int32),
+        res_name=np.array(
+            ['ALA', 'GLY', 'SER', 'VAL', 'LEU', 'MET'], dtype=object
+        ),
+    )
+    res_lists = struc.filter(
+        chain_id=keep_chains, cascade_delete=structure.CascadeDelete.NONE
+    ).to_res_atom_lists(include_missing_residues=include_missing_residues)
+    self.assertEqual(
+        [[a['res_name'] for a in r] for r in res_lists], expected_res_names
+    )
+
   @parameterized.product(
       pdb_id_model_id=(
           ('2pv7', structure.ModelID.FIRST),
@@ -4190,6 +4235,41 @@ class StructureTest(test_utils.StructureTestCase):
         )
     ]
     self.assertSequenceEqual(res_idxs, [1, 2, 4, 10, 11, 12, 13, 13, 14])
+
+  @parameterized.named_parameters(
+      ('leading_unresolved', {'B', 'C'}, [2, 3, 4, 5]),
+      ('middle_unresolved', {'A', 'C'}, [0, 1, 4, 5]),
+      ('all_unresolved', set(), []),
+  )
+  def test_enumerate_atoms_with_unresolved_chains(
+      self, keep_chains, expected_res_idxs
+  ):
+    struc = self.make_test_structure(
+        chain_id=np.array(['A', 'A', 'B', 'B', 'C', 'C'], dtype=object),
+        res_id=np.array([1, 2, 1, 2, 1, 2], dtype=np.int32),
+    )
+    filtered = struc.filter(
+        chain_id=keep_chains, cascade_delete=structure.CascadeDelete.NONE
+    )
+    res_idxs = [
+        resi
+        for resi, _ in structure.enumerate_residues(
+            filtered.iter_atoms(), all_residues=filtered.all_residues
+        )
+    ]
+    self.assertSequenceEqual(res_idxs, expected_res_idxs)
+
+  @parameterized.named_parameters(
+      ('missing_chain', [{'chain_id': 'Z', 'res_id': 1}]),
+      (
+          'out_of_order_chains',
+          [{'chain_id': 'B', 'res_id': 1}, {'chain_id': 'A', 'res_id': 1}],
+      ),
+  )
+  def test_enumerate_atoms_invalid_chain_raises(self, atoms):
+    all_residues = {'A': [('ALA', 1)], 'B': [('GLY', 1)]}
+    with self.assertRaisesRegex(ValueError, 'does not belong to a residue'):
+      list(structure.enumerate_residues(atoms, all_residues=all_residues))
 
   @parameterized.parameters(
       dict(all_res={'A': [1, 2, 3, 5]}),

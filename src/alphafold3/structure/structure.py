@@ -3525,9 +3525,10 @@ def enumerate_residues(
 
   Args:
     atom_iter: An iterable of atom dicts as returned by Structure.iter_atoms().
-    all_residues: (Optional) A structure's all_residues field. If present then
-      this will be used to count missing residues by adding appropriate gaps in
-      the residue enumeration.
+    all_residues: (Optional) A structure's all_residues field. If present, res_i
+      is the residue's index in the concatenation of all chains in all_residues,
+      so unresolved residues and fully unresolved chains leave gaps. Atoms must
+      follow all_residues chain and residue order.
 
   Yields:
     (res_i, atom) pairs where atom is the unmodified atom dict and res_i is a
@@ -3544,20 +3545,11 @@ def enumerate_residues(
       yield res_i, atom
   else:
     all_res_seq = []  # Sequence of (chain_id, res_id) for all chains.
-    prev_chain = None
+    for chain_id, residues in all_residues.items():
+      all_res_seq.extend((chain_id, res_id) for _, res_id in residues)
     res_i = 0
     for atom in atom_iter:
-      chain_id = atom['chain_id']
-      if chain_id not in all_residues:
-        raise ValueError(
-            f'Atom {atom} does not belong to any residue in all_residues.'
-        )
-      if chain_id != prev_chain:
-        prev_chain = chain_id
-        all_res_seq.extend(
-            (chain_id, res_id) for (_, res_id) in all_residues[chain_id]
-        )
-      res = (chain_id, atom['res_id'])
+      res = (atom['chain_id'], atom['res_id'])
       while res_i < len(all_res_seq) and res != all_res_seq[res_i]:
         res_i += 1
       if res_i == len(all_res_seq):
