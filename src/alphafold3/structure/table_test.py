@@ -18,7 +18,9 @@
 # https://github.com/google-deepmind/alphafold3/blob/main/WEIGHTS_TERMS_OF_USE.md
 
 from collections.abc import Collection, Mapping
+from concurrent import futures
 import dataclasses
+import threading
 from typing import Any, ClassVar, Final, Self
 
 from absl.testing import absltest
@@ -877,6 +879,30 @@ class TableTest(parameterized.TestCase):
     )
     self.assertFalse(gathered.data.flags.writeable)
     self.assertNotIn('items', tbl.__dict__)
+
+  def test_concurrent_copy_and_update_on_shared_immutable_columns(self):
+    shared = TwoColTable(
+        key=np.arange(8, dtype=np.int64),
+        data=np.array(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'], dtype=object),
+        ints=np.arange(8, dtype=np.int32),
+    )
+    num_threads = 16
+    barrier = threading.Barrier(num_threads)
+
+    def _worker(tid: int) -> int:
+      barrier.wait(timeout=10.0)
+      total = 0
+      for step in range(25):
+        updated = shared.copy_and_update(
+            ints=np.full(8, tid + step, dtype=np.int32)
+        )
+        rebuilt = TwoColTable._from_validated_columns(updated.items.items())
+        total += int(rebuilt.ints[0]) + int(rebuilt.key.flags.writeable)
+      return total
+
+    with futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
+      totals = list(executor.map(_worker, range(num_threads)))
+    self.assertLen(totals, num_threads)
 
 
 @dataclasses.dataclass(frozen=True)

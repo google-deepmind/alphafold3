@@ -173,13 +173,15 @@ class Table:
             f'All columns should have length {self.size} but got "{col_name}"'
             f' with length {col_len}.'
         )
-      column.flags.writeable = False  # Make col immutable.
+      if column.flags.writeable:
+        column.flags.writeable = False  # Make col immutable.
     if self.key.size and self.key.min() < 0:
       raise ValueError(
           'Key values must be non-negative. Got negative values:'
           f' {set(self.key[self.key < 0])}'
       )
-    self.key.flags.writeable = False  # Make key immutable.
+    if self.key.flags.writeable:
+      self.key.flags.writeable = False  # Make key immutable.
 
   @classmethod
   def _from_validated_columns(
@@ -200,7 +202,8 @@ class Table:
     """
     instance = cls.__new__(cls)
     for col_name, col in columns:
-      col.flags.writeable = False
+      if col.flags.writeable:
+        col.flags.writeable = False
       object.__setattr__(instance, col_name, col)
     return instance
 
