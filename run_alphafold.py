@@ -46,6 +46,7 @@ from typing import overload
 from absl import app
 from absl import flags
 from alphafold3.common import folding_input
+from alphafold3.common import input_preflight
 from alphafold3.common import resources
 from alphafold3.constants import chemical_components
 import alphafold3.cpp
@@ -90,7 +91,8 @@ _INPUT_DIR = epath.DEFINE_path(
 _OUTPUT_DIR = epath.DEFINE_path(
     'output_dir',
     None,
-    'Path to a directory where the results will be saved.',
+    'Path to a directory where the results will be saved. Required unless'
+    ' --validate_input_only is set.',
 )
 MODEL_DIR = epath.DEFINE_path(
     'model_dir',
@@ -108,6 +110,13 @@ _RUN_INFERENCE = flags.DEFINE_bool(
     'run_inference',
     True,
     'Whether to run inference on the fold inputs.',
+)
+_VALIDATE_INPUT_ONLY = flags.DEFINE_bool(
+    'validate_input_only',
+    False,
+    'Load and validate input JSON, print a short summary, and exit. Does not'
+    ' run the data pipeline or inference and does not write a prediction'
+    ' output directory. --output_dir is not required in this mode.',
 )
 
 # Binary paths.
@@ -911,15 +920,54 @@ def process_fold_input(
   return output
 
 
-def main(_):
-  if _JAX_COMPILATION_CACHE_DIR.value is not None:
-    jax.config.update(
-        'jax_compilation_cache_dir', _JAX_COMPILATION_CACHE_DIR.value
-    )
+def _iter_fold_inputs_with_sources():
+  """Yields `(json_path, fold_input)` using the same loaders as a normal run."""
+  if _INPUT_DIR.value is not None:
+    input_dir = epath.Path(_INPUT_DIR.value)
+    for file_path in sorted(input_dir.glob('*.json')):
+      if not file_path.is_file():
+        continue
+      for fold_input in folding_input.load_fold_inputs_from_path(file_path):
+        yield file_path, fold_input
+  else:
+    json_path = epath.Path(_JSON_PATH.value)
+    for fold_input in folding_input.load_fold_inputs_from_path(json_path):
+      yield json_path, fold_input
 
+
+def _run_input_preflight() -> None:
+  """Validates every input and prints a summary. Does not write outputs."""
+  num_jobs = 0
+  for source, fold_input in _iter_fold_inputs_with_sources():
+    if _NUM_SEEDS.value is not None:
+      print(
+          f'Expanding fold job {fold_input.name} to {_NUM_SEEDS.value} seeds'
+      )
+      fold_input = fold_input.with_multiple_seeds(_NUM_SEEDS.value)
+    summary = input_preflight.preflight_fold_input(fold_input, str(source))
+    # Inference without the data pipeline requires MSA and templates to already
+    # be present. Use the same check featurisation uses.
+    if not _RUN_DATA_PIPELINE.value:
+      featurisation.validate_fold_input(fold_input)
+    print(summary)
+    print()
+    num_jobs += 1
+  print(f'Validated {num_jobs} fold job(s).')
+
+
+def main(_):
   if (_JSON_PATH.value is None) == (_INPUT_DIR.value is None):
     raise ValueError(
         'Exactly one of --json_path or --input_dir must be specified.'
+    )
+
+  if _VALIDATE_INPUT_ONLY.value:
+    _run_input_preflight()
+    return
+
+  if _JAX_COMPILATION_CACHE_DIR.value is not None:
+    jax.config.update(
+        'jax_compilation_cache_dir', _JAX_COMPILATION_CACHE_DIR.value
     )
 
   if not _RUN_INFERENCE.value and not _RUN_DATA_PIPELINE.value:
@@ -1098,5 +1146,4 @@ def main(_):
 
 
 if __name__ == '__main__':
-  flags.mark_flags_as_required(['output_dir'])
   app.run(main)

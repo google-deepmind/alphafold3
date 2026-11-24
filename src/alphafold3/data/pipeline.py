@@ -27,6 +27,7 @@ import logging
 import time
 
 from alphafold3.common import folding_input
+from alphafold3.common import input_preflight
 from alphafold3.constants import mmcif_names
 from alphafold3.data import msa
 from alphafold3.data import msa_config
@@ -471,11 +472,15 @@ class DataPipeline:
       self, chain: folding_input.ProteinChain
   ) -> folding_input.ProteinChain:
     """Processes a single protein chain."""
-    has_unpaired_msa = chain.unpaired_msa is not None
-    has_paired_msa = chain.paired_msa is not None
+    status = input_preflight.protein_input_status(
+        chain.id, chain.unpaired_msa, chain.paired_msa, chain.templates
+    )
     has_templates = chain.templates is not None
 
-    if not has_unpaired_msa and not has_paired_msa and not chain.templates:
+    if status in (
+        input_preflight.ProteinInputStatus.SEARCH_MSA_AND_TEMPLATES,
+        input_preflight.ProteinInputStatus.SEARCH_MSA,
+    ):
       # MSA None - search. Templates either [] - don't search, or None - search.
       unpaired_msa, paired_msa, template_hits = _get_protein_msa_and_templates(
           sequence=chain.sequence,
@@ -496,7 +501,7 @@ class DataPipeline:
           )
           for hit, struc in template_hits.get_hits_with_structures()
       ]
-    elif has_unpaired_msa and has_paired_msa and not has_templates:
+    elif status is input_preflight.ProteinInputStatus.SEARCH_TEMPLATES:
       # Has MSA, but doesn't have templates. Search for templates only.
       empty_msa = msa.Msa.from_empty(
           query_sequence=chain.sequence,
@@ -520,14 +525,6 @@ class DataPipeline:
       ]
     else:
       # Has MSA and templates, don't search for anything.
-      if not has_unpaired_msa or not has_paired_msa or not has_templates:
-        raise ValueError(
-            f'Protein chain {chain.id} has unpaired MSA, paired MSA, or'
-            ' templates set only partially. If you want to run the pipeline'
-            ' with custom MSA/templates, you need to set all of them. You can'
-            ' set MSA to empty string and templates to empty list to signify'
-            ' that they should not be used and searched for.'
-        )
       logging.info(
           'Skipping MSA and template search for protein chain %s because it '
           'already has MSAs and templates.',

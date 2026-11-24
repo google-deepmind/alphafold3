@@ -14,6 +14,17 @@ You can provide inputs to `run_alphafold.py` in one of two ways:
 -   Multiple input files: Use the `--input_dir` flag followed by the path to a
     directory of JSON files. This path can be either a local directory path or a
     GCS path, if enabled.
+-   Input preflight: add `--validate_input_only` to either of the commands
+    above. AlphaFold 3 parses the same JSON, applies the same MSA/template
+    field rules as the data pipeline, checks supplied A3M and template mmCIF
+    records the same way featurisation does, and resolves user-named CCD codes
+    against the local chemical component dictionary when that file is present.
+    It prints one summary per job and exits. It does not search databases, run
+    inference, or create the prediction output directory, so `--output_dir` can
+    be omitted. `--num_seeds`, when set, is checked the same way as a normal
+    run. Passing `--run_data_pipeline=false` also requires MSA and template
+    fields to already be present, because inference will not fill them in. A
+    bad input raises the same validation error as a normal run.
 -   Within an input file, fields with names ending in `Path` (e.g.
     `pairedMsaPath`) can be provided as Google Cloud Storage paths, if enabled.
 

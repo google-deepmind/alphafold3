@@ -97,6 +97,11 @@ control which parts AlphaFold 3 will run are:
     consuming and could be run on a machine without a GPU.
 *   `--run_inference` (defaults to `true`): whether to run the inference. This
     part requires a GPU.
+*   `--validate_input_only` (defaults to `false`): load and validate the input
+    JSON, print a short summary, and exit. This does not run the data pipeline
+    or inference, and it does not write a prediction output directory.
+    `--output_dir` is not required. Use it to catch input problems before
+    allocating a GPU or starting a database search.
 
 ## AlphaFold 3 Input
 

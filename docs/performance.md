@@ -16,6 +16,13 @@ utilisation. This can be useful for:
     JSONs. By doing this, the MSA and template search need to be run just 4
     times (once for each chain), instead of 12 times.
 
+### Checking inputs before either stage
+
+`--validate_input_only` checks the JSON and exits before either stage. It does
+not write an output directory. A normal run must leave at least one of
+`--run_data_pipeline` or `--run_inference` enabled; use the preflight flag
+when the goal is only to validate inputs.
+
 ### Data Pipeline Only
 
 Launch `run_alphafold.py` with `--run_inference=false` to generate Multiple
