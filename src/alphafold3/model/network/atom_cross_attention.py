@@ -276,6 +276,14 @@ def atom_cross_att_encoder(
       queries_ref_pos,
       layout_axes=(-3, -2),
   )
+  # NOTE(#730): batch.ref_structure.ref_space_uid is in token layout
+  # (num_tokens, num_dense) here, while queries_to_keys indexes the queries
+  # flat space (num_subsets, num_queries), so the gathered keys_ref_space_uid
+  # values -- and hence offsets_valid below -- are not meaningful (in practice
+  # almost all False). The two-step token -> queries -> keys conversion used
+  # for keys_ref_pos above would be the correct pattern, but this is left
+  # as-is intentionally: the model was trained with this conversion, and
+  # changing it without retraining could deteriorate performance.
   keys_ref_space_uid = atom_layout.convert(
       batch.atom_cross_att.queries_to_keys,
       batch.ref_structure.ref_space_uid,
