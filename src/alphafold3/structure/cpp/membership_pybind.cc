@@ -96,11 +96,11 @@ py::array_t<bool> IsInObjectSet(const py::array& array, PyObject* set_ptr,
   auto result = NewBoolCArray(contig);
   bool* out = result.mutable_data();
   PyObject* const* vals = contig.data();
-  py::object prev_val;
+  PyObject* prev_val = nullptr;
   bool prev_out = invert;
   for (size_t i = 0, n = contig.size(); i < n; ++i) {
-    if (PyObject* val = vals[i]; val != prev_val.ptr()) {
-      prev_val = py::reinterpret_borrow<py::object>(val);
+    if (PyObject* val = vals[i]; val != prev_val) {
+      prev_val = val;
       if (val == nullptr) {
         prev_out = invert;
       } else {
