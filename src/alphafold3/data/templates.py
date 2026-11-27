@@ -983,6 +983,7 @@ def run_hmmsearch_with_a3m(
       dom_e=hmmsearch_config.dom_e,
       incdom_e=hmmsearch_config.incdom_e,
       alphabet=hmmsearch_config.alphabet,
+      n_cpu=hmmsearch_config.n_cpu,
       filter_f1=hmmsearch_config.filter_f1,
       filter_f2=hmmsearch_config.filter_f2,
       filter_f3=hmmsearch_config.filter_f3,
